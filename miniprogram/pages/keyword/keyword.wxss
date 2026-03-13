@@ -1,0 +1,173 @@
+/* pages/keyword/keyword.wxss */
+page {
+  background-color: #16213e;
+  color: #ffffff;
+}
+
+.container {
+  padding: 30rpx;
+  min-height: 100vh;
+}
+
+/* 搜索框 */
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 30rpx;
+}
+
+.search-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: #1f2b4d;
+  border-radius: 50rpx;
+  padding: 20rpx 28rpx;
+  border: 2rpx solid rgba(233, 69, 96, 0.2);
+}
+
+.search-icon {
+  font-size: 32rpx;
+  margin-right: 16rpx;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #fff;
+}
+
+.search-placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.search-btn {
+  padding: 20rpx 36rpx;
+  background: linear-gradient(135deg, #e94560 0%, #c73e54 100%);
+  border-radius: 50rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #fff;
+}
+
+/* 关键词列表 */
+.keyword-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.keyword-item {
+  background: rgba(31, 43, 77, 0.6);
+  border-radius: 16rpx;
+  padding: 24rpx;
+  border-left: 6rpx solid #e94560;
+}
+
+.keyword-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #fff;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.keyword-desc {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.7);
+  display: block;
+  line-height: 1.5;
+}
+
+/* 关键词详情 */
+.keyword-detail {
+  margin-top: 20rpx;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.back-btn {
+  padding: 12rpx 24rpx;
+  background: rgba(233, 69, 96, 0.2);
+  border-radius: 30rpx;
+  margin-right: 20rpx;
+}
+
+.back-btn text {
+  font-size: 26rpx;
+  color: #e94560;
+}
+
+.detail-title {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #e94560;
+}
+
+.detail-section {
+  background: rgba(31, 43, 77, 0.6);
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.section-label {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.6);
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.section-content {
+  font-size: 28rpx;
+  color: #fff;
+  line-height: 1.7;
+  display: block;
+}
+
+.example-list {
+  margin-top: 12rpx;
+}
+
+.example-item {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12rpx;
+  padding: 16rpx;
+  margin-bottom: 12rpx;
+}
+
+.example-text {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.8);
+  font-style: italic;
+}
+
+/* 空状态 */
+.empty-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100rpx 0;
+}
+
+.empty-icon {
+  font-size: 100rpx;
+  opacity: 0.5;
+  margin-bottom: 30rpx;
+}
+
+.empty-text {
+  font-size: 30rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.empty-hint2 {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 16rpx;
+}

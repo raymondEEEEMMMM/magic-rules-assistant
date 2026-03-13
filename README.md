@@ -47,7 +47,16 @@ cbworkplace/
 ├── data/                # 数据目录
 │   └── magic_rules.db   # 规则数据库
 ├── docs/                # 文档
-├── test_first_stage.py  # 测试脚本
+├── tests/               # 测试目录
+│   ├── unit/           # 单元测试
+│   ├── integration/    # 集成测试
+│   ├── cloud/          # 云函数测试
+│   └── utils/          # 测试工具
+├── deployment/         # 部署相关
+│   ├── scripts/        # 部署脚本
+│   ├── docker/         # Docker 配置
+│   └── docs/           # 部署文档
+├── functions/           # CloudBase云函数
 ├── start.sh            # 启动脚本
 ├── requirements.txt    # 依赖列表
 └── README.md
@@ -84,7 +93,7 @@ python backend/init_data.py
 ### 5. 启动服务
 ```bash
 # 方式一：使用启动脚本（自动激活虚拟环境）
-./start.sh
+bash deployment/scripts/start.sh
 
 # 方式二：手动启动
 source venv/bin/activate  # 激活虚拟环境
@@ -93,17 +102,25 @@ python backend/main.py
 
 ### 6. 测试功能
 ```bash
-# 运行测试脚本
-python test_first_stage.py
+# 运行测试脚本（查看tests/目录获取完整列表）
+python tests/integration/test_first_stage.py
 
 # 测试卡牌查询
-python test_card_service.py
+python tests/integration/test_card_service.py
+
+# 测试MTGCH API
+python tests/integration/test_mtgch_api.py
+
+# 测试云函数
+python tests/cloud/test_cloud_mtgch_correct.py
 
 # 或测试 API 端点
 curl 'http://localhost:8000/api/search?q=飞行'
 curl 'http://localhost:8000/api/card?n=黑莲花'
 curl 'http://localhost:8000/api/keyword?k=践踏'
 ```
+
+详见 [测试文档](./tests/README.md)
 
 ## 📡 API 端点
 

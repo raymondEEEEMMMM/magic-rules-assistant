@@ -15,10 +15,17 @@ class Config:
     OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
 
     # 数据库配置
-    DATABASE_PATH = os.getenv("DATABASE_PATH", "../data/magic_rules.db")
+    DATABASE_PATH = os.getenv("DATABASE_PATH", "./data/magic_rules.db")
 
     # API配置
     API_HOST = os.getenv("API_HOST", "0.0.0.0")
     API_PORT = int(os.getenv("API_PORT", "8000"))
 
 config = Config()
+{
+  "envId": "magic-rules-assistant-0a1904c329",
+  "envVariables": {
+    "WECHAT_TOKEN": "你的微信Token",
+    "OPENAI_API_KEY": "你的OpenAI密钥（如果使用）"
+  }
+}

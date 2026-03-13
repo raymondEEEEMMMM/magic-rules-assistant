@@ -1,0 +1,9 @@
+# CloudBase HTTP Cloud Function Dependencies
+# Python 3.10 runtime
+
+# MTGCH API client
+requests==2.31.0
+urllib3==2.0.7
+
+# Config dependencies
+python-dotenv==1.0.0

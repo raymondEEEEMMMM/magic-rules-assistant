@@ -1,0 +1,124 @@
+<!--pages/card/card.wxml-->
+<view class="container">
+  <!-- 搜索框 -->
+  <view class="search-box">
+    <view class="search-input-wrapper">
+      <text class="search-icon">🃏</text>
+      <input 
+        class="search-input" 
+        placeholder="输入卡牌名称..." 
+        placeholder-class="search-placeholder"
+        bindinput="onInput"
+        bindconfirm="onSearch"
+        confirm-type="search"
+      />
+    </view>
+    <view class="search-btn" bindtap="onSearch">查询</view>
+  </view>
+
+  <!-- 卡牌搜索结果 -->
+  <view class="card-list" wx:if="{{cards.length > 0}}">
+    <view 
+      class="card-item" 
+      wx:for="{{cards}}" 
+      wx:key="id"
+      bindtap="showCardDetail" 
+      data-card="{{item}}"
+    >
+      <!-- 卡牌图片 -->
+      <image 
+        class="card-image" 
+        src="{{item.image_url || 'https://via.placeholder.com/150x210/1a1a2e/e94560?text=' + item.name}}" 
+        mode="aspectFill"
+      />
+      <!-- 卡牌信息 -->
+      <view class="card-info">
+        <text class="card-name">{{item.name}}</text>
+        <text class="card-type">{{item.type_line}}</text>
+        <view class="card-meta">
+          <text class="card-mana" wx:if="{{item.mana_cost}}">{{item.mana_cost}}</text>
+          <text class="card-rarity {{item.rarity}}">{{item.rarity}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 无结果 -->
+  <view class="no-results" wx:if="{{searchDone && cards.length === 0 && keyword}}">
+    <text class="no-results-icon">🃏</text>
+    <text class="no-results-text">未找到卡牌「{{keyword}}」</text>
+    <text class="no-results-hint">请检查卡牌名称是否正确</text>
+  </view>
+
+  <!-- 初始提示 -->
+  <view class="init-hint" wx:if="{{!keyword && cards.length === 0}}">
+    <text class="hint-icon">🔍</text>
+    <text class="hint-text">输入卡牌名称查询详细信息</text>
+    <text class="hint-examples">例如：闪电击、析米克生长师、心神不安</text>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+  </view>
+</view>
+
+<!-- 卡牌详情弹窗 -->
+<view class="card-detail-modal" wx:if="{{showDetail}}" bindtap="closeDetail">
+  <view class="detail-content" catchtap="preventClose">
+    <view class="detail-close" bindtap="closeDetail">✕</view>
+    
+    <!-- 卡牌图片 -->
+    <image 
+      class="detail-image" 
+      src="{{currentCard.image_url || 'https://via.placeholder.com/200x280/1a1a2e/e94560?text=' + currentCard.name}}" 
+      mode="aspectFit"
+    />
+    
+    <!-- 卡牌信息 -->
+    <view class="detail-info">
+      <text class="detail-name">{{currentCard.name}}</text>
+      <text class="detail-name-en" wx:if="{{currentCard.name_en}}">{{currentCard.name_en}}</text>
+      
+      <view class="detail-row">
+        <text class="detail-label">法力费用</text>
+        <text class="detail-value">{{currentCard.mana_cost || '-'}}</text>
+      </view>
+      
+      <view class="detail-row">
+        <text class="detail-label">类型</text>
+        <text class="detail-value">{{currentCard.type_line || '-'}}</text>
+      </view>
+      
+      <view class="detail-row">
+        <text class="detail-label">稀有度</text>
+        <text class="detail-value rarity {{currentCard.rarity}}">{{currentCard.rarity}}</text>
+      </view>
+      
+      <view class="detail-section" wx:if="{{currentCard.oracle_text}}">
+        <text class="detail-section-title">规则文本</text>
+        <text class="detail-oracle">{{currentCard.oracle_text}}</text>
+      </view>
+      
+      <view class="detail-section" wx:if="{{currentCard.flavor_text}}">
+        <text class="detail-section-title">背景叙述</text>
+        <text class="detail-flavor">{{currentCard.flavor_text}}</text>
+      </view>
+      
+      <view class="detail-row" wx:if="{{currentCard.power}}">
+        <text class="detail-label">力量/防御</text>
+        <text class="detail-value">{{currentCard.power}}/{{currentCard.toughness}}</text>
+      </view>
+      
+      <view class="detail-row" wx:if="{{currentCard.loyalty}}">
+        <text class="detail-label">忠诚度</text>
+        <text class="detail-value">{{currentCard.loyalty}}</text>
+      </view>
+      
+      <view class="detail-row" wx:if="{{currentCard.set_code}}">
+        <text class="detail-label">系列编号</text>
+        <text class="detail-value">{{currentCard.set_code}} #{{currentCard.collector_number}}</text>
+      </view>
+    </view>
+  </view>
+</view>

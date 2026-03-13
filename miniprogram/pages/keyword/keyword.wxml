@@ -1,0 +1,69 @@
+<!--pages/keyword/keyword.wxml-->
+<view class="container">
+  <!-- 搜索框 -->
+  <view class="search-box">
+    <view class="search-input-wrapper">
+      <text class="search-icon">📖</text>
+      <input 
+        class="search-input" 
+        placeholder="输入关键词查询..." 
+        placeholder-class="search-placeholder"
+        bindinput="onInput"
+        bindconfirm="onSearch"
+        confirm-type="search"
+        value="{{keyword}}"
+      />
+    </view>
+    <view class="search-btn" bindtap="onSearch">查询</view>
+  </view>
+
+  <!-- 关键词列表 -->
+  <view class="keyword-list" wx:if="{{!keywordDetail && keywords.length > 0}}">
+    <view 
+      class="keyword-item" 
+      wx:for="{{keywords}}" 
+      wx:key="keyword_name"
+      bindtap="viewKeyword" 
+      data-keyword="{{item.keyword_name}}"
+    >
+      <text class="keyword-name">{{item.keyword_name}}</text>
+      <text class="keyword-desc">{{item.description}}</text>
+    </view>
+  </view>
+
+  <!-- 关键词详情 -->
+  <view class="keyword-detail" wx:if="{{keywordDetail}}">
+    <view class="detail-header">
+      <view class="back-btn" bindtap="goBack">
+        <text>← 返回</text>
+      </view>
+      <text class="detail-title">{{keywordDetail.keyword_name}}</text>
+    </view>
+
+    <view class="detail-section">
+      <text class="section-label">简要说明</text>
+      <text class="section-content">{{keywordDetail.description}}</text>
+    </view>
+
+    <view class="detail-section" wx:if="{{keywordDetail.full_text}}">
+      <text class="section-label">完整规则</text>
+      <text class="section-content">{{keywordDetail.full_text}}</text>
+    </view>
+
+    <view class="detail-section" wx:if="{{keywordDetail.examples && keywordDetail.examples.length > 0}}">
+      <text class="section-label">示例</text>
+      <view class="example-list">
+        <view class="example-item" wx:for="{{keywordDetail.examples}}" wx:key="index">
+          <text class="example-text">{{item}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 初始/无结果提示 -->
+  <view class="empty-hint" wx:if="{{!keywordDetail && searchDone && keywords.length === 0 && keyword}}">
+    <text class="empty-icon">📖</text>
+    <text class="empty-text">未找到关键词「{{keyword}}」</text>
+    <text class="empty-hint2">试试其他常用关键词</text>
+  </view>
+</view>
