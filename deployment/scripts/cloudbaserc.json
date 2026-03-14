@@ -4,10 +4,10 @@
   "$schema": "https://framework-1258016615.tcloudbaseapp.com/schema/latest.json",
   "functions": [
     {
-      "name": "magic-rules-api",
+      "name": "mtgAsk",
       "description": "万智牌规则问答 API",
       "runtime": "Python3.10",
-      "handler": "scf_index.main_handler",
+      "handler": "index.main_handler",
       "timeout": 60,
       "memorySize": 512,
       "envVariables": {
