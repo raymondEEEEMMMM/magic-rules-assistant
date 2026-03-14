@@ -1,0 +1,106 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- 顶部Banner -->
+  <view class="banner">
+    <view class="banner-content">
+      <text class="banner-title">mtgAsk</text>
+      <text class="banner-subtitle">Magic: The Gathering Rules Assistant</text>
+    </view>
+    <view class="banner-decoration"></view>
+  </view>
+
+  <!-- 快速功能入口 -->
+  <view class="quick-actions">
+    <view class="section-title">快速入口</view>
+    <view class="action-grid">
+      <view class="action-card" bindtap="goToKeyword">
+        <view class="action-icon">📖</view>
+        <text class="action-text">关键词</text>
+        <text class="action-desc">异能的规则解释</text>
+      </view>
+      <view class="action-card" bindtap="goToRule">
+        <view class="action-icon">📜</view>
+        <text class="action-text">规则</text>
+        <text class="action-desc">游戏规则搜索</text>
+      </view>
+      <view class="action-card" bindtap="goToCard">
+        <view class="action-icon">🃏</view>
+        <text class="action-text">卡牌</text>
+        <text class="action-desc">查询卡牌信息</text>
+      </view>
+      <view class="action-card" bindtap="goToSearch">
+        <view class="action-icon">🔍</view>
+        <text class="action-text">搜索</text>
+        <text class="action-desc">综合搜索</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 热门关键词 -->
+  <view class="hot-keywords">
+    <view class="section-title">热门关键词</view>
+    <view class="keyword-tags">
+      <view class="keyword-tag" wx:for="{{hotKeywords}}" wx:key="index" bindtap="searchKeyword" data-keyword="{{item}}">
+        {{item}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 每日卡牌 -->
+  <view class="daily-card" bindtap="showRandomCard">
+    <view class="daily-header">
+      <text class="daily-title">🎲 今日随机卡牌</text>
+    </view>
+    <view class="daily-hint">点击查看一张随机卡牌</view>
+  </view>
+
+  <!-- 测试工具 -->
+  <view class="test-tools">
+    <view class="section-title">🧪 测试工具</view>
+    <view class="test-buttons">
+      <view class="test-card" bindtap="goToKeywordTest">
+        <view class="test-icon">📖</view>
+        <text class="test-title">关键词测试</text>
+        <text class="test-desc">测试关键词模块功能</text>
+      </view>
+      <view class="test-card" bindtap="autoTestLifelink">
+        <view class="test-icon">⚡</view>
+        <text class="test-title">自动化测试</text>
+        <text class="test-desc">测试系命异能查询流程</text>
+      </view>
+      <view class="test-card" bindtap="goToApiTest">
+        <view class="test-icon">🔧</view>
+        <text class="test-title">API测试</text>
+        <text class="test-desc">测试后端接口</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能说明 -->
+  <view class="features">
+    <view class="section-title">功能说明</view>
+    <view class="feature-list">
+      <view class="feature-item">
+        <text class="feature-icon">🔍</text>
+        <view class="feature-content">
+          <text class="feature-name">规则搜索</text>
+          <text class="feature-desc">输入关键词搜索相关游戏规则</text>
+        </view>
+      </view>
+      <view class="feature-item">
+        <text class="feature-icon">📖</text>
+        <view class="feature-content">
+          <text class="feature-name">关键词查询</text>
+          <text class="feature-desc">查询卡牌异能的详细规则解释</text>
+        </view>
+      </view>
+      <view class="feature-item">
+        <text class="feature-icon">🃏</text>
+        <view class="feature-content">
+          <text class="feature-name">卡牌查询</text>
+          <text class="feature-desc">搜索卡牌并查看详细信息</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

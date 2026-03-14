@@ -1,7 +1,7 @@
-# 万智牌规则问答公众号
+# mtgAsk - 万智牌规则问答系统
 
 ## 项目简介
-基于微信公众平台的万智牌规则智能问答系统，帮助牌手快速查询和理解万智牌规则。
+基于微信公众平台的万智牌规则智能问答系统，帮助牌手快速查询和理解万智牌规则。未来将扩展 AI 裁判、咨询更新等更多功能。
 
 ## ✅ 已完成功能
 
@@ -34,20 +34,21 @@
 ## 🏗️ 项目结构
 ```
 cbworkplace/
-├── backend/              # 后端服务
-│   ├── config.py        # 配置管理
-│   ├── database.py      # 数据库操作
-│   ├── routes.py        # API路由
-│   ├── main.py          # 服务入口
-│   ├── init_data.py     # 数据初始化
-│   ├── services/        # 业务逻辑
-│   │   └── rule_service.py
-│   └── wechat/          # 微信相关
-│       └── handlers.py
-├── data/                # 数据目录
-│   └── magic_rules.db   # 规则数据库
+├── mtgAsk/              # 云函数后端
+│   ├── backend/         # 后端服务
+│   │   ├── config.py   # 配置管理
+│   │   ├── database.py # 数据库操作
+│   │   ├── routes.py   # API路由
+│   │   ├── main.py     # 服务入口
+│   │   ├── services/   # 业务逻辑
+│   │   └── wechat/     # 微信相关
+│   ├── data/           # 数据目录
+│   │   └── magic_rules.db  # 规则数据库
+│   └── index.py        # 云函数入口
+├── miniprogram/         # 微信小程序
 ├── docs/                # 文档
-├── test_first_stage.py  # 测试脚本
+├── tests/               # 测试目录
+├── deployment/         # 部署相关
 ├── start.sh            # 启动脚本
 ├── requirements.txt    # 依赖列表
 └── README.md
@@ -84,7 +85,7 @@ python backend/init_data.py
 ### 5. 启动服务
 ```bash
 # 方式一：使用启动脚本（自动激活虚拟环境）
-./start.sh
+bash deployment/scripts/start.sh
 
 # 方式二：手动启动
 source venv/bin/activate  # 激活虚拟环境
@@ -93,17 +94,25 @@ python backend/main.py
 
 ### 6. 测试功能
 ```bash
-# 运行测试脚本
-python test_first_stage.py
+# 运行测试脚本（查看tests/目录获取完整列表）
+python tests/integration/test_first_stage.py
 
 # 测试卡牌查询
-python test_card_service.py
+python tests/integration/test_card_service.py
+
+# 测试MTGCH API
+python tests/integration/test_mtgch_api.py
+
+# 测试云函数
+python tests/cloud/test_cloud_mtgch_correct.py
 
 # 或测试 API 端点
 curl 'http://localhost:8000/api/search?q=飞行'
 curl 'http://localhost:8000/api/card?n=黑莲花'
 curl 'http://localhost:8000/api/keyword?k=践踏'
 ```
+
+详见 [测试文档](./tests/README.md)
 
 ## 📡 API 端点
 

@@ -1,0 +1,6 @@
+# CloudBase HTTP Cloud Function Dependencies
+# Python 3.10 runtime
+
+requests==2.31.0
+pymysql==1.1.0
+python-dotenv==1.0.0

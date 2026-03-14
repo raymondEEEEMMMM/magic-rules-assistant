@@ -1,0 +1,116 @@
+<!--pages/keyword/keyword.wxml-->
+<view class="container">
+  <!-- 控制面板 -->
+  <view class="control-panel" wx:if="{{!keywordDetail}}">
+    <view class="control-buttons">
+      <button class="control-btn" bindtap="toggleApiMode" wx:if="{{!autoTesting}}">
+        {{useApi ? '🔄 切换为本地' : '🌐 切换为API'}}
+      </button>
+      <button class="control-btn test-btn" bindtap="startAutoTest" disabled="{{autoTesting}}">
+        {{autoTesting ? '🧪 测试中...' : '🧪 自动化测试'}}
+      </button>
+    </view>
+  </view>
+
+  <!-- 自动化测试结果 -->
+  <view class="test-results" wx:if="{{testResults.length > 0}}">
+    <view class="test-results-title">
+      <text>📊 测试结果</text>
+      <text class="test-count">{{testResults.length}} 步骤</text>
+    </view>
+    <view class="test-item {{item.status}}" wx:for="{{testResults}}" wx:key="index">
+      <view class="test-item-header">
+        <text class="test-icon">{{item.status === 'success' ? '✅' : '❌'}}</text>
+        <text class="test-name">{{item.name}}</text>
+        <text class="test-time">{{item.duration}}ms</text>
+      </view>
+      <view class="test-error" wx:if="{{item.error}}">
+        <text class="error-label">错误:</text>
+        <text class="error-text">{{item.error}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索框 -->
+  <view class="search-box">
+    <view class="search-input-wrapper">
+      <text class="search-icon">📖</text>
+      <input 
+        class="search-input" 
+        placeholder="输入关键词查询..." 
+        placeholder-class="search-placeholder"
+        bindinput="onInput"
+        bindconfirm="onSearch"
+        confirm-type="search"
+        value="{{keyword}}"
+        disabled="{{autoTesting}}"
+      />
+    </view>
+    <view class="search-btn" bindtap="onSearch" wx:if="{{!autoTesting}}">查询</view>
+  </view>
+
+  <!-- 关键词列表 -->
+  <view class="keyword-list" wx:if="{{!keywordDetail && keywords.length > 0 && !autoTesting}}">
+    <view 
+      class="keyword-item" 
+      wx:for="{{keywords}}" 
+      wx:key="name"
+      bindtap="viewKeyword" 
+      data-keyword="{{item.name}}"
+    >
+      <text class="keyword-name">{{item.name}}</text>
+      <text class="keyword-desc">{{item.english}}</text>
+    </view>
+  </view>
+
+  <!-- 关键词详情 -->
+  <view class="keyword-detail" wx:if="{{keywordDetail}}">
+    <view class="detail-header">
+      <view class="back-btn" bindtap="goBack">
+        <text>← 返回</text>
+      </view>
+      <text class="detail-title">{{keywordDetail.name}}</text>
+      <text class="detail-subtitle">{{keywordDetail.englishName}}</text>
+    </view>
+
+    <view class="detail-section">
+      <text class="section-label">简要说明</text>
+      <text class="section-content">{{keywordDetail.description}}</text>
+    </view>
+
+    <view class="detail-section" wx:if="{{keywordDetail.fullText}}">
+      <text class="section-label">完整规则</text>
+      <text class="section-content">{{keywordDetail.fullText}}</text>
+    </view>
+
+    <view class="detail-section" wx:if="{{keywordDetail.full_text}}">
+      <text class="section-label">完整规则</text>
+      <text class="section-content">{{keywordDetail.full_text}}</text>
+    </view>
+
+    <view class="detail-section" wx:if="{{keywordDetail.examples && keywordDetail.examples.length > 0}}">
+      <text class="section-label">示例</text>
+      <view class="example-list">
+        <view class="example-item" wx:for="{{keywordDetail.examples}}" wx:key="index">
+          <text class="example-text">{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="detail-section" wx:if="{{keywordDetail.relatedCards && keywordDetail.relatedCards.length > 0}}">
+      <text class="section-label">相关卡牌</text>
+      <view class="related-cards">
+        <text class="related-card" wx:for="{{keywordDetail.relatedCards}}" wx:key="*this">
+          {{item}}
+        </text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 初始/无结果提示 -->
+  <view class="empty-hint" wx:if="{{!keywordDetail && searchDone && keywords.length === 0 && keyword && !autoTesting}}">
+    <text class="empty-icon">📖</text>
+    <text class="empty-text">未找到关键词「{{keyword}}」</text>
+    <text class="empty-hint2">试试其他常用关键词</text>
+  </view>
+</view>

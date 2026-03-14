@@ -1,0 +1,255 @@
+/* pages/search/search.wxss */
+page {
+  background-color: #16213e;
+  color: #ffffff;
+}
+
+.container {
+  padding: 30rpx;
+  min-height: 100vh;
+}
+
+/* 搜索框 */
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 30rpx;
+}
+
+.search-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: #1f2b4d;
+  border-radius: 50rpx;
+  padding: 20rpx 28rpx;
+  border: 2rpx solid rgba(233, 69, 96, 0.2);
+}
+
+.search-icon {
+  font-size: 32rpx;
+  margin-right: 16rpx;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #fff;
+}
+
+.search-placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.search-clear {
+  padding: 8rpx 16rpx;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.search-btn {
+  padding: 20rpx 36rpx;
+  background: linear-gradient(135deg, #e94560 0%, #c73e54 100%);
+  border-radius: 50rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #fff;
+}
+
+/* 搜索类型 */
+.search-types {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 30rpx;
+}
+
+.type-item {
+  padding: 16rpx 32rpx;
+  background: rgba(31, 43, 77, 0.8);
+  border-radius: 40rpx;
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.3s ease;
+}
+
+.type-item.active {
+  background: linear-gradient(135deg, #e94560 0%, #c73e54 100%);
+  color: #fff;
+  font-weight: bold;
+}
+
+/* 搜索历史 */
+.search-history {
+  margin-top: 20rpx;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.history-title {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.history-clear {
+  font-size: 26rpx;
+  color: #e94560;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background: rgba(31, 43, 77, 0.5);
+  border-radius: 16rpx;
+}
+
+.history-icon {
+  font-size: 28rpx;
+  margin-right: 16rpx;
+  opacity: 0.6;
+}
+
+.history-text {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* 搜索结果 */
+.search-results {
+  margin-top: 20rpx;
+}
+
+.results-header {
+  margin-bottom: 20rpx;
+}
+
+.results-count {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.result-card {
+  background: rgba(31, 43, 77, 0.6);
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  border-left: 6rpx solid #e94560;
+}
+
+.result-type {
+  font-size: 22rpx;
+  color: #e94560;
+  margin-bottom: 12rpx;
+}
+
+.result-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #fff;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.result-text {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.7);
+  display: block;
+  line-height: 1.6;
+}
+
+.result-action {
+  margin-top: 16rpx;
+  font-size: 26rpx;
+  color: #e94560;
+  text-align: right;
+}
+
+/* 卡牌结果 */
+.card-result {
+  border-left-color: #ffd700;
+}
+
+.card-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #ffd700;
+}
+
+.card-type {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 8rpx 0;
+}
+
+.card-text {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* 无结果 */
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100rpx 0;
+}
+
+.no-results-icon {
+  font-size: 100rpx;
+  opacity: 0.5;
+  margin-bottom: 30rpx;
+}
+
+.no-results-text {
+  font-size: 30rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.no-results-hint {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 16rpx;
+}
+
+/* 加载中 */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60rpx 0;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid rgba(233, 69, 96, 0.2);
+  border-top-color: #e94560;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 20rpx;
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.6);
+}

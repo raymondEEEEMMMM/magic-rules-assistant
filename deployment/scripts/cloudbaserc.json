@@ -1,0 +1,22 @@
+{
+  "envId": "magic-rules-assistant-0a1904c329",
+  "version": "2.0",
+  "$schema": "https://framework-1258016615.tcloudbaseapp.com/schema/latest.json",
+  "functions": [
+    {
+      "name": "mtgAsk",
+      "description": "万智牌规则问答 API",
+      "runtime": "Python3.10",
+      "handler": "index.main_handler",
+      "timeout": 60,
+      "memorySize": 512,
+      "envVariables": {
+        "ENVIRONMENT": "production",
+        "WECHAT_TOKEN": "wx_mtg_rules_2024"
+      },
+      "http": {
+        "path": "wechat"
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/search/search",
+    "pages/card/card",
+    "pages/keyword/keyword",
+    "pages/rule/rule",
+    "pages/apitest/apitest",
+    "pages/test/test"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#1a1a2e",
+    "navigationBarTitleText": "mtgAsk",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#16213e"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}
