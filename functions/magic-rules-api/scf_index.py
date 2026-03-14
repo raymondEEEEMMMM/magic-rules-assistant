@@ -141,8 +141,41 @@ class RequestHandler(BaseHTTPRequestHandler):
 
             # 卡牌搜索 API（小程序兼容端点）
             elif path in ('/card', '/api/card'):
-                # 转发到 MTGCH 搜索
-                path = '/api/mtgch/search'
+                # 直接处理，不转发
+                try:
+                    from backend.services.mtgch_api import MTGCHAPIClient
+
+                    q = query_params.get('q', '')
+                    page = int(query_params.get('page', 1))
+                    page_size = int(query_params.get('page_size', 5))
+                    priority_chinese = query_params.get('priority_chinese', 'true').lower() == 'true'
+
+                    if not q:
+                        self.send_response(400)
+                        self.send_header('Content-Type', 'application/json')
+                        self.end_headers()
+                        response = {'error': '缺少查询参数 q'}
+                        self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                        return
+
+                    client = MTGCHAPIClient()
+                    result = client.search_cards(q, page=page, page_size=page_size, priority_chinese=priority_chinese)
+                    client.close()
+
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+                    return
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    self.send_response(500)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'error': str(e)}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
 
             # MTGCH 卡牌搜索 API（支持 /mtgch/search 和 /api/mtgch/search）
             elif path in ('/mtgch/search', '/api/mtgch/search'):
