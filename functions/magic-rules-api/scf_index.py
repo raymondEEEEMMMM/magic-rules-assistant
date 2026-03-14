@@ -87,17 +87,16 @@ class RequestHandler(BaseHTTPRequestHandler):
             
             # 规则搜索 API（支持 /api/search 和 /search）
             if path in ('/api/search', '/search'):
-                ensure_database()  # 确保数据库已下载
                 # 规则搜索 API
                 try:
                     from backend.database import RuleDatabase
                     from backend.services import RuleService
-                    
+
                     db = RuleDatabase()
                     rule_service = RuleService(db)
                     q = query_params.get('q', '')
                     results = rule_service.search_rules(q)
-                    
+
                     # 计算总结果数
                     total_count = (
                         len(results.get('rules', [])) +
@@ -105,7 +104,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                         len(results.get('cards', [])) +
                         len(results.get('qa_templates', []))
                     )
-                    
+
                     self.send_response(200)
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()
@@ -113,10 +112,12 @@ class RequestHandler(BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
                     return
                 except Exception as e:
+                    import traceback
+                    traceback.print_exc()
                     self.send_response(500)
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()
-                    response = {'error': str(e)}
+                    response = {'error': str(e), 'traceback': traceback.format_exc()}
                     self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
                     return
             
