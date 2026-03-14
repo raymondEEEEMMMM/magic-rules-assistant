@@ -92,6 +92,10 @@ class RequestHandler(BaseHTTPRequestHandler):
             
             print(f"Parsed path: {path}")
             print(f"Query params: {query_params}")
+            print(f"Current directory: {os.getcwd()}")
+            print(f"Script directory: {os.path.dirname(__file__)}")
+            print(f"Files in script directory: {os.listdir(os.path.dirname(__file__))}")
+            print(f"Files in data directory: {os.listdir(os.path.join(os.path.dirname(__file__), 'data')) if os.path.exists(os.path.join(os.path.dirname(__file__), 'data')) else 'N/A'}")
             
             # 规则搜索 API（支持 /api/search 和 /search）
             if path in ('/api/search', '/search'):
