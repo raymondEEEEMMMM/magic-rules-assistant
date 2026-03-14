@@ -98,10 +98,18 @@ class RequestHandler(BaseHTTPRequestHandler):
                     q = query_params.get('q', '')
                     results = rule_service.search_rules(q)
                     
+                    # 计算总结果数
+                    total_count = (
+                        len(results.get('rules', [])) +
+                        len(results.get('keyword_abilities', [])) +
+                        len(results.get('cards', [])) +
+                        len(results.get('qa_templates', []))
+                    )
+                    
                     self.send_response(200)
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()
-                    response = {'query': q, 'count': len(results), 'results': results}
+                    response = {'query': q, 'count': total_count, 'results': results}
                     self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
                     return
                 except Exception as e:
