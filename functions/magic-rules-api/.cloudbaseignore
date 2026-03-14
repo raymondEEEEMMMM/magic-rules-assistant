@@ -1,0 +1,14 @@
+# 数据文件（太大）
+backend/data/
+data/
+
+# Python缓存
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# 临时文件
+*.tmp
+*.log
+.DS_Store
