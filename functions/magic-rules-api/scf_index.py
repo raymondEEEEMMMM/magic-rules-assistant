@@ -22,17 +22,25 @@ def ensure_database():
     # 尝试多个可能的路径
     possible_paths = [
         os.path.join(os.path.dirname(__file__), 'data', 'magic_rules.db'),
+        os.path.join(os.path.dirname(__file__), 'backend', 'data', 'magic_rules.db'),
         os.path.join(os.path.dirname(__file__), '..', 'data', 'magic_rules.db'),
         '/tmp/magic_rules.db',
         os.path.join(os.getcwd(), 'data', 'magic_rules.db'),
+        os.path.join(os.getcwd(), 'backend', 'data', 'magic_rules.db'),
     ]
     
     # 检查环境变量
     env_db_path = os.environ.get('DATABASE_PATH')
     if env_db_path:
+        # 如果是相对路径，转换为绝对路径
+        if not os.path.isabs(env_db_path):
+            env_db_path = os.path.join(os.path.dirname(__file__), env_db_path)
         possible_paths.insert(0, env_db_path)
     
+    print(f"Checking paths: {possible_paths}")
+    
     for db_path in possible_paths:
+        print(f"Checking: {db_path}")
         if os.path.exists(db_path):
             print(f"✓ Found database at: {db_path}")
             os.environ['DATABASE_PATH'] = db_path
