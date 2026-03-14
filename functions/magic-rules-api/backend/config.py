@@ -1,7 +1,4 @@
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 class Config:
     # 微信公众号配置
@@ -22,10 +19,3 @@ class Config:
     API_PORT = int(os.getenv("API_PORT", "8000"))
 
 config = Config()
-{
-  "envId": "magic-rules-assistant-0a1904c329",
-  "envVariables": {
-    "WECHAT_TOKEN": "你的微信Token",
-    "OPENAI_API_KEY": "你的OpenAI密钥（如果使用）"
-  }
-}
