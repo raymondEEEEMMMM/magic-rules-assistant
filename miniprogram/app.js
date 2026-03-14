@@ -2,11 +2,11 @@
  * 万智牌规则助手 - 小程序入口
  */
 
-// 云开发配置
-wx.cloud.init({
-  env: 'magic-rules-assistant-0a1904c329', // 替换为您的云环境ID
-  traceUser: true
-})
+// 云开发配置 (暂时禁用，避免模拟器启动失败)
+// wx.cloud.init({
+//   env: 'magic-rules-assistant-0a1904c329', // 替换为您的云环境ID
+//   traceUser: true
+// })
 
 App({
   globalData: {

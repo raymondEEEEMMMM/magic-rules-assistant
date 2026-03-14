@@ -1,0 +1,68 @@
+<!--pages/rule/rule.wxml-->
+<view class="rule-container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">万智牌规则</text>
+    <text class="page-subtitle">Magic: The Gathering Rules</text>
+  </view>
+
+  <!-- 规则分类 -->
+  <view class="rule-categories">
+    <view 
+      class="category-item {{activeCategory === 'basic' ? 'active' : ''}}"
+      bindtap="switchCategory"
+      data-category="basic"
+    >
+      <text class="category-icon">📚</text>
+      <text class="category-name">基础规则</text>
+    </view>
+    <view 
+      class="category-item {{activeCategory === 'turn' ? 'active' : ''}}"
+      bindtap="switchCategory"
+      data-category="turn"
+    >
+      <text class="category-icon">🔄</text>
+      <text class="category-name">回合结构</text>
+    </view>
+    <view 
+      class="category-item {{activeCategory === 'keywords' ? 'active' : ''}}"
+      bindtap="switchCategory"
+      data-category="keywords"
+    >
+      <text class="category-icon">⚡</text>
+      <text class="category-name">关键词</text>
+    </view>
+    <view 
+      class="category-item {{activeCategory === 'priority' ? 'active' : ''}}"
+      bindtap="switchCategory"
+      data-category="priority"
+    >
+      <text class="category-icon">⏱️</text>
+      <text class="category-name">优先权</text>
+    </view>
+  </view>
+
+  <!-- 规则列表 -->
+  <view class="rule-list">
+    <block wx:for="{{currentRules}}" wx:key="id">
+      <view class="rule-item" bindtap="toggleRule" data-id="{{item.id}}">
+        <view class="rule-header">
+          <text class="rule-title">{{item.title}}</text>
+          <text class="rule-arrow">{{item.expanded ? '▼' : '▶'}}</text>
+        </view>
+        <view class="rule-content" wx:if="{{item.expanded}}">
+          <text class="rule-text">{{item.content}}</text>
+          <view class="rule-example" wx:if="{{item.example}}">
+            <text class="example-label">示例：</text>
+            <text class="example-text">{{item.example}}</text>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text class="loading-text">加载中...</text>
+  </view>
+</view>

@@ -15,30 +15,32 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 
 # 数据库路径配置
 def ensure_database():
-    """确保数据库可用（优先使用本地打包文件）"""
-    # 优先使用函数包内的数据库文件
-    package_db_path = os.path.join(os.path.dirname(__file__), 'data', 'magic_rules.db')
+    """确保数据库可用"""
+    print(f"=== ensure_database called ===")
+    print(f"__file__: {__file__}")
     
-    if os.path.exists(package_db_path):
-        print(f"✓ Using packaged database: {package_db_path}")
-        os.environ['DATABASE_PATH'] = package_db_path
-        return package_db_path
+    # 尝试多个可能的路径
+    possible_paths = [
+        os.path.join(os.path.dirname(__file__), 'data', 'magic_rules.db'),
+        os.path.join(os.path.dirname(__file__), '..', 'data', 'magic_rules.db'),
+        '/tmp/magic_rules.db',
+        os.path.join(os.getcwd(), 'data', 'magic_rules.db'),
+    ]
     
-    # 备用方案：从云存储下载
-    db_path = "/tmp/magic_rules.db"
-    if not os.path.exists(db_path):
-        import urllib.request
-        CLOUD_STORAGE_URL = "https://6d61-magic-rules-assistant-0a1904c329-1410769303.tcb.qcloud.la/magic_rules.db?sign=801157b6618b06d167cc797095fa6a06&t=1773393092"
-        try:
-            print(f"Downloading database from cloud storage...")
-            urllib.request.urlretrieve(CLOUD_STORAGE_URL, db_path)
-            print(f"✓ Database downloaded: {db_path}")
-        except Exception as e:
-            print(f"✗ Failed to download database: {e}")
-            raise
+    # 检查环境变量
+    env_db_path = os.environ.get('DATABASE_PATH')
+    if env_db_path:
+        possible_paths.insert(0, env_db_path)
     
-    os.environ['DATABASE_PATH'] = db_path
-    return db_path
+    for db_path in possible_paths:
+        if os.path.exists(db_path):
+            print(f"✓ Found database at: {db_path}")
+            os.environ['DATABASE_PATH'] = db_path
+            return db_path
+    
+    # 如果都没找到，抛出错误
+    print(f"✗ Database not found. Checked paths: {possible_paths}")
+    raise FileNotFoundError(f"Database not found. Checked: {possible_paths}")
 
 # 尝试加载配置
 try:
@@ -60,10 +62,15 @@ class RequestHandler(BaseHTTPRequestHandler):
     
     def do_GET(self):
         """处理 GET 请求"""
-        print(f"=== Request Start ===")
-        print(f"ensure_database function exists: {ensure_database}")
-        print(f"Full path: {self.path}")
-        print(f"Headers: {dict(self.headers)}")
+        print(f"=== GET Request ===")
+        print(f"Path: {self.path}")
+        
+        # 检查是否有 x-original-uri header (CloudBase HTTP)
+        original_uri = self.headers.get('x-original-uri') or self.headers.get('x-request-uri')
+        if original_uri:
+            print(f"Original URI from header: {original_uri}")
+            # 优先使用原始路径
+            self.path = original_uri
         
         try:
             # 解析路径和查询参数
@@ -355,6 +362,12 @@ class RequestHandler(BaseHTTPRequestHandler):
         print(f"=== POST Request ===")
         print(f"Path: {self.path}")
         
+        # 检查是否有 x-original-uri header (CloudBase HTTP)
+        original_uri = self.headers.get('x-original-uri') or self.headers.get('x-request-uri')
+        if original_uri:
+            print(f"Original URI from header: {original_uri}")
+            self.path = original_uri
+        
         # 读取请求体
         content_length = int(self.headers.get('Content-Length', 0))
         body = self.rfile.read(content_length)
@@ -364,6 +377,9 @@ class RequestHandler(BaseHTTPRequestHandler):
         try:
             # 微信消息处理
             if '/wechat' in self.path:
+                # 确保数据库可用
+                ensure_database()
+                
                 # 解析 XML
                 import xml.etree.ElementTree as ET
                 root = ET.fromstring(body_str)
@@ -374,7 +390,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 
                 print(f"Message type: {msg_type}, From: {from_user}, To: {to_user}")
                 
-                elif msg_type == 'event':
+                if msg_type == 'event':
                     # 事件消息（菜单点击等）
                     event = root.find('Event').text
                     event_key = root.find('EventKey').text if root.find('EventKey') is not None else ''

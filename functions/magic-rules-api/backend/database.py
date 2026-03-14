@@ -1,10 +1,14 @@
 import sqlite3
 import json
+import os
 from typing import List, Dict, Optional
 from config import Config
 
 class RuleDatabase:
-    def __init__(self, db_path: str = Config.DATABASE_PATH):
+    def __init__(self, db_path: str = None):
+        # 优先使用传入的路径，然后尝试环境变量，最后使用默认配置
+        if db_path is None:
+            db_path = os.environ.get('DATABASE_PATH') or Config.DATABASE_PATH
         self.db_path = db_path
         self._init_database()
 
