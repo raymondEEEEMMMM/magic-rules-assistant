@@ -139,6 +139,11 @@ class RequestHandler(BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
                     return
 
+            # 卡牌搜索 API（小程序兼容端点）
+            elif path in ('/card', '/api/card'):
+                # 转发到 MTGCH 搜索
+                path = '/api/mtgch/search'
+
             # MTGCH 卡牌搜索 API（支持 /mtgch/search 和 /api/mtgch/search）
             elif path in ('/mtgch/search', '/api/mtgch/search'):
                 # MTGCH 卡牌搜索 API
