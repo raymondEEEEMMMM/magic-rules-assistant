@@ -1,5 +1,5 @@
 {
-  "description": "万智牌规则助手小程序",
+  "description": "mtgAsk 万智牌规则问答小程序",
   "packOptions": {
     "ignore": [],
     "include": []
@@ -49,7 +49,7 @@
   "compileType": "miniprogram",
   "libVersion": "3.3.4",
   "appid": "wxe3e9c28feed51665",
-  "projectname": "mtg-rules-assistant",
+  "projectname": "mtgAsk",
   "condition": {},
   "editorSetting": {
     "tabIndent": "insertSpaces",

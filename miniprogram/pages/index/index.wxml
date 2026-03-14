@@ -3,7 +3,7 @@
   <!-- 顶部Banner -->
   <view class="banner">
     <view class="banner-content">
-      <text class="banner-title">万智牌规则助手</text>
+      <text class="banner-title">mtgAsk</text>
       <text class="banner-subtitle">Magic: The Gathering Rules Assistant</text>
     </view>
     <view class="banner-decoration"></view>
@@ -52,6 +52,28 @@
       <text class="daily-title">🎲 今日随机卡牌</text>
     </view>
     <view class="daily-hint">点击查看一张随机卡牌</view>
+  </view>
+
+  <!-- 测试工具 -->
+  <view class="test-tools">
+    <view class="section-title">🧪 测试工具</view>
+    <view class="test-buttons">
+      <view class="test-card" bindtap="goToKeywordTest">
+        <view class="test-icon">📖</view>
+        <text class="test-title">关键词测试</text>
+        <text class="test-desc">测试关键词模块功能</text>
+      </view>
+      <view class="test-card" bindtap="autoTestLifelink">
+        <view class="test-icon">⚡</view>
+        <text class="test-title">自动化测试</text>
+        <text class="test-desc">测试系命异能查询流程</text>
+      </view>
+      <view class="test-card" bindtap="goToApiTest">
+        <view class="test-icon">🔧</view>
+        <text class="test-title">API测试</text>
+        <text class="test-desc">测试后端接口</text>
+      </view>
+    </view>
   </view>
 
   <!-- 功能说明 -->

@@ -2,12 +2,15 @@
  * 万智牌规则页面逻辑
  */
 const app = getApp()
+const API_BASE = 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la'
 
 Page({
   data: {
     activeCategory: 'basic',
     loading: false,
     currentRules: [],
+    useApi: false, // 是否使用API
+    searchResults: [], // API搜索结果
     allRules: {
       basic: [
         {
@@ -118,8 +121,86 @@ Page({
     }
   },
 
-  onLoad() {
-    this.loadRules()
+  onLoad(options) {
+    if (options.query) {
+      // 从搜索跳转过来，使用API搜索
+      this.setData({ useApi: true })
+      this.searchFromApi(options.query)
+    } else {
+      this.loadRules()
+    }
+  },
+
+  // 切换API/本地模式
+  toggleApiMode() {
+    this.setData({
+      useApi: !this.data.useApi
+    })
+    wx.showToast({
+      title: this.data.useApi ? '已切换为API模式' : '已切换为本地模式',
+      icon: 'none'
+    })
+  },
+
+  // API搜索规则
+  searchFromApi(keyword) {
+    wx.showLoading({ title: '搜索中...' })
+
+    wx.request({
+      url: `${API_BASE}/api/search`,
+      data: { q: keyword },
+      method: 'GET',
+      success: (res) => {
+        wx.hideLoading()
+        console.log('规则搜索API响应:', res.data)
+
+        const apiData = res.data
+
+        // 检查错误响应
+        if (apiData && apiData.error) {
+          wx.showToast({
+            title: apiData.error,
+            icon: 'none'
+          })
+          return
+        }
+
+        // 正常响应：{ query, count, results: { rules: [...] } }
+        if (apiData && apiData.results && apiData.results.rules) {
+          const rules = apiData.results.rules.map((rule, index) => ({
+            id: Date.now() + index,
+            title: rule.rule_number || rule.rule_title || '规则',
+            content: rule.rule_content || '无内容',
+            example: '',
+            expanded: false,
+            category: rule.category
+          }))
+
+          this.setData({
+            currentRules: rules,
+            activeCategory: 'search'
+          })
+
+          wx.showToast({
+            title: `找到 ${rules.length} 条规则`,
+            icon: 'success'
+          })
+        } else {
+          wx.showToast({
+            title: '未找到相关规则',
+            icon: 'none'
+          })
+        }
+      },
+      fail: (err) => {
+        wx.hideLoading()
+        console.error('规则搜索API错误:', err)
+        wx.showToast({
+          title: '网络请求失败',
+          icon: 'none'
+        })
+      }
+    })
   },
 
   /**

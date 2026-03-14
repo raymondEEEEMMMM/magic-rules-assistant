@@ -46,50 +46,93 @@ Page({
     // 保存到历史
     this.saveToHistory(keyword)
 
-    // 并行请求所有搜索
-    const promises = []
-    
-    if (this.data.currentType === 'all' || this.data.currentType === 'rule') {
-      promises.push(
-        app.requestApi('/api/search', { q: keyword })
-          .then(res => res.results?.rules || [])
-          .catch(() => [])
-      )
-    }
+    // 本地模拟搜索
+    this.performLocalSearch(keyword)
+  },
 
-    if (this.data.currentType === 'all' || this.data.currentType === 'keyword') {
-      promises.push(
-        app.requestApi('/api/keyword', { k: keyword })
-          .then(res => res.result ? [res.result] : [])
-          .catch(() => [])
-      )
-    }
-
-    if (this.data.currentType === 'all' || this.data.currentType === 'card') {
-      promises.push(
-        app.requestApi('/api/card', { q: keyword, page_size: 10 })
-          .then(res => res.items || [])
-          .catch(() => [])
-      )
-    }
-
-    Promise.all(promises)
-      .then(([rules, keywords, cards]) => {
-        this.setData({
-          loading: false,
-          searchDone: true,
-          ruleResults: rules,
-          keywordResults: keywords,
-          cardResults: cards,
-          results: [...rules, ...keywords, ...cards]
-        })
+  // 本地搜索实现
+  performLocalSearch(keyword) {
+    setTimeout(() => {
+      const results = this.getMockResults(keyword)
+      
+      this.setData({
+        loading: false,
+        searchDone: true,
+        ruleResults: results.rules,
+        keywordResults: results.keywords,
+        cardResults: results.cards,
+        results: [...results.rules, ...results.keywords, ...results.cards]
       })
-      .catch(() => {
-        this.setData({
-          loading: false,
-          searchDone: true
-        })
-      })
+    }, 300)
+  },
+
+  // 获取模拟结果
+  getMockResults(keyword) {
+    const mockRules = [
+      {
+        title: '优先权',
+        content: '优先权是玩家获得施放咒语或启动异能的机会。当玩家获得优先权时，他们可以选择施放咒语、启动异能或让过优先权。',
+        category: '基础规则'
+      },
+      {
+        title: '战斗阶段',
+        content: '战斗阶段包括开始战斗步骤、宣告攻击者步骤、宣告阻挡者步骤、战斗伤害步骤和结束战斗步骤。',
+        category: '回合结构'
+      },
+      {
+        title: '瞬间时机',
+        content: '瞬间可以在你获得优先权的几乎任何时候施放，包括在对手的回合中。',
+        category: '优先权'
+      }
+    ]
+
+    const mockKeywords = [
+      {
+        name: '飞行',
+        description: '具有飞行的生物只能被其他具有飞行或延势的生物阻挡。'
+      },
+      {
+        name: '死触',
+        description: '具有死触的任何生物只要对另一个生物造成大于0的伤害，就会造成等量的伤害。'
+      },
+      {
+        name: '警戒',
+        description: '警戒可以让生物在攻击时不会横置，并且在攻击者步骤后仍能阻挡。'
+      }
+    ]
+
+    const mockCards = [
+      {
+        name: '黑绿霸主',
+        manaCost: '{2}{B}{G}',
+        type: '生物 — 霸主',
+        text: '当黑绿霸主进入战场时，你可以从你的牌库中寻找一张沼泽牌或森林牌，将其横置放进战场，然后将你的牌库洗牌。',
+        power: '4',
+        toughness: '4'
+      },
+      {
+        name: '红蓝法师',
+        manaCost: '{U}{R}',
+        type: '生物 — 人类 法师',
+        text: '飞行\n每当红蓝法师成为咒语或异能的目标时，你可以掷硬币。如果是正面，反击该咒语或异能。',
+        power: '2',
+        toughness: '2'
+      }
+    ]
+
+    // 根据关键词过滤
+    const filterResults = (array, key) => {
+      return array.filter(item => 
+        (item.name || item.title || '').toLowerCase().includes(keyword.toLowerCase()) ||
+        (item.description || item.content || '').toLowerCase().includes(keyword.toLowerCase())
+      )
+    }
+
+    return {
+      rules: filterResults(mockRules, keyword),
+      keywords: filterResults(mockKeywords, keyword),
+      cards: filterResults(mockCards, keyword)
+    }
   },
 
   // 切换搜索类型

@@ -1,0 +1,23 @@
+# 数据库文件 - 不需要上传到云端
+backend/data/mtg/AllPrintings.sqlite
+backend/data/mtg/AllPrintings.sqlite.gz
+backend/data/mtg/SetList.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# 本地环境文件
+.env
+.env.local
+
+# 其他大文件
+*.db
+*.sqlite
+*.sqlite3

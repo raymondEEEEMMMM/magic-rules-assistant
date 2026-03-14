@@ -9,6 +9,37 @@ page {
   min-height: 100vh;
 }
 
+/* 模式切换 */
+.mode-switch {
+  margin-bottom: 20rpx;
+}
+
+.switch-btn {
+  width: 100%;
+  padding: 16rpx;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  border: 2rpx solid;
+  transition: all 0.3s ease;
+}
+
+.switch-btn.local-mode {
+  background: rgba(31, 43, 77, 0.8);
+  border-color: rgba(255, 215, 0, 0.3);
+  color: #ffd700;
+}
+
+.switch-btn.api-mode {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+  border-color: rgba(102, 126, 234, 0.5);
+  color: #667eea;
+}
+
+.switch-btn:active {
+  transform: scale(0.98);
+}
+
 /* 搜索框 */
 .search-box {
   display: flex;
@@ -49,6 +80,31 @@ page {
   font-size: 28rpx;
   font-weight: bold;
   color: #1a1a2e;
+}
+
+/* 随机卡牌按钮 */
+.random-card-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 20rpx;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+  border: 2rpx solid rgba(102, 126, 234, 0.5);
+  border-radius: 50rpx;
+  font-size: 28rpx;
+  color: #667eea;
+  margin-bottom: 30rpx;
+  transition: all 0.3s ease;
+}
+
+.random-card-btn:active {
+  transform: scale(0.98);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+}
+
+.random-icon {
+  font-size: 32rpx;
 }
 
 /* 卡牌列表 */
@@ -103,6 +159,11 @@ page {
 .card-mana {
   font-size: 28rpx;
   color: #87ceeb;
+}
+
+.card-set {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .card-rarity {

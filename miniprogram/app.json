@@ -4,12 +4,14 @@
     "pages/search/search",
     "pages/card/card",
     "pages/keyword/keyword",
-    "pages/rule/rule"
+    "pages/rule/rule",
+    "pages/apitest/apitest",
+    "pages/test/test"
   ],
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#1a1a2e",
-    "navigationBarTitleText": "万智牌规则助手",
+    "navigationBarTitleText": "mtgAsk",
     "navigationBarTextStyle": "white",
     "backgroundColor": "#16213e"
   },

@@ -1,7 +1,7 @@
-# 万智牌规则问答公众号
+# mtgAsk - 万智牌规则问答系统
 
 ## 项目简介
-基于微信公众平台的万智牌规则智能问答系统，帮助牌手快速查询和理解万智牌规则。
+基于微信公众平台的万智牌规则智能问答系统，帮助牌手快速查询和理解万智牌规则。未来将扩展 AI 裁判、咨询更新等更多功能。
 
 ## ✅ 已完成功能
 
@@ -34,29 +34,21 @@
 ## 🏗️ 项目结构
 ```
 cbworkplace/
-├── backend/              # 后端服务
-│   ├── config.py        # 配置管理
-│   ├── database.py      # 数据库操作
-│   ├── routes.py        # API路由
-│   ├── main.py          # 服务入口
-│   ├── init_data.py     # 数据初始化
-│   ├── services/        # 业务逻辑
-│   │   └── rule_service.py
-│   └── wechat/          # 微信相关
-│       └── handlers.py
-├── data/                # 数据目录
-│   └── magic_rules.db   # 规则数据库
+├── mtgAsk/              # 云函数后端
+│   ├── backend/         # 后端服务
+│   │   ├── config.py   # 配置管理
+│   │   ├── database.py # 数据库操作
+│   │   ├── routes.py   # API路由
+│   │   ├── main.py     # 服务入口
+│   │   ├── services/   # 业务逻辑
+│   │   └── wechat/     # 微信相关
+│   ├── data/           # 数据目录
+│   │   └── magic_rules.db  # 规则数据库
+│   └── index.py        # 云函数入口
+├── miniprogram/         # 微信小程序
 ├── docs/                # 文档
 ├── tests/               # 测试目录
-│   ├── unit/           # 单元测试
-│   ├── integration/    # 集成测试
-│   ├── cloud/          # 云函数测试
-│   └── utils/          # 测试工具
 ├── deployment/         # 部署相关
-│   ├── scripts/        # 部署脚本
-│   ├── docker/         # Docker 配置
-│   └── docs/           # 部署文档
-├── functions/           # CloudBase云函数
 ├── start.sh            # 启动脚本
 ├── requirements.txt    # 依赖列表
 └── README.md

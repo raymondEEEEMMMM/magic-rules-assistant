@@ -2,7 +2,7 @@
 <view class="rule-container">
   <!-- 页面标题 -->
   <view class="page-header">
-    <text class="page-title">万智牌规则</text>
+    <text class="page-title">mtgAsk 规则</text>
     <text class="page-subtitle">Magic: The Gathering Rules</text>
   </view>
 
