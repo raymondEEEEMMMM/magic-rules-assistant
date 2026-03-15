@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"https://magic-rules-assistant-0a1904c329.bspapp.com/\")",
+      "Bash(bash test_cloud_api.sh)",
+      "Bash(curl -s \"http://localhost:8000/\")",
+      "Bash(python main.py)",
+      "Bash(python -c \"from routes import app; from config import Config; print\\(''OK''\\)\")",
+      "Bash(python -c \"import sys; print\\(sys.version\\); from routes import app\")",
+      "Bash(python -c \"from routes import app\")",
+      "Bash(pip list:*)",
+      "Bash(python -m pip list)",
+      "Bash(python -m pip show fastapi uvicorn)",
+      "Bash(./venv/Scripts/python.exe -c \"import os; os.environ.pop\\(''HTTP_PROXY'', None\\); os.environ.pop\\(''HTTPS_PROXY'', None\\); os.environ.pop\\(''http_proxy'', None\\); os.environ.pop\\(''https_proxy'', None\\); import subprocess; subprocess.run\\([''pip'', ''install'', ''-r'', ''requirements.txt''], env={**os.environ, ''HTTP_PROXY'': '''', ''HTTPS_PROXY'': ''''}\\)\")",
+      "Bash(where python:*)",
+      "Read(//c/ProgramData/Anaconda3/**)",
+      "Read(//c/Users/Raymond/Anaconda3/**)",
+      "Read(//c/Program Files/**)",
+      "Bash(mysql --version)",
+      "mcp__cloudbase__auth",
+      "mcp__cloudbase__envQuery",
+      "mcp__cloudbase__executeReadOnlySQL",
+      "Bash(./venv/Scripts/python.exe -c \"import requests; r = requests.get\\(''http://localhost:8000/api/search?q=trample''\\); print\\(r.text\\)\")",
+      "Bash(./venv/Scripts/python.exe -c \":*)",
+      "Bash(./venv/Scripts/python.exe tests/cloud/test_cloud_mtgch_correct.py)",
+      "mcp__cloudbase__getFunctionLogDetail",
+      "mcp__cloudbase__updateFunctionConfig",
+      "mcp__cloudbase__updateFunctionCode",
+      "Bash(ls -la f:/mtgAsk/magic-rules-assistant/functions/mtgAsk/scf*)"
+    ],
+    "additionalDirectories": [
+      "f:\\mtgAsk\\magic-rules-assistant\\deployment\\docs"
+    ]
+  }
+}
