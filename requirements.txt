@@ -7,3 +7,4 @@ requests==2.31.0
 beautifulsoup4==4.12.2
 apscheduler==3.10.4
 gunicorn==21.2.0
+pymysql==1.1.0

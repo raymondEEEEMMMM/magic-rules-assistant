@@ -3,9 +3,9 @@ from routes import app
 from config import Config
 
 if __name__ == "__main__":
-    print("🚀 万智牌规则问答服务启动中...")
-    print(f"📡 服务地址: http://{Config.API_HOST}:{Config.API_PORT}")
-    print(f"📖 规则数据库: {Config.DATABASE_PATH}")
+    print("MTG Rule Q&A Service Starting...")
+    print(f"Server: http://{Config.API_HOST}:{Config.API_PORT}")
+    print(f"Database: {Config.DATABASE_PATH}")
     print("\n可用端点:")
     print("  - GET  /                    服务状态")
     print("  - GET  /wechat              微信服务器验证")

@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
-from fastapi.responses import XMLResponse
+from starlette.responses import Response
 from typing import Optional
 import hashlib
 from database import RuleDatabase
@@ -71,16 +71,16 @@ async def wechat_message(request: Request):
         event = root.find("Event").text
         response = message_handler.handle_event(event)
         if response:
-            return XMLResponse(content=create_xml_response(response, from_user, to_user))
-        return XMLResponse(content="")
+            return Response(content=create_xml_response(response, from_user, to_user), media_type="application/xml")
+        return Response(content="", media_type="application/xml")
 
     # 处理文本消息
     elif msg_type == "text":
         user_message = root.find("Content").text
         response = message_handler.handle_text_message(user_message)
-        return XMLResponse(content=create_xml_response(response, from_user, to_user))
+        return Response(content=create_xml_response(response, from_user, to_user), media_type="application/xml")
 
-    return XMLResponse(content="")
+    return Response(content="", media_type="application/xml")
 
 @app.get("/api/search")
 async def search_rules(q: str):
@@ -115,9 +115,9 @@ async def startup_event():
         rule_scheduler = rs
         rule_scheduler.set_update_callback(on_rules_update)
         rule_scheduler.start()
-        print("✓ 规则更新调度器已启动")
+        print("Scheduler started")
     except Exception as e:
-        print(f"⚠ 调度器启动失败: {e}")
+        print(f"Scheduler failed: {e}")
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -125,7 +125,7 @@ async def shutdown_event():
     global rule_scheduler
     if rule_scheduler:
         rule_scheduler.stop()
-        print("✓ 规则更新调度器已停止")
+        print("Scheduler stopped")
 
 @app.post("/api/rules/update")
 async def update_rules(background_tasks: BackgroundTasks, force: bool = False):

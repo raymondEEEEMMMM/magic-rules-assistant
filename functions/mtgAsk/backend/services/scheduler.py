@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Optional, Callable
 import asyncio
 
-from rule_downloader import RuleDownloader
+from .rule_downloader import RuleDownloader
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

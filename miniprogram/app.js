@@ -2,17 +2,18 @@
  * mtgAsk - 小程序入口
  */
 
-// 云开发配置 (暂时禁用，避免模拟器启动失败)
-// wx.cloud.init({
-//   env: 'magic-rules-assistant-0a1904c329', // 替换为您的云环境ID
-//   traceUser: true
-// })
+// 云开发配置
+wx.cloud.init({
+  env: 'magic-rules-assistant-0a1904c329',
+  traceUser: true
+})
 
 App({
   globalData: {
-    // API 基础地址
+    // API 基础地址 (HTTP 调用用)
     apiBase: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com',
-    userInfo: null
+    userInfo: null,
+    useCloudCall: true  // 使用云调用
   },
 
   onLaunch() {

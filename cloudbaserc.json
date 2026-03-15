@@ -1,13 +1,15 @@
 {
   "envId": "magic-rules-assistant-0a1904c329",
   "version": "2.0",
-  "$schema": "https://framework-1258016615.tcloudbaseapp.com/schema/latest.json",
+  "cloudrun": {
+    "name": "mtgask-api"
+  },
   "functionRootPath": "functions/mtgAsk",
   "functions": [
     {
       "name": "mtgAsk",
       "description": "mtgAsk - 万智牌规则问答 API",
-      "runtime": "Python3.9",
+      "runtime": "Python3.10",
       "handler": "index.main_handler",
       "timeout": 60,
       "memorySize": 512,
@@ -19,10 +21,6 @@
         "MYSQL_USER": "mtgask",
         "MYSQL_PASSWORD": "Ray19940211",
         "MYSQL_DATABASE": "magic-rules-assistant-0a1904c329"
-      },
-      "http": {
-        "path": "/",
-        "methods": ["GET", "POST"]
       }
     }
   ]

@@ -12,7 +12,8 @@ Page({
     history: [],
     loading: false,
     searchDone: false,
-    searchFocused: true
+    searchFocused: true,
+    useRealApi: false  // 是否使用真实API
   },
 
   onLoad() {
@@ -27,7 +28,7 @@ Page({
 
   // 输入监听
   onInput(e) {
-    this.setData({ 
+    this.setData({
       keyword: e.detail.value,
       searchDone: false
     })
@@ -38,23 +39,100 @@ Page({
     const keyword = this.data.keyword.trim()
     if (!keyword) return
 
-    this.setData({ 
+    this.setData({
       loading: true,
-      searchDone: false 
+      searchDone: false
     })
 
     // 保存到历史
     this.saveToHistory(keyword)
 
-    // 本地模拟搜索
-    this.performLocalSearch(keyword)
+    // 根据配置选择使用真实API或本地模拟
+    if (this.data.useRealApi) {
+      this.performRealSearch(keyword)
+    } else {
+      this.performLocalSearch(keyword)
+    }
+  },
+
+  // 真实API搜索 - 使用云调用
+  performRealSearch(keyword) {
+    if (app.globalData.useCloudCall) {
+      // 使用 wx.cloud.callFunction 调用云函数
+      wx.cloud.callFunction({
+        name: 'mtgAsk',
+        data: {
+          httpMethod: 'GET',
+          path: '/api/search',
+          queryString: `q=${encodeURIComponent(keyword)}`
+        },
+        success: (res) => {
+          if (res.result && res.result.body) {
+            const data = typeof res.result.body === 'string'
+              ? JSON.parse(res.result.body)
+              : res.result
+            const results = data.results || {}
+            this.setData({
+              loading: false,
+              searchDone: true,
+              ruleResults: results.rules || [],
+              keywordResults: results.keyword_abilities || [],
+              cardResults: results.cards || [],
+              results: [
+                ...(results.rules || []),
+                ...(results.keyword_abilities || []),
+                ...(results.cards || [])
+              ]
+            })
+          } else {
+            this.setData({ loading: false, searchDone: true })
+          }
+        },
+        fail: (err) => {
+          this.setData({ loading: false, searchDone: true })
+          wx.showToast({ title: '调用失败', icon: 'none' })
+        }
+      })
+    } else {
+      // 使用 HTTP 请求
+      const apiBase = app.globalData.apiBase
+      wx.request({
+        url: `${apiBase}/api/search`,
+        data: { q: keyword },
+        method: 'GET',
+        success: (res) => {
+          if (res.statusCode === 200 && res.data) {
+            const results = res.data.results || {}
+            this.setData({
+              loading: false,
+              searchDone: true,
+              ruleResults: results.rules || [],
+              keywordResults: results.keyword_abilities || [],
+              cardResults: results.cards || [],
+              results: [
+                ...(results.rules || []),
+                ...(results.keyword_abilities || []),
+                ...(results.cards || [])
+              ]
+            })
+          } else {
+            this.setData({ loading: false, searchDone: true })
+            wx.showToast({ title: '搜索失败', icon: 'none' })
+          }
+        },
+        fail: () => {
+          this.setData({ loading: false, searchDone: true })
+          wx.showToast({ title: '网络请求失败', icon: 'none' })
+        }
+      })
+    }
   },
 
   // 本地搜索实现
   performLocalSearch(keyword) {
     setTimeout(() => {
       const results = this.getMockResults(keyword)
-      
+
       this.setData({
         loading: false,
         searchDone: true,
