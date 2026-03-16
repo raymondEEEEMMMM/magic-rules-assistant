@@ -7,203 +7,163 @@
 ```
 tests/
 ├── README.md                    # 本文件
-├── unit/                        # 单元测试（待创建）
-│   ├── test_config.py
-│   ├── test_database.py
-│   └── test_services.py
-├── integration/                 # 集成测试（待创建）
-│   ├── test_api.py
-│   └── test_wechat.py
+├── unit/                        # 单元测试
+│   └── test_mtgch_api.py       # MTGCH API 单元测试（使用 pytest + mock）
+├── integration/                 # 集成测试
+│   ├── test_first_stage.py      # 第一阶段功能测试
+│   ├── test_card_service.py     # 卡牌服务测试
+│   └── test_rule_downloader.py  # 规则下载测试
 ├── cloud/                       # 云函数测试
-│   └── test_cloud_mtgch_*.py    # CloudBase 云函数测试
-└── utils/                       # 测试工具（待创建）
-    └── test_helpers.py
+│   ├── test_cloud_mtgch.py      # CloudBase 云函数测试（v1）
+│   ├── test_cloud_mtgch_correct.py  # CloudBase 云函数测试（修正版）
+│   └── test_cloud_mtgch_v2.py   # CloudBase 云函数测试（v2）
+└── utils/                       # 测试工具
+    └── test_path_debug.py       # 路径调试测试
 ```
-
-## 测试文件说明
-
-### 已有测试文件
-
-| 文件名 | 类型 | 功能描述 | 状态 |
-|--------|------|---------|------|
-| `test_first_stage.py` | 功能测试 | 测试第一阶段功能（规则查询、卡牌查询） | ✅ 已完成 |
-| `test_card_service.py` | 服务测试 | 测试卡牌服务（搜索、关键词、统计） | ✅ 已完成 |
-| `test_mtgch_api.py` | API测试 | 测试MTGCH API客户端 | ✅ 已完成 |
-| `test_rule_downloader.py` | 功能测试 | 测试规则下载功能 | ✅ 已完成 |
-| `test_path_debug.py` | 调试测试 | 路径解析调试 | ✅ 已完成 |
-
-### CloudBase云函数测试
-
-| 文件名 | 类型 | 功能描述 | 状态 |
-|--------|------|---------|------|
-| `test_cloud_mtgch.py` | 云函数测试 | CloudBase云函数MTGCH API测试（v1） | ✅ 已完成 |
-| `test_cloud_mtgch_correct.py` | 云函数测试 | CloudBase云函数MTGCH API测试（修正版） | ✅ 已完成 |
-| `test_cloud_mtgch_v2.py` | 云函数测试 | CloudBase云函数MTGCH API测试（v2） | ✅ 已完成 |
 
 ## 快速开始
 
-### 运行所有测试
+### 安装测试依赖
+
+```bash
+pip install pytest pytest-asyncio
+```
+
+### 运行测试
 
 ```bash
 # 进入项目根目录
 cd /Users/lianghaoming/cbworkplace
 
-# 激活虚拟环境（如果需要）
+# 激活虚拟环境
 source venv/bin/activate
 
-# 运行单个测试
-python tests/test_first_stage.py
+# 运行所有测试
+pytest tests/ -v
 
-# 运行MTGCH API测试
-python tests/test_mtgch_api.py
+# 运行单元测试（推荐）
+pytest tests/unit/ -v
 
-# 运行云函数测试
-python tests/test_cloud_mtgch_correct.py
+# 运行特定测试文件
+pytest tests/unit/test_mtgch_api.py -v
 ```
 
-### 测试分类说明
+## 测试分类
 
-#### 1. 基础功能测试
+### 1. 单元测试 (tests/unit/)
 
-- **test_first_stage.py**: 测试基础规则查询和卡牌查询功能
-- **test_card_service.py**: 测试卡牌服务完整功能
-- **test_rule_downloader.py**: 测试规则下载和解析功能
+使用 **pytest** 框架，通过 **mock** 模拟网络请求，无需外部依赖。
 
-#### 2. API集成测试
+| 文件 | 测试内容 |
+|------|----------|
+| `test_mtgch_api.py` | MTGCH API 客户端功能测试（27 个测试） |
 
-- **test_mtgch_api.py**: 测试MTGCH API客户端的所有功能
-  - 卡牌搜索
-  - 单张卡牌查询
-  - 随机卡牌
-  - 自动补全
-
-#### 3. 云函数测试
-
-- **test_cloud_mtgch.py**: 初版云函数测试
-- **test_cloud_mtgch_correct.py**: 修正版云函数测试
-- **test_cloud_mtgch_v2.py**: v2版云函数测试
-
-#### 4. 调试工具
-
-- **test_path_debug.py**: 路径解析调试工具
-
-## 测试环境要求
-
-### Python环境
-
-- Python 3.10+
-- 依赖包：见 `../requirements.txt`
-
-### 环境变量
-
+**运行方式**:
 ```bash
-# 复制环境变量配置
-cp backend/.env.example backend/.env
-
-# 编辑配置（可选）
-vim backend/.env
+pytest tests/unit/ -v
 ```
 
-### 数据库
+### 2. 集成测试 (tests/integration/)
 
+需要数据库环境，默认跳过。
+
+| 文件 | 测试内容 |
+|------|----------|
+| `test_first_stage.py` | 第一阶段功能测试 |
+| `test_card_service.py` | 卡牌服务测试 |
+| `test_rule_downloader.py` | 规则下载测试 |
+
+**运行方式**:
 ```bash
-# 初始化数据库
-python backend/init_data.py
+# 运行集成测试（需要数据库环境）
+pytest tests/integration/ -v -m integration
 ```
 
-## 测试数据
+### 3. 云函数测试 (tests/cloud/)
 
-### 卡牌数据
+需要外部网络连接，默认跳过。
 
-测试使用的卡牌数据位于 `../data/` 目录：
-- `magic_rules.db`: SQLite数据库文件
-- 包含109,030+张卡牌
+| 文件 | 版本 | 说明 |
+|------|------|------|
+| `test_cloud_mtgch.py` | v1 | 初版云函数测试 |
+| `test_cloud_mtgch_correct.py` | 修正版 | 修正版测试 |
+| `test_cloud_mtgch_v2.py` | v2 | 微信路径测试 |
 
-### 测试用卡牌
-
-- 黑莲花 (Black Lotus)
-- 闪电击 (Lightning Bolt)
-- 森林 (Forest)
-- 热忱骑士 (Knight of the White Orchid)
-
-## 测试结果
-
-### 第一阶段测试
-
-```
-✅ 规则搜索: 通过
-✅ 卡牌查询: 通过
-✅ 关键词异能: 通过
-✅ 问答模板: 通过
+**运行方式**:
+```bash
+# 运行云函数测试（需要网络）
+pytest tests/cloud/ -v -m cloud
 ```
 
-### MTGCH API测试
+### 4. 工具测试 (tests/utils/)
 
-```
-✅ 卡牌搜索: 通过
-✅ 单张卡牌: 通过
-✅ 随机卡牌: 通过
-✅ 自动补全: 通过
+| 文件 | 说明 |
+|------|------|
+| `test_path_debug.py` | 路径调试测试 |
+
+## pytest 标记
+
+项目使用以下 pytest 标记：
+
+| 标记 | 说明 |
+|------|------|
+| `@pytest.mark.integration` | 集成测试，需要数据库环境 |
+| `@pytest.mark.cloud` | 云函数测试，需要网络连接 |
+| `@pytest.mark.api` | API 测试，需要外部服务 |
+| `@pytest.mark.skip` | 跳过测试 |
+
+## 测试示例
+
+### 单元测试示例
+
+```python
+import pytest
+from unittest.mock import Mock, patch
+
+def test_search_cards_success(self, mock_session):
+    """测试搜索卡牌成功"""
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"items": [...]}
+    mock_session.get.return_value = mock_response
+
+    client = MTGCHAPIClient()
+    result = client.search_cards("闪电风暴")
+
+    assert "items" in result
+    assert len(result["items"]) > 0
 ```
 
-### 云函数测试
+### 参数化测试
 
-```
-⚠️ HTTP访问: 部分完成（待解决路由匹配问题）
-⚠️ 依赖安装: 待解决（requests库未自动安装）
+```python
+@pytest.mark.parametrize("rarity,expected", [
+    ("C", "普通"),
+    ("U", "非普通"),
+    ("R", "稀有"),
+    ("M", "秘稀"),
+])
+def test_format_card_info_rarity_mapping(self, rarity, expected):
+    """测试稀有度映射"""
+    card = {"name": "Test", "rarity": rarity}
+    result = format_card_info(card)
+    assert expected in result
 ```
 
 ## 测试最佳实践
 
-1. **隔离性**: 每个测试应该独立运行，不依赖其他测试
-2. **可重复性**: 测试结果应该可以重复执行
-3. **明确性**: 测试失败时应该有清晰的错误信息
-4. **覆盖性**: 测试应该覆盖主要功能和边界情况
-
-## 常见问题
-
-### Q: 测试失败怎么办？
-
-A: 检查以下几点：
-1. 是否激活了虚拟环境
-2. 是否安装了所有依赖
-3. 数据库是否已初始化
-4. 环境变量是否配置正确
-
-### Q: 如何添加新测试？
-
-A: 
-1. 在合适的子目录创建测试文件
-2. 按照现有测试文件的格式编写
-3. 在本README中更新测试说明
-4. 运行测试确保通过
-
-### Q: 云函数测试需要什么？
-
-A: 
-1. CloudBase CLI已安装
-2. 已登录CloudBase账号
-3. 云函数已部署
-4. HTTP访问路径已配置
-
-## 贡献指南
-
-添加新测试时请遵循以下规范：
-
-1. 测试文件命名：`test_*.py`
-2. 使用清晰的函数命名
-3. 添加必要的注释
-4. 处理异常情况
-5. 打印清晰的测试结果
+1. **独立性**: 每个测试应该独立运行，不依赖其他测试
+2. **可重复性**: 单元测试使用 mock，不依赖外部服务
+3. **明确性**: 测试名称应该清晰描述测试内容
+4. **快速性**: 单元测试应该快速执行
 
 ## 相关文档
 
-- [项目README](../README.md)
-- [MTGCH API快速开始](../docs/MTGCH%20API快速开始.md)
-- [MTGCH API接入说明](../docs/MTGCH%20API接入说明.md)
-- [CloudBase部署指南](../docs/CloudBase部署指南.md)
+- [项目 README](../README.md)
+- [MTGCH API 文档](../docs/MTGCH%20API快速开始.md)
+- [CloudBase 部署指南](../docs/CloudBase部署指南.md)
 
 ---
 
-**最后更新**: 2026-03-13
-**维护者**: AI Assistant
+**最后更新**: 2026-03-16
+**测试框架**: pytest
