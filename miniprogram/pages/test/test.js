@@ -1,5 +1,5 @@
 // pages/test/test.js
-const API_BASE = 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la'
+const API_BASE = 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com'
 
 Page({
   data: {
@@ -234,7 +234,7 @@ Page({
   async testApiSearchLifelink() {
     return new Promise((resolve, reject) => {
       wx.request({
-        url: `${API_BASE}/api/keyword`,
+        url: `${API_BASE}/wechat/api/keyword`,
         data: { k: 'Lifelink' },
         method: 'GET',
         success: (res) => {

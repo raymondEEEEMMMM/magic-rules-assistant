@@ -2,7 +2,7 @@
  * 万智牌规则页面逻辑
  */
 const app = getApp()
-const API_BASE = 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la'
+const API_BASE = 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com'
 
 Page({
   data: {
@@ -147,7 +147,7 @@ Page({
     wx.showLoading({ title: '搜索中...' })
 
     wx.request({
-      url: `${API_BASE}/api/search`,
+      url: `${API_BASE}/wechat/api/search`,
       data: { q: keyword },
       method: 'GET',
       success: (res) => {

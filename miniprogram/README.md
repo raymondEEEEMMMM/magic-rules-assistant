@@ -84,7 +84,7 @@ wx.cloud.init({
 const app = getApp()
 
 // 调用云函数
-app.requestApi('/api/search', { q: '战斗' })
+app.requestApi('/wechat/api/search', { q: 'combat' })
   .then(res => {
     console.log(res)
   })

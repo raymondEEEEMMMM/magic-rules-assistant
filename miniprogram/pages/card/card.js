@@ -1,6 +1,6 @@
 // pages/card/card.js
 const app = getApp()
-const API_BASE = 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la'
+const API_BASE = 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com'
 
 Page({
   data: {
@@ -64,7 +64,7 @@ Page({
     wx.showLoading({ title: '搜索中...' })
 
     wx.request({
-      url: `${API_BASE}/api/card`,
+      url: `${API_BASE}/wechat/api/mtgch/search`,
       data: {
         q: keyword,
         page: 1,
@@ -260,7 +260,7 @@ Page({
     wx.showLoading({ title: '加载中...' })
 
     wx.request({
-      url: `${API_BASE}/api/mtgch/card`,
+      url: `${API_BASE}/wechat/api/mtgch/card`,
       data: { id: cardId },
       method: 'GET',
       success: (res) => {
@@ -314,7 +314,7 @@ Page({
     wx.showLoading({ title: '获取中...' })
 
     wx.request({
-      url: `${API_BASE}/api/mtgch/random`,
+      url: `${API_BASE}/wechat/api/mtgch/random`,
       method: 'GET',
       success: (res) => {
         wx.hideLoading()

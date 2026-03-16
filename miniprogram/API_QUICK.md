@@ -40,7 +40,7 @@ wx.request({
 ### 3. 搜索卡牌
 ```javascript
 wx.request({
-  url: `${API_BASE}/wechat/wechat/api/mtgch/search`,
+  url: `${API_BASE}/wechat/api/mtgch/search`,
   data: { q: 'Lightning Bolt' },
   method: 'GET',
   success(res) {
@@ -90,7 +90,7 @@ wx.request({
 
 ```javascript
 // utils/api.js
-const API_BASE = 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la'
+const API_BASE = 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com'
 
 const api = {
   // 搜索规则
@@ -105,7 +105,7 @@ const api = {
 
   // 搜索卡牌
   searchCard(cardName, page = 1, pageSize = 5) {
-    return this.request('/wechat/wechat/api/mtgch/search', {
+    return this.request('/wechat/api/mtgch/search', {
       q: cardName,
       page,
       page_size: pageSize

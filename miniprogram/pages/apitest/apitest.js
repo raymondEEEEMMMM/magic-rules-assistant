@@ -1,7 +1,7 @@
 // pages/apitest/apitest.js
 Page({
   data: {
-    apiBase: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la',
+    apiBase: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com',
     loading: false,
     passedCount: 0,
     failedCount: 0,
@@ -124,7 +124,7 @@ Page({
     this.setData({ loading: true })
 
     try {
-      const result = await this.makeRequest('/api/search', { q: 'combat' })
+      const result = await this.makeRequest('/wechat/api/search', { q: 'combat' })
       console.log('规则搜索响应:', result)
       const success = result.statusCode === 200 && result.data
       
@@ -132,7 +132,7 @@ Page({
         '规则搜索',
         success ? 'success' : 'fail',
         result.time,
-        '/api/search?q=combat',
+        '/wechat/api/search?q=combat',
         result.data,
         result.statusCode,
         success ? null : '响应数据异常'
@@ -143,7 +143,7 @@ Page({
         '规则搜索',
         'fail',
         error.time,
-        '/api/search?q=combat',
+        '/wechat/api/search?q=combat',
         null,
         null,
         error.error
@@ -159,7 +159,7 @@ Page({
     this.setData({ loading: true })
 
     try {
-      const result = await this.makeRequest('/api/keyword', { k: 'Lifelink' })
+      const result = await this.makeRequest('/wechat/api/keyword', { k: 'Lifelink' })
       console.log('关键词查询响应:', result)
       const success = result.statusCode === 200 && result.data
       
@@ -167,7 +167,7 @@ Page({
         '关键词查询',
         success ? 'success' : 'fail',
         result.time,
-        '/api/keyword?k=Lifelink',
+        '/wechat/api/keyword?k=Lifelink',
         result.data,
         result.statusCode,
         success ? null : '响应数据异常'
@@ -178,7 +178,7 @@ Page({
         '关键词查询',
         'fail',
         error.time,
-        '/api/keyword?k=Lifelink',
+        '/wechat/api/keyword?k=Lifelink',
         null,
         null,
         error.error
@@ -194,7 +194,7 @@ Page({
     this.setData({ loading: true })
 
     try {
-      const result = await this.makeRequest('/api/card', { q: 'Lightning Bolt', page: 1, page_size: 5 })
+      const result = await this.makeRequest('/wechat/api/mtgch/search', { q: 'Lightning Bolt', page: 1, page_size: 5 })
       console.log('卡牌搜索响应:', result)
       const success = result.statusCode === 200 && result.data && result.data.items
 
@@ -202,7 +202,7 @@ Page({
         '卡牌搜索',
         success ? 'success' : 'fail',
         result.time,
-        '/api/card?q=Lightning Bolt',
+        '/wechat/api/mtgch/search?q=Lightning Bolt',
         result.data,
         result.statusCode,
         success ? null : '响应数据异常'
@@ -213,7 +213,7 @@ Page({
         '卡牌搜索',
         'fail',
         error.time,
-        '/api/card?q=Lightning Bolt',
+        '/wechat/api/mtgch/search?q=Lightning Bolt',
         null,
         null,
         error.error
@@ -230,14 +230,14 @@ Page({
 
     try {
       // 先搜索获取一个卡牌ID
-      const searchResult = await this.makeRequest('/api/card', { q: 'Lightning Bolt', page: 1, page_size: 1 })
+      const searchResult = await this.makeRequest('/wechat/api/mtgch/search', { q: 'Lightning Bolt', page: 1, page_size: 1 })
       console.log('搜索响应:', searchResult)
 
       if (searchResult.statusCode === 200 && searchResult.data && searchResult.data.items && searchResult.data.items.length > 0) {
         const cardId = searchResult.data.items[0].id
         console.log('获取到卡牌ID:', cardId)
 
-        const result = await this.makeRequest('/api/mtgch/card', { id: cardId })
+        const result = await this.makeRequest('/wechat/api/mtgch/card', { id: cardId })
         console.log('卡牌详情响应:', result)
         const success = result.statusCode === 200 && result.data && result.data.name
 
@@ -245,7 +245,7 @@ Page({
           '单张卡牌详情',
           success ? 'success' : 'fail',
           result.time,
-          '/api/mtgch/card',
+          '/wechat/api/mtgch/card',
           result.data,
           result.statusCode,
           success ? null : '响应数据异常'
@@ -255,7 +255,7 @@ Page({
           '单张卡牌详情',
           'fail',
           searchResult.time,
-          '/api/mtgch/card',
+          '/wechat/api/mtgch/card',
           null,
           searchResult.statusCode,
           '无法获取测试用卡牌ID'
@@ -267,7 +267,7 @@ Page({
         '单张卡牌详情',
         'fail',
         error.time,
-        '/api/mtgch/card',
+        '/wechat/api/mtgch/card',
         null,
         null,
         error.error
@@ -283,7 +283,7 @@ Page({
     this.setData({ loading: true })
 
     try {
-      const result = await this.makeRequest('/api/mtgch/random')
+      const result = await this.makeRequest('/wechat/api/mtgch/random')
       console.log('随机卡牌响应:', result)
       const success = result.statusCode === 200 && result.data && result.data.name
 
@@ -291,7 +291,7 @@ Page({
         '随机卡牌',
         success ? 'success' : 'fail',
         result.time,
-        '/api/mtgch/random',
+        '/wechat/api/mtgch/random',
         result.data,
         result.statusCode,
         success ? null : '响应数据异常'
@@ -302,7 +302,7 @@ Page({
         '随机卡牌',
         'fail',
         error.time,
-        '/api/mtgch/random',
+        '/wechat/api/mtgch/random',
         null,
         null,
         error.error
@@ -318,7 +318,7 @@ Page({
     this.setData({ loading: true })
 
     try {
-      const result = await this.makeRequest('/api/mtgch/autocomplete', { q: 'light', size: 5 })
+      const result = await this.makeRequest('/wechat/api/mtgch/autocomplete', { q: 'light', size: 5 })
       console.log('自动补全响应:', result)
       const success = result.statusCode === 200 && result.data && result.data.suggestions
 
@@ -326,7 +326,7 @@ Page({
         '自动补全',
         success ? 'success' : 'fail',
         result.time,
-        '/api/mtgch/autocomplete?q=light',
+        '/wechat/api/mtgch/autocomplete?q=light',
         result.data,
         result.statusCode,
         success ? null : '响应数据异常'
@@ -337,7 +337,7 @@ Page({
         '自动补全',
         'fail',
         error.time,
-        '/api/mtgch/autocomplete?q=light',
+        '/wechat/api/mtgch/autocomplete?q=light',
         null,
         null,
         error.error

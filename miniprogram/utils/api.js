@@ -14,7 +14,7 @@
  * api.searchCard('Lightning Bolt').then(data => { ... })
  */
 
-const API_BASE = 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la'
+const API_BASE = 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com'
 
 /**
  * API 封装对象
@@ -29,7 +29,7 @@ const api = {
     if (!keyword || !keyword.trim()) {
       return Promise.reject('请输入搜索关键词')
     }
-    return this.request('/api/search', { q: keyword })
+    return this.request('/wechat/api/search', { q: keyword })
   },
 
   /**
@@ -41,7 +41,7 @@ const api = {
     if (!keyword || !keyword.trim()) {
       return Promise.reject('请输入关键词')
     }
-    return this.request('/api/keyword', { k: keyword })
+    return this.request('/wechat/api/keyword', { k: keyword })
   },
 
   /**
@@ -55,7 +55,7 @@ const api = {
     if (!cardName || !cardName.trim()) {
       return Promise.reject('请输入卡牌名称')
     }
-    return this.request('/api/card', {
+    return this.request('/wechat/api/mtgch/search', {
       q: cardName,
       page,
       page_size: pageSize
@@ -79,7 +79,7 @@ const api = {
     if (!cardId) {
       return Promise.reject('请输入卡牌ID')
     }
-    return this.request('/api/mtgch/card', { id: cardId })
+    return this.request('/wechat/api/mtgch/card', { id: cardId })
   },
 
   /**
@@ -92,7 +92,7 @@ const api = {
     if (!setCode || !number) {
       return Promise.reject('请输入系列代码和编号')
     }
-    return this.request('/api/mtgch/card', { set: setCode, number })
+    return this.request('/wechat/api/mtgch/card', { set: setCode, number })
   },
 
   /**
@@ -100,7 +100,7 @@ const api = {
    * @returns {Promise}
    */
   getRandomCard() {
-    return this.request('/api/mtgch/random', {})
+    return this.request('/wechat/api/mtgch/random', {})
   },
 
   /**
@@ -113,7 +113,7 @@ const api = {
     if (!query || !query.trim()) {
       return Promise.reject('请输入搜索内容')
     }
-    return this.request('/api/mtgch/autocomplete', { q: query, size })
+    return this.request('/wechat/api/mtgch/autocomplete', { q: query, size })
   },
 
   /**
