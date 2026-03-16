@@ -1,9 +1,7 @@
 #!/bin/bash
-if command -v python3 &> /dev/null; then
-    python3 -u index.py
-elif command -v python &> /dev/null; then
-    python -u index.py
-else
-    # 直接使用绝对路径
-    /var/lang/bin/python3.10 -u index.py
-fi
+
+# 添加本地依赖到 Python 路径
+export PYTHONPATH=/var/user/vendor:$PYTHONPATH
+
+# 运行云函数入口
+exec python3 -u scf_index.py

@@ -2,6 +2,26 @@
 
 本目录包含 CloudBase 云函数相关测试。
 
+## ⚠️ 关键要点
+
+### 云函数类型
+- **Event 类型云函数**：不是 HTTP 类型，需要通过 HTTP 访问路径访问
+- **scf_index.py**：Event 函数的入口文件，handler 设为 `scf_index.main_handler`
+
+### 依赖管理
+- **vendor 目录**：Event 函数不会自动安装依赖，需要将依赖打包上传
+- **PYTHONPATH**：在 `scf_bootstrap` 中设置 `export PYTHONPATH=/var/user/vendor:$PYTHONPATH`
+
+### 数据库连接
+- **云端 MySQL**：使用外网主机名（如 `sh-cynosdbmysql-grp-xxx.sql.tencentcdb.com`）
+- **端口**：外网端口（如 27987），不是内网端口 3306
+
+### API 访问
+- **正确路径**：`/wechat/api/mtgch/search`（不是 `/api/mtgch/search`）
+- **环境变量**：`WECHAT_TOKEN` 用于微信验证
+
+---
+
 ## 测试文件
 
 ### test_cloud_mtgch.py
@@ -96,10 +116,24 @@ def test_chinese_search(self):
 ### 云函数信息
 
 - **环境 ID**: magic-rules-assistant-0a1904c329
-- **函数名称**: magic-rules-api
+- **函数名称**: mtgAsk
+- **函数类型**: Event（事件型）
+- **入口文件**: scf_index.py
+- **Handler**: scf_index.main_handler
 - **运行环境**: Python 3.10
 - **内存**: 512MB
 - **超时**: 60s
+- **依赖方式**: vendor 目录
+
+### 测试验证命令
+
+```bash
+# 测试关键词查询（英文）
+curl 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/keyword?k=Flying'
+
+# 测试卡牌搜索（中文）
+curl 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/mtgch/search?q=闪电风暴'
+```
 
 ---
 

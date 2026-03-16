@@ -1,5 +1,36 @@
 # CloudBase 部署指南
 
+## ⚠️ 部署关键要点
+
+### 1. 云函数类型选择
+- **Event 类型**：不是 HTTP 类型，通过 HTTP 访问路径访问
+- **HTTP 类型**：可以直接用 URL 访问，但配置更复杂
+
+### 2. Event 函数特殊配置
+- **入口文件**：`scf_index.py`（不是 `index.py`）
+- **Handler**：`scf_index.main_handler`
+- **依赖上传**：Event 函数不会自动安装依赖，需要：
+  1. 创建 `vendor` 目录
+  2. 复制依赖到 vendor：`cp -r venv/lib/python3.10/site-packages/* functions/mtgAsk/vendor/`
+  3. 上传 vendor 目录
+
+### 3. scf_bootstrap 配置
+```bash
+#!/bin/bash
+export PYTHONPATH=/var/user/vendor:$PYTHONPATH
+exec python3 -u scf_index.py
+```
+
+### 4. MySQL 数据库
+- **使用外网主机名**：如 `sh-cynosdbmysql-grp-xxx.sql.tencentcdb.com`
+- **端口**：外网端口（如 27987），不是 3306
+
+### 5. HTTP 访问路径
+- 微信路径前缀：`/wechat/api/...`
+- 示例：`/wechat/api/mtgch/search`
+
+---
+
 ## 准备工作
 
 ### 1. 安装 CloudBase CLI

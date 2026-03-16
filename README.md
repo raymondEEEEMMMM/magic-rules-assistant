@@ -25,6 +25,25 @@
 - ✅ 向量化数据准备
 - ✅ 数据库统计功能
 
+### 云端部署
+- ✅ CloudBase 云函数部署（Event 类型）
+- ✅ HTTP 访问路径配置
+- ✅ vendor 目录依赖管理
+- ✅ MySQL 数据库连接配置
+- ✅ 云端 API 测试验证
+
+## ⚠️ 当前数据限制
+
+> **重要**: 后端当前**只支持英文规则查询**，支持**中文卡牌查询**（通过 MTGCH API）。
+
+| 功能 | 当前支持语言 | 说明 |
+|------|-------------|------|
+| 关键词规则查询 | 英文 | 如 `Flying`、`Trample` |
+| 卡牌规则查询 | 中文/英文 | 通过 MTGCH API |
+| 规则搜索 | 英文 | 规则数据库为英文 |
+
+> 后续将实现中文规则数据接入，届时所有功能将支持中英文查询。
+
 ## 📦 技术栈
 - 后端: Python + FastAPI
 - 数据库: SQLite
@@ -123,9 +142,9 @@ curl 'http://localhost:8000/api/keyword?k=践踏'
 - `POST /wechat` - 微信消息接收
 
 ### 调试端点
-- `GET /api/search?q=` - 规则综合搜索
-- `GET /api/keyword?k=` - 关键词异能查询
-- `GET /api/card?n=` - 卡牌规则查询
+- `GET /api/search?q=` - 规则综合搜索（当前仅支持英文）
+- `GET /api/keyword?k=` - 关键词异能查询（当前仅支持英文）
+- `GET /api/card?n=` - 卡牌规则查询（支持中文/英文卡牌名）
 
 ### 规则管理端点
 - `POST /api/rules/update` - 更新规则（可选force参数）
@@ -141,23 +160,25 @@ curl 'http://localhost:8000/api/keyword?k=践踏'
 
 ## 💬 用户交互示例
 
+> ⚠️ **注意**: 当前版本仅支持英文关键词查询，中文卡牌查询通过 MTGCH API 支持。
+
 ```
-用户: 飞行
-系统: 📌 飞行
+用户: Flying
+系统: 📌 Flying
       具有飞行异能的生物不能被不具有飞行异能的生物阻挡。
 
       完整规则:
-      702.9. 飞行
-      702.9a 飞行是一种静态异能，影响生物进行阻挡的方式。
+      702.9. Flying
+      702.9a Flying is an evasion ability.
       ...
 
-用户: 卡牌:黑莲花
-系统: 🎴 黑莲花
-      类型: 神器
-      规则文本: 牺牲黑莲花：加三点任意颜色的法术力。
+用户: 卡牌:Black Lotus
+系统: 🎴 Black Lotus
+      Type: Artifact
+      Rules Text: Sacrifice Black Lotus: Add three mana of any one color.
 
-用户: 异能:践踏
-系统: 📌 践踏
+用户: Trample
+系统: 📌 Trample
       具有践踏异能的生物在战斗时，超额的伤害会分配给防御牌手...
 
 用户: /help
@@ -203,6 +224,7 @@ curl 'http://localhost:8000/api/keyword?k=践踏'
 - [ ] 添加缓存机制
 - [ ] 日志系统
 - [ ] 单元测试
+- [ ] **中文规则数据接入**（支持中文规则查询）
 
 ## 📝 许可证
 MIT License

@@ -10,6 +10,11 @@ from urllib.parse import parse_qs
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
 
+# 添加 vendor 依赖目录到 Python 路径
+vendor_path = os.path.join(os.path.dirname(__file__), 'vendor')
+if os.path.exists(vendor_path):
+    sys.path.insert(0, vendor_path)
+
 # 添加 backend 目录到路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 

@@ -7,22 +7,18 @@
     {
       "name": "mtgAsk",
       "description": "mtgAsk - 万智牌规则问答 API",
-      "runtime": "Python3.9",
-      "handler": "index.main_handler",
+      "runtime": "Python3.10",
+      "handler": "scf_index.main_handler",
       "timeout": 60,
       "memorySize": 512,
       "envVariables": {
         "ENVIRONMENT": "production",
         "WECHAT_TOKEN": "wx_mtg_rules_2024",
-        "MYSQL_HOST": "172.17.0.5",
-        "MYSQL_PORT": "3306",
+        "MYSQL_HOST": "sh-cynosdbmysql-grp-5ydpqjru.sql.tencentcdb.com",
+        "MYSQL_PORT": "27987",
         "MYSQL_USER": "mtgask",
         "MYSQL_PASSWORD": "Ray19940211",
         "MYSQL_DATABASE": "magic-rules-assistant-0a1904c329"
-      },
-      "http": {
-        "path": "/",
-        "methods": ["GET", "POST"]
       }
     }
   ]

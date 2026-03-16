@@ -47,9 +47,17 @@ curl 'http://localhost:8000/api/keyword?k=践踏'
 
 ### Deployment
 ```bash
-# Deploy to CloudBase
+# 1. 复制虚拟环境到 vendor 目录（Event 类型云函数需要）
+mkdir -p functions/mtgAsk/vendor
+pip install --target functions/mtgAsk/vendor -r requirements.txt -q
+
+# 2. 部署到 CloudBase
 bash deploy.sh
+
+# 3. 测试云函数
+tcb fn invoke mtgAsk --params '{"httpMethod":"GET","path":"/","queryString":""}'
 ```
+**注意**: Event 类型云函数需要将虚拟环境一起上传到 vendor 目录，并在 scf_bootstrap 中设置 PYTHONPATH。
 
 ## Architecture
 
