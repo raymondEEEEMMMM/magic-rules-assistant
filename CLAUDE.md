@@ -151,3 +151,11 @@ Key variables (in `.env.local` for local, `cloudbaserc.json` for cloud):
 - `functions/mtgAsk/backend/database.py` - Database connection management
 - `miniprogram/app.js` - Mini-program config with API base URL
 - `cloudbaserc.json` - CloudBase deployment configuration
+
+## Future Plans
+
+### AI Judge Feature (Phase 2)
+- Use LLM (DeepSeek/Tencent Hunyuan) to analyze game states
+- Judge trigger timing, cost payment, priority
+- Answer rule questions like "Can I cast this spell?"
+- Example: Analyze interactions between cards in combat
