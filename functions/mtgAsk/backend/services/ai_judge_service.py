@@ -84,13 +84,17 @@ class AIJudgeService:
             print("  未找到环境ID，跳过云存储加载")
             return ""
 
-        # 构建 API 请求获取临时链接
-        # 使用 CloudBase 的 HTTP API
+        # 云存储URL格式: https://{bucket}.tcb.qcloud.la/{path}
+        # Bucket格式: 6d61-magic-rules-assistant-0a1904c329-1410769303
+        bucket = "6d61-magic-rules-assistant-0a1904c329-1410769303"
+        cloud_prefix = "ai_judge/345/"
+
         for file_path in self.RULE_FILES:
             try:
-                # 方法：使用签名URL或直接通过已配置的域名访问
-                # 这里先尝试直接HTTP访问
-                url = f"https://cloudfile-{env_id}.tcb.qcloud.la/{file_path}"
+                # 使用 CDN 域名访问
+                full_cloud_path = cloud_prefix + file_path
+                url = f"https://{bucket}.tcb.qcloud.la/{full_cloud_path}"
+
                 response = requests.get(url, timeout=10, headers={
                     "User-Agent": "mtgAsk/1.0"
                 })
