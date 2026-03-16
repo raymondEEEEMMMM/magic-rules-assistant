@@ -11,14 +11,160 @@ from config import Config
 class AIJudgeService:
     """AI 裁判服务"""
 
+    # 规则文件列表（相对于 base_dir）
+    RULE_FILES = [
+        "markdown/glossarycn.md",      # 中文词汇表
+        "knowledge-map/triggered-abilities.md",  # 触发式异能
+        "knowledge-map/stack-priority.md",       # 堆叠与优先权
+        "knowledge-map/continuous-effects.md",    # 持续效应
+        "knowledge-map/copy-effects.md",         # 复制效应
+    ]
+
     def __init__(self):
         self.api_key = Config.MINIMAX_API_KEY
         self.model = Config.MINIMAX_MODEL
         self.base_url = Config.MINIMAX_BASE_URL
         self.conversation_history: Dict[str, List[Dict]] = {}  # 按用户会话维护历史
 
+        # 加载规则内容
+        self.rules_content = self._load_rules()
+
         # 系统提示词
-        self.system_prompt = """你是一位专业的万智牌裁判助手，精通万智牌 Comprehensive Rules（综合规则）。
+        self.system_prompt = self._build_system_prompt()
+
+    def _is_cloud_function(self) -> bool:
+        """检查是否在云函数环境中"""
+        return bool(os.getenv("SCF_FUNCTION_NAME") or os.getenv("TENCENTCLOUD_RUNENV"))
+
+    def _get_cloud_storage_url(self, file_path: str) -> Optional[str]:
+        """
+        获取云存储文件的临时下载链接
+        使用 CloudBase HTTP API
+        """
+        env_id = os.getenv("TCB_ENV_ID")
+        if not env_id:
+            # 尝试从环境变量获取
+            env_id = os.getenv("TENCENTCLOUD_APPID", "")
+
+        if not env_id:
+            # 从 SCF 相关信息中提取
+            return None
+
+        # 使用云存储的基础 URL 格式
+        # 注意：需要在云存储控制台配置安全规则允许访问
+        return f"https://cloudfile-{env_id}.tcb.qcloud.la/{file_path}"
+
+    def _load_rules(self) -> str:
+        """
+        从云存储或本地加载规则内容
+        """
+        # 优先尝试从云存储加载
+        if self._is_cloud_function():
+            content = self._load_from_cloud_storage()
+            if content:
+                return content
+
+        # 备选：从本地加载（用于开发/测试）
+        local_path = os.getenv("AI_RULES_LOCAL_PATH", "/Users/lianghaoming/cbworkplace/.claude/skills/ai_judge/345")
+        content = self._load_from_local(local_path)
+        if content:
+            return content
+
+        print("未能加载规则内容，使用默认提示词")
+        return ""
+
+    def _load_from_cloud_storage(self) -> str:
+        """从云存储加载规则"""
+        print("尝试从云存储加载规则...")
+        loaded_content = []
+
+        # 获取环境ID
+        env_id = os.getenv("TCB_ENV_ID") or os.getenv("TENCENTCLOUD_APPID", "")
+        if not env_id:
+            print("  未找到环境ID，跳过云存储加载")
+            return ""
+
+        # 构建 API 请求获取临时链接
+        # 使用 CloudBase 的 HTTP API
+        for file_path in self.RULE_FILES:
+            try:
+                # 方法：使用签名URL或直接通过已配置的域名访问
+                # 这里先尝试直接HTTP访问
+                url = f"https://cloudfile-{env_id}.tcb.qcloud.la/{file_path}"
+                response = requests.get(url, timeout=10, headers={
+                    "User-Agent": "mtgAsk/1.0"
+                })
+
+                if response.status_code == 200:
+                    loaded_content.append(f"\n\n=== {file_path} ===\n\n")
+                    loaded_content.append(response.text)
+                    print(f"  ✓ 已加载: {file_path}")
+                else:
+                    print(f"  ✗ 无法获取: {file_path} (HTTP {response.status_code})")
+
+            except Exception as e:
+                print(f"  ✗ 加载失败 {file_path}: {e}")
+                continue
+
+        if loaded_content:
+            content = "".join(loaded_content)
+            print(f"共加载 {len(content)} 字符的规则内容")
+            return content
+        else:
+            print("云存储加载失败")
+            return ""
+
+    def _load_from_local(self, local_path: str) -> str:
+        """从本地加载规则"""
+        import os
+
+        print(f"尝试从本地加载规则: {local_path}")
+        loaded_content = []
+
+        # 如果 local_path 是绝对路径，直接使用
+        if os.path.isabs(local_path):
+            base_dir = local_path if os.path.isdir(local_path) else os.path.dirname(local_path)
+        else:
+            # 尝试相对路径
+            base_dir = os.path.join(os.path.dirname(__file__), local_path)
+
+        # 检查目录是否存在
+        if not os.path.isdir(base_dir):
+            # 尝试项目根目录
+            base_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".claude/skills/ai_judge/345")
+
+        if not os.path.isdir(base_dir):
+            print(f"  目录不存在: {base_dir}")
+            return ""
+
+        print(f"  使用目录: {base_dir}")
+
+        for file_path in self.RULE_FILES:
+            # 保持完整路径
+            full_path = os.path.join(base_dir, file_path)
+
+            if os.path.exists(full_path):
+                try:
+                    with open(full_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                        loaded_content.append(f"\n\n=== {file_path} ===\n\n")
+                        loaded_content.append(content)
+                        print(f"  ✓ 已加载: {file_path}")
+                except Exception as e:
+                    print(f"  ✗ 读取失败 {file_path}: {e}")
+            else:
+                print(f"  - 文件不存在: {full_path}")
+
+        if loaded_content:
+            content = "".join(loaded_content)
+            print(f"共加载 {len(content)} 字符的规则内容")
+            return content
+
+        return ""
+
+    def _build_system_prompt(self) -> str:
+        """构建系统提示词"""
+        base_prompt = """你是一位专业的万智牌裁判助手，精通万智牌 Comprehensive Rules（综合规则）。
 
 ## 你的职责
 1. 回答玩家关于万智牌规则的问题
@@ -38,6 +184,18 @@ class AIJudgeService:
 - 伤害步骤（Combat Damage）：伤害如何分配
 
 如果不确定某些细节，请明确说明并给出合理的推测。"""
+
+        # 如果有加载的规则内容，附加到提示词中
+        if self.rules_content:
+            base_prompt += f"""
+
+## 规则知识库（供参考）
+
+{self.rules_content}
+
+请在回答时参考上述规则内容。"""
+
+        return base_prompt
 
     def _call_api(self, messages: List[Dict], temperature: float = 0.7) -> Optional[str]:
         """调用 MiniMax API"""
