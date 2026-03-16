@@ -24,6 +24,11 @@ class MessageHandler:
             keyword = message.split(":", 1)[1].strip()
             return self._handle_keyword_query(keyword)
 
+        # 检查是否是 AI 裁判查询
+        if message.startswith("裁判:") or message.startswith("judge:"):
+            query = message.split(":", 1)[1].strip()
+            return self._handle_ai_judge_query(query)
+
         # 默认进行规则搜索
         return self._handle_rule_search(message)
 
@@ -74,6 +79,19 @@ class MessageHandler:
         else:
             return f"未找到关键词异能: {keyword}\n\n请检查关键词名称是否正确。"
 
+    def _handle_ai_judge_query(self, query: str) -> str:
+        """处理 AI 裁判查询"""
+        try:
+            from services.ai_judge_service import ai_judge_service
+            result = ai_judge_service.chat(query, session_id="wechat")
+
+            if result["success"]:
+                return result["reply"]
+            else:
+                return f"抱歉，{result['reply']}"
+        except Exception as e:
+            return f"AI 裁判服务暂不可用，请稍后再试。"
+
     def _handle_rule_search(self, query: str) -> str:
         """处理规则搜索"""
         search_results = self.rule_service.search_rules(query)
@@ -92,8 +110,15 @@ class MessageHandler:
 【快捷命令】
 • 卡牌:卡牌名称 - 快速查询卡牌
 • 异能:异能名称 - 快速查询异能
+• 裁判:问题 - AI 裁判问答
 • /help - 显示此帮助信息
 • /start - 显示欢迎信息
+
+【AI 裁判功能】
+使用 "裁判:" 前缀可向 AI 裁判提问
+示例：
+• 裁判:闪电击和塔莫耶夫敏捷的伤害顺序？
+• 裁判:能否响应对手的咒语触发异能？
 
 【示例】
 • "飞行" 或 "异能:飞行"
@@ -116,12 +141,12 @@ class MessageHandler:
 ✓ 查询卡牌规则文本
 ✓ 解释关键词异能
 ✓ 搜索综合规则
-✓ 解答规则疑问
+✓ AI 裁判对局分析（NEW!）
 
 【快速开始】
 • 输入卡牌名称查询规则
 • 输入"飞行"、"践踏"等查询异能
-• 输入问题，如"先攻是什么"
+• 输入"裁判:xxx"向 AI 裁判提问
 
 输入 /help 查看详细使用指南
 

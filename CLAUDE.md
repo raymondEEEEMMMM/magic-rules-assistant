@@ -82,7 +82,8 @@ functions/mtgAsk/
 │   │   ├── rule_downloader.py # Download rules from Wizards of Coast
 │   │   ├── card_downloader.py # Download card data from MTGJSON
 │   │   ├── scheduler.py       # Scheduled tasks (03:00 daily, 10:00 Monday)
-│   │   └── mtgch_api.py       # MTGCH API integration
+│   │   ├── mtgch_api.py       # MTGCH API integration
+│   │   └── ai_judge_service.py # AI Judge (MiniMax API)
 │   └── wechat/
 │       └── handlers.py         # WeChat message handling
 ```
@@ -118,6 +119,9 @@ miniprogram/
 | `/api/card` | GET | Card rule lookup |
 | `/api/rules/update` | POST | Update rules from source |
 | `/api/rules/status` | GET | Get rule version status |
+| `/api/ai-judge/chat` | POST | AI Judge chat |
+| `/api/ai-judge/analyze` | POST | AI Judge game analysis |
+| `/api/ai-judge/clear` | POST | Clear AI Judge session |
 
 ### Cloud Function Configuration
 
@@ -133,6 +137,7 @@ Key variables (in `.env.local` for local, `cloudbaserc.json` for cloud):
 - `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`
 - `WECHAT_TOKEN`
 - `TCB_ENV_ID`
+- `MINIMAX_API_KEY` - MiniMax API key for AI Judge
 
 ## Key Design Patterns
 
@@ -154,8 +159,15 @@ Key variables (in `.env.local` for local, `cloudbaserc.json` for cloud):
 
 ## Future Plans
 
-### AI Judge Feature (Phase 2)
-- Use LLM (DeepSeek/Tencent Hunyuan) to analyze game states
-- Judge trigger timing, cost payment, priority
-- Answer rule questions like "Can I cast this spell?"
-- Example: Analyze interactions between cards in combat
+### Completed Features
+
+### AI Judge Feature (Phase 2) ✅
+- Integrated MiniMax API for AI-powered rule Q&A
+- Chat interface: `裁判:问题` or `POST /api/ai-judge/chat`
+- Game analysis: `POST /api/ai-judge/analyze`
+- Supports conversation history per session
+
+### Upcoming Features
+- Switch LLM provider (add support for more LLM backends)
+- Card image lookup integration
+- Multi-language support

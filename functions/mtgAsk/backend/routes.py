@@ -104,6 +104,83 @@ async def get_card_rule(card_name: str):
         return {"card_name": card_name, "result": result}
     return {"card_name": card_name, "result": None}
 
+# ==================== 微信 HTTP 访问路径 API ====================
+# 这些路由用于 HTTP 访问路径 /wechat 的调用
+
+@app.get("/wechat/api/search")
+async def wechat_search_rules(q: str):
+    """规则搜索API - 微信HTTP访问"""
+    results = rule_service.search_rules(q)
+    return {"query": q, "results": results}
+
+@app.get("/wechat/api/keyword")
+async def wechat_get_keyword_ability(k: str):
+    """获取关键词异能API - 微信HTTP访问"""
+    result = rule_service.get_keyword_ability(k)
+    if result:
+        return {"keyword": k, "result": result}
+    return {"keyword": k, "result": None}
+
+@app.get("/wechat/api/mtgch/search")
+async def wechat_mtgch_search(q: str, page: int = 1, page_size: int = 5, priority_chinese: bool = True):
+    """MTGCH 卡牌搜索API - 微信HTTP访问"""
+    try:
+        from services.mtgch_api import MTGCHAPIClient
+        client = MTGCHAPIClient(timeout=30)
+        result = client.search_cards(
+            q,
+            page=page,
+            page_size=page_size,
+            priority_chinese=priority_chinese
+        )
+        client.close()
+        return result
+    except Exception as e:
+        return {"error": str(e), "items": [], "total": 0}
+
+@app.get("/wechat/api/mtgch/random")
+async def wechat_mtgch_random():
+    """MTGCH 随机卡牌API - 微信HTTP访问"""
+    try:
+        from services.mtgch_api import MTGCHAPIClient
+        client = MTGCHAPIClient(timeout=30)
+        result = client.get_random_card()
+        client.close()
+        return result if result else {"error": "No card found"}
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/wechat/api/mtgch/autocomplete")
+async def wechat_mtgch_autocomplete(q: str, size: int = 10):
+    """MTGCH 自动补全API - 微信HTTP访问"""
+    try:
+        from services.mtgch_api import MTGCHAPIClient
+        client = MTGCHAPIClient(timeout=30)
+        result = client.autocomplete(q, size=size)
+        client.close()
+        return result
+    except Exception as e:
+        return {"error": str(e), "items": [], "suggestions": []}
+
+@app.get("/wechat/api/mtgch/card")
+async def wechat_mtgch_card(id: str = None, set: str = None, number: str = None):
+    """MTGCH 卡牌详情API - 微信HTTP访问"""
+    try:
+        from services.mtgch_api import MTGCHAPIClient
+        client = MTGCHAPIClient(timeout=30)
+
+        if id:
+            result = client.get_card_by_id(id)
+        elif set and number:
+            result = client.get_card_by_set_and_number(set, number)
+        else:
+            return {"error": "Missing id or set+number parameters"}
+
+        client.close()
+        return result if result else {"error": "Card not found"}
+    except Exception as e:
+        return {"error": str(e)}
+
 # ==================== 规则下载相关 API ====================
 
 @app.on_event("startup")
@@ -237,6 +314,48 @@ async def get_rules_status():
             "success": False,
             "message": f"获取状态失败: {str(e)}"
         }
+
+# ==================== AI 裁判 API ====================
+
+@app.post("/api/ai-judge/chat")
+async def ai_judge_chat(request: Request):
+    """与 AI 裁判对话"""
+    body = await request.json()
+    message = body.get("message", "")
+    session_id = body.get("session_id", "default")
+
+    if not message:
+        return {"success": False, "reply": "消息不能为空"}
+
+    from services.ai_judge_service import ai_judge_service
+    result = ai_judge_service.chat(message, session_id)
+    return result
+
+@app.post("/api/ai-judge/analyze")
+async def ai_judge_analyze(request: Request):
+    """AI 裁判分析对局"""
+    body = await request.json()
+    game_state = body.get("game_state", "")
+    cards = body.get("cards", [])
+    question = body.get("question", "")
+
+    if not game_state and not question:
+        return {"success": False, "analysis": "请提供对局描述或问题"}
+
+    from services.ai_judge_service import ai_judge_service
+    result = ai_judge_service.analyze({
+        "game_state": game_state,
+        "cards": cards,
+        "question": question
+    })
+    return result
+
+@app.post("/api/ai-judge/clear")
+async def ai_judge_clear_session(session_id: str = "default"):
+    """清除 AI 裁判会话历史"""
+    from services.ai_judge_service import ai_judge_service
+    ai_judge_service.clear_session(session_id)
+    return {"success": True, "message": "会话已清除"}
 
 if __name__ == "__main__":
     import uvicorn

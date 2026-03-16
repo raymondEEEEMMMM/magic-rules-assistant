@@ -11,6 +11,11 @@ class Config:
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
     OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
 
+    # MiniMax配置
+    MINIMAX_API_KEY = os.getenv("MINIMAX_API_KEY", "")
+    MINIMAX_MODEL = os.getenv("MINIMAX_MODEL", "MiniMax-Text-01")
+    MINIMAX_BASE_URL = "https://api.minimax.chat/v1"
+
     # 数据库配置
     DATABASE_PATH = os.getenv("DATABASE_PATH", "./data/magic_rules.db")
 
