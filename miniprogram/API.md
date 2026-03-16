@@ -4,22 +4,32 @@
 
 ## 基础信息
 
-- **API 基础地址**: `https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/`
+- **API 基础地址**: `https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/`
 - **请求方式**: `GET` / `POST`
 - **响应格式**: `JSON`
 - **字符编码**: `UTF-8`
+
+## ⚠️ 数据限制说明
+
+> **重要**: 后端当前**只支持英文规则查询**，**支持中文卡牌查询**（通过 MTGCH API）。
+
+| 功能 | 当前支持语言 | 说明 |
+|------|-------------|------|
+| 关键词查询 | 英文 | 如 `Flying`, `Trample` |
+| 规则搜索 | 英文 | 规则数据库为英文 |
+| 卡牌搜索 | 中文/英文 | 通过 MTGCH API |
 
 ## API 端点列表
 
 | 端点 | 方法 | 说明 |
 |------|------|------|
 | `/` | GET | 服务状态 |
-| `/api/search` | GET | 规则搜索 |
-| `/api/keyword` | GET | 关键词查询 |
-| `/api/card` | GET | MTGCH 卡牌搜索 |
-| `/api/mtgch/card` | GET | MTGCH 单张卡牌详情 |
-| `/api/mtgch/random` | GET | MTGCH 随机卡牌 |
-| `/api/mtgch/autocomplete` | GET | MTGCH 自动补全 |
+| `/wechat/wechat/api/search` | GET | 规则搜索（仅英文） |
+| `/wechat/wechat/api/keyword` | GET | 关键词查询（仅英文） |
+| `/wechat/wechat/api/mtgch/search` | GET | MTGCH 卡牌搜索（支持中文） |
+| `/wechat/wechat/api/mtgch/card` | GET | MTGCH 单张卡牌详情 |
+| `/wechat/wechat/api/mtgch/random` | GET | MTGCH 随机卡牌 |
+| `/wechat/wechat/api/mtgch/autocomplete` | GET | MTGCH 自动补全 |
 
 ---
 
@@ -33,7 +43,7 @@ GET /
 ### 请求示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/',
+  url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/',
   method: 'GET'
 })
 ```
@@ -55,7 +65,7 @@ wx.request({
 
 ### 接口
 ```
-GET /api/search?q={keyword}
+GET /wechat/wechat/api/search?q={keyword}
 ```
 
 ### 请求参数
@@ -67,7 +77,7 @@ GET /api/search?q={keyword}
 ### 请求示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/search',
+  url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/search',
   data: {
     q: 'combat'
   },
@@ -119,7 +129,7 @@ function searchRules(keyword) {
   wx.showLoading({ title: '搜索中...' })
   
   wx.request({
-    url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/search',
+    url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/search',
     data: { q: keyword },
     method: 'GET',
     success(res) {
@@ -151,7 +161,7 @@ searchRules('combat')
 
 ### 接口
 ```
-GET /api/keyword?k={keyword}
+GET /wechat/wechat/api/keyword?k={keyword}
 ```
 
 ### 请求参数
@@ -163,7 +173,7 @@ GET /api/keyword?k={keyword}
 ### 请求示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/keyword',
+  url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/keyword',
   data: {
     k: 'Flying'
   },
@@ -193,7 +203,7 @@ function getKeyword(keyword) {
   wx.showLoading({ title: '查询中...' })
   
   wx.request({
-    url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/keyword',
+    url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/keyword',
     data: { k: keyword },
     method: 'GET',
     success(res) {
@@ -236,7 +246,7 @@ getKeyword('Flying')
 
 ### 接口
 ```
-GET /api/card?q={card_name}&page={page}&page_size={page_size}
+GET /wechat/wechat/api/mtgch/search?q={card_name}&page={page}&page_size={page_size}
 ```
 
 ### 请求参数
@@ -250,7 +260,7 @@ GET /api/card?q={card_name}&page={page}&page_size={page_size}
 ### 请求示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/card',
+  url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/wechat/api/mtgch/search',
   data: {
     q: 'Lightning Bolt',
     page: 1,
@@ -290,7 +300,7 @@ function searchCard(cardName, page = 1) {
   wx.showLoading({ title: '搜索中...' })
   
   wx.request({
-    url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/card',
+    url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/wechat/api/mtgch/search',
     data: { 
       q: cardName,
       page,
@@ -342,7 +352,7 @@ searchCard('Lightning Bolt')
 ### 小程序错误处理示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/search',
+  url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/search',
   data: { q: keyword },
   method: 'GET',
   success(res) {
@@ -402,7 +412,7 @@ function searchWithCache(keyword) {
   
   return new Promise((resolve) => {
     wx.request({
-      url: API_URL + '/api/search',
+      url: API_URL + '/wechat/api/search',
       data: { q: keyword },
       success(res) {
         wx.setStorageSync(cacheKey, {
@@ -440,7 +450,7 @@ function apiRequest(options) {
 
 // 使用
 apiRequest({
-  url: API_URL + '/api/search',
+  url: API_URL + '/wechat/api/search',
   data: { q: 'combat' }
 }).then(data => {
   console.log(data)
@@ -474,7 +484,7 @@ Page({
     this.setData({ loading: true })
     
     wx.request({
-      url: `${API_BASE}/api/search`,
+      url: `${API_BASE}/wechat/api/search`,
       data: { q: keyword },
       method: 'GET',
       success: (res) => {
@@ -498,7 +508,7 @@ Page({
     if (!keyword) return
     
     wx.request({
-      url: `${API_BASE}/api/keyword`,
+      url: `${API_BASE}/wechat/api/keyword`,
       data: { k: keyword },
       method: 'GET',
       success: (res) => {
@@ -521,7 +531,7 @@ Page({
     if (!keyword) return
     
     wx.request({
-      url: `${API_BASE}/api/card`,
+      url: `${API_BASE}/wechat/wechat/api/mtgch/search`,
       data: { q: keyword },
       method: 'GET',
       success: (res) => {
@@ -547,8 +557,8 @@ Page({
 
 ### 接口
 ```
-GET /api/mtgch/card?id={card_id}
-GET /api/mtgch/card?set={set_code}&number={collector_number}
+GET /wechat/wechat/api/mtgch/card?id={card_id}
+GET /wechat/wechat/api/mtgch/card?set={set_code}&number={collector_number}
 ```
 
 ### 请求参数
@@ -563,14 +573,14 @@ GET /api/mtgch/card?set={set_code}&number={collector_number}
 ```javascript
 // 通过 UUID 查询
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/mtgch/card',
+  url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/mtgch/card',
   data: { id: 'card-uuid' },
   method: 'GET'
 })
 
 // 通过系列代码+编号查询
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/mtgch/card',
+  url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/mtgch/card',
   data: { set: 'M19', number: '149' },
   method: 'GET'
 })
@@ -599,13 +609,13 @@ wx.request({
 
 ### 接口
 ```
-GET /api/mtgch/random
+GET /wechat/wechat/api/mtgch/random
 ```
 
 ### 请求示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/mtgch/random',
+  url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/mtgch/random',
   method: 'GET',
   success(res) {
     console.log(res.data)
@@ -635,7 +645,7 @@ function getRandomCard() {
   wx.showLoading({ title: '获取中...' })
 
   wx.request({
-    url: `${API_BASE}/api/mtgch/random`,
+    url: `${API_BASE}/wechat/api/mtgch/random`,
     method: 'GET',
     success(res) {
       wx.hideLoading()
@@ -659,7 +669,7 @@ function getRandomCard() {
 
 ### 接口
 ```
-GET /api/mtgch/autocomplete?q={query}&size={size}
+GET /wechat/wechat/api/mtgch/autocomplete?q={query}&size={size}
 ```
 
 ### 请求参数
@@ -673,7 +683,7 @@ GET /api/mtgch/autocomplete?q={query}&size={size}
 ### 请求示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/mtgch/autocomplete',
+  url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/mtgch/autocomplete',
   data: { q: 'light', size: 5 },
   method: 'GET',
   success(res) {
@@ -701,7 +711,7 @@ wx.request({
 function autocomplete(query) {
   return new Promise((resolve) => {
     wx.request({
-      url: `${API_BASE}/api/mtgch/autocomplete`,
+      url: `${API_BASE}/wechat/api/mtgch/autocomplete`,
       data: { q: query, size: 10 },
       method: 'GET',
       success(res) {
