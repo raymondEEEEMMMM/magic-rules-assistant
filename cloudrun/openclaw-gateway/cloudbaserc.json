@@ -1,0 +1,28 @@
+{
+  "envId": "magic-rules-assistant-0a1904c329",
+  "version": "2.0",
+  "$schema": "https://framework-1258016615.tcloudbaseapp.com/schema/latest.json",
+  "services": [
+    {
+      "name": "openclaw-gateway",
+      "type": "cloud-run",
+      "region": "ap-guangzhou",
+      "configuration": {
+        "image": "openclaw-gateway:latest",
+        "cpu": 1,
+        "memory": 2048,
+        "port": 18789,
+        "containerPort": 18789,
+        "environmentVariables": {
+          "MINIMAX_API_KEY": "sk-cp-URGDcJUIBuZU7atnoz9ZCeyMg727_U_3FB-X7s3ajAQhBbhaSr0YEZhpClEclCGDsD6kZ8uIbetXHfvA2NZBMWOZf62jUlizfitxhq-9S_P4q79nfOYFI_4",
+          "OPENCLAW_ENABLED": "true"
+        },
+        "instanceCount": 1,
+        "minInstanceCount": 0,
+        "maxInstanceCount": 10,
+        "timeout": 300,
+        "publicAccess": true
+      }
+    }
+  ]
+}
