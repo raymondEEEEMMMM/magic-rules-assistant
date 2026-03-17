@@ -62,18 +62,7 @@ wx.request({
 })
 ```
 
-### 5. 获取随机卡牌
-```javascript
-wx.request({
-  url: `${API_BASE}/wechat/api/mtgch/random`,
-  method: 'GET',
-  success(res) {
-    console.log('随机卡牌:', res.data)
-  }
-})
-```
-
-### 6. 自动补全
+### 5. 自动补全
 ```javascript
 wx.request({
   url: `${API_BASE}/wechat/api/mtgch/autocomplete`,
@@ -115,11 +104,6 @@ const api = {
   // 获取单张卡牌详情
   getCardById(cardId) {
     return this.request('/wechat/api/mtgch/card', { id: cardId })
-  },
-
-  // 获取随机卡牌
-  getRandomCard() {
-    return this.request('/wechat/api/mtgch/random', {})
   },
 
   // 自动补全

@@ -28,11 +28,6 @@
         <text class="action-text">卡牌</text>
         <text class="action-desc">查询卡牌信息</text>
       </view>
-      <view class="action-card" bindtap="goToSearch">
-        <view class="action-icon">📜</view>
-        <text class="action-text">规则</text>
-        <text class="action-desc">游戏规则搜索</text>
-      </view>
       <view class="action-card ai-judge-card" bindtap="goToAIJudge">
         <view class="action-icon">🤖</view>
         <text class="action-text">AI 裁判</text>
@@ -49,14 +44,6 @@
         {{item}}
       </view>
     </view>
-  </view>
-
-  <!-- 随机卡牌 -->
-  <view class="random-card" bindtap="showRandomCard">
-    <view class="random-header">
-      <text class="random-title">🎲 随机卡牌</text>
-    </view>
-    <view class="random-hint">点击获取一张随机卡牌</view>
   </view>
 
   <!-- API 测试入口 -->

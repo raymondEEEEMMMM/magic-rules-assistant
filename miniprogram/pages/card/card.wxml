@@ -23,12 +23,6 @@
     <view class="search-btn" bindtap="onSearch">查询</view>
   </view>
 
-  <!-- 随机卡牌按钮（API模式） -->
-  <view class="random-card-btn" wx:if="{{useApi && !showDetail}}" bindtap="getRandomCard">
-    <text class="random-icon">🎲</text>
-    <text>随机卡牌</text>
-  </view>
-
   <!-- 卡牌搜索结果 -->
   <view class="card-list" wx:if="{{cards.length > 0}}">
     <view 

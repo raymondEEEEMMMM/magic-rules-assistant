@@ -7,8 +7,7 @@ const API_BASE = 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shangha
 Page({
   data: {
     hotKeywords: [
-      'Flying', 'Trample', 'Deathtouch', 'First strike', 'Lifelink',
-      'Haste', 'Vigilance', 'Reach', 'Hexproof', 'Indestructible'
+      'Flying', 'Trample', 'Deathtouch', 'First strike', 'Lifelink'
     ]
   },
 
@@ -49,13 +48,6 @@ Page({
     const keyword = e.currentTarget.dataset.keyword
     wx.navigateTo({
       url: `/pages/keyword/keyword?keyword=${encodeURIComponent(keyword)}`
-    })
-  },
-
-  // 显示随机卡牌
-  showRandomCard() {
-    wx.navigateTo({
-      url: '/pages/card/card?random=true'
     })
   },
 

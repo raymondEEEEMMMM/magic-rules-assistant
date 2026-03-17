@@ -152,31 +152,6 @@ page {
   opacity: 0.9;
 }
 
-/* 随机卡牌 */
-.random-card {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  border-radius: 24rpx;
-  padding: 40rpx;
-  box-shadow: 0 8rpx 30rpx rgba(245, 87, 108, 0.3);
-}
-
-.random-card:active {
-  transform: scale(0.98);
-}
-
-.random-title {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: white;
-  display: block;
-  margin-bottom: 16rpx;
-}
-
-.random-hint {
-  font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.8);
-}
-
 /* API 测试链接 */
 .api-test-link {
   margin-top: 30rpx;

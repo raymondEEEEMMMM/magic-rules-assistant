@@ -82,31 +82,6 @@ page {
   color: #1a1a2e;
 }
 
-/* 随机卡牌按钮 */
-.random-card-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12rpx;
-  padding: 20rpx;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
-  border: 2rpx solid rgba(102, 126, 234, 0.5);
-  border-radius: 50rpx;
-  font-size: 28rpx;
-  color: #667eea;
-  margin-bottom: 30rpx;
-  transition: all 0.3s ease;
-}
-
-.random-card-btn:active {
-  transform: scale(0.98);
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
-}
-
-.random-icon {
-  font-size: 32rpx;
-}
-
 /* 卡牌列表 */
 .card-list {
   display: flex;

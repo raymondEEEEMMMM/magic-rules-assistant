@@ -28,7 +28,6 @@
 | `/wechat/api/keyword` | GET | 关键词查询（仅英文） |
 | `/wechat/api/mtgch/search` | GET | MTGCH 卡牌搜索（支持中文） |
 | `/wechat/api/mtgch/card` | GET | MTGCH 单张卡牌详情 |
-| `/wechat/api/mtgch/random` | GET | MTGCH 随机卡牌 |
 | `/wechat/api/mtgch/autocomplete` | GET | MTGCH 自动补全 |
 
 ---
@@ -605,67 +604,7 @@ wx.request({
 
 ---
 
-## 6. 随机卡牌
-
-### 接口
-```
-GET /wechat/api/mtgch/random
-```
-
-### 请求示例
-```javascript
-wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/mtgch/random',
-  method: 'GET',
-  success(res) {
-    console.log(res.data)
-  }
-})
-```
-
-### 响应示例
-```json
-{
-  "id": "uuid",
-  "name": "Random Card",
-  "type": "Creature",
-  "mana_cost": "{2}{R}",
-  "oracle_text": "...",
-  "set_name": "...",
-  "image_uris": {
-    "normal": "https://..."
-  }
-}
-```
-
-### 小程序使用示例
-```javascript
-// 获取随机卡牌
-function getRandomCard() {
-  wx.showLoading({ title: '获取中...' })
-
-  wx.request({
-    url: `${API_BASE}/wechat/api/mtgch/random`,
-    method: 'GET',
-    success(res) {
-      wx.hideLoading()
-      const card = res.data
-      if (card) {
-        console.log('随机卡牌:', card)
-        // 显示卡牌
-      }
-    },
-    fail(err) {
-      wx.hideLoading()
-      wx.showToast({ title: '获取失败', icon: 'none' })
-    }
-  })
-}
-```
-
----
-
-## 7. 自动补全
+## 6. 自动补全
 
 ### 接口
 ```
@@ -754,4 +693,4 @@ function onInput(e) {
 | 日期 | 版本 | 更新内容 |
 |------|------|----------|
 | 2026-03-14 | 1.0 | 初始版本，提供规则搜索、关键词查询、卡牌搜索 API |
-| 2026-03-14 | 1.1 | 补充 MTGCH 单张卡牌详情、随机卡牌、自动补全接口 |
+| 2026-03-14 | 1.1 | 补充 MTGCH 单张卡牌详情、自动补全接口 |

@@ -96,14 +96,6 @@ const api = {
   },
 
   /**
-   * 获取随机卡牌
-   * @returns {Promise}
-   */
-  getRandomCard() {
-    return this.request('/wechat/api/mtgch/random', {})
-  },
-
-  /**
    * 自动补全
    * @param {string} query - 搜索前缀
    * @param {number} size - 返回数量（默认 10）
