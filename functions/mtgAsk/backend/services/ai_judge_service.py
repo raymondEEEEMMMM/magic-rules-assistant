@@ -154,6 +154,11 @@ class AIJudgeService:
         self.base_url = Config.MINIMAX_BASE_URL
         self.conversation_history: Dict[str, List[Dict]] = {}  # 按用户会话维护历史
 
+        # OpenCLAW Gateway 配置
+        self.openclaw_enabled = Config.OPENCLAW_ENABLED
+        self.openclaw_gateway_url = Config.OPENCLAW_GATEWAY_URL
+        self.openclaw_gateway_token = Config.OPENCLAW_GATEWAY_TOKEN
+
         # 加载规则内容
         self.rules_content = self._load_rules()
 
@@ -426,6 +431,99 @@ class AIJudgeService:
             print(f"MiniMax API 调用失败: {e}")
             return None
 
+    def _call_openclaw_gateway(self, messages: List[Dict], temperature: float = 0.7) -> Optional[str]:
+        """调用 OpenCLAW Gateway HTTP API"""
+        print(f"=== OpenCLAW HTTP 请求 ===")
+        print(f"Enabled: {self.openclaw_enabled}")
+        print(f"Gateway URL: {self.openclaw_gateway_url}")
+
+        if not self.openclaw_enabled:
+            print("OpenCLAW 未启用")
+            return None
+
+        # 从 messages 中提取最后一条用户消息
+        user_message = ""
+        for msg in reversed(messages):
+            if msg.get("role") == "user":
+                user_message = msg.get("content", "")
+                break
+
+        if not user_message:
+            print("未找到用户消息")
+            return None
+
+        url = f"{self.openclaw_gateway_url}/v1/chat/completions"
+        headers = {
+            "Content-Type": "application/json"
+        }
+        # 如果有 token 则添加认证头
+        if self.openclaw_gateway_token:
+            headers["Authorization"] = f"Bearer {self.openclaw_gateway_token}"
+
+        # 构建消息（只保留 system 和最新的 user 消息）
+        http_messages = []
+        for msg in messages:
+            if msg.get("role") in ["system", "user", "assistant"]:
+                http_messages.append({
+                    "role": msg["role"],
+                    "content": msg["content"]
+                })
+
+        payload = {
+            "model": "openclaw",
+            "messages": http_messages,
+            "temperature": temperature
+        }
+
+        try:
+            print(f"Calling OpenCLAW Gateway: {url}")
+            print(f"User message: {user_message[:100]}...")
+            response = requests.post(url, json=payload, headers=headers, timeout=90)
+            print(f"Response Status: {response.status_code}")
+
+            if response.status_code != 200:
+                print(f"HTTP Error: {response.status_code}, {response.text[:200]}")
+                return None
+
+            result = response.json()
+            print(f"Response Keys: {list(result.keys())}")
+
+            # 提取回复内容 - OpenAI 兼容格式
+            content = ""
+            if "choices" in result and len(result["choices"]) > 0:
+                choice = result["choices"][0]
+                if "message" in choice:
+                    content = choice["message"].get("content", "")
+
+            if content:
+                print(f"回复内容长度: {len(content)} 字符")
+                print(f"回复内容前200字: {content[:200]}...")
+                return content
+
+            # 如果没有标准字段，打印完整响应以便调试
+            print(f"完整响应: {json.dumps(result, ensure_ascii=False)[:500]}...")
+            return None
+
+        except Exception as e:
+            print(f"OpenCLAW HTTP 调用失败: {e}")
+            return None
+                return None
+
+            except json.JSONDecodeError as e:
+                print(f"JSON 解析失败: {e}")
+                print(f"原始输出: {result.stdout[:500]}")
+                return None
+
+        except subprocess.TimeoutExpired:
+            print("OpenCLAW CLI 执行超时")
+            return None
+        except FileNotFoundError:
+            print("未找到 openclaw 命令，请确保已安装 OpenCLAW")
+            return None
+        except Exception as e:
+            print(f"OpenCLAW CLI 调用失败: {e}")
+            return None
+
     def _call_stream_api(self, messages: List[Dict], temperature: float = 0.7):
         """
         调用 MiniMax API 流式响应
@@ -567,13 +665,6 @@ class AIJudgeService:
         # 记录用户提问
         logger.info(f"=== 会话 [{session_id}] 用户提问 ===\n{user_message}")
 
-        if not self.api_key:
-            logger.error("AI 裁判 API Key 未配置")
-            return {
-                "success": False,
-                "reply": "AI 裁判服务暂未配置，请联系管理员。"
-            }
-
         # 自动检测并查询卡牌信息
         enhanced_message = self._enhance_message_with_cards(user_message)
 
@@ -597,8 +688,22 @@ class AIJudgeService:
             "card_query_performed": enhanced_message != user_message
         }
 
-        # 调用 API
-        reply = self._call_api(history)
+        # 调用 API（优先使用 OpenCLAW Gateway）
+        reply = None
+        if self.openclaw_enabled:
+            print("尝试调用 OpenCLAW Gateway...")
+            reply = self._call_openclaw_gateway(history)
+            if reply:
+                print("OpenCLAW Gateway 调用成功")
+
+        # 如果 OpenCLAW 失败，返回错误
+        if not reply:
+            logger.error(f"会话 [{session_id}] OpenCLAW 调用失败")
+            return {
+                "success": False,
+                "reply": "AI 裁判暂时无法回答，请稍后再试。",
+                "debug": debug_info
+            }
 
         if reply:
             # 添加助手回复到历史
@@ -656,13 +761,6 @@ class AIJudgeService:
         # 记录分析请求
         logger.info(f"=== 对局分析请求 ===\n对局: {game_state}\n卡牌: {cards}\n问题: {question}")
 
-        if not self.api_key:
-            logger.error("AI 裁判 API Key 未配置")
-            return {
-                "success": False,
-                "analysis": "AI 裁判服务暂未配置。"
-            }
-
         # 构建分析请求
         analysis_prompt = f"""请分析以下对局情况：
 
@@ -682,7 +780,21 @@ class AIJudgeService:
             {"role": "user", "content": analysis_prompt}
         ]
 
-        result = self._call_api(messages, temperature=0.5)
+        # 调用 API（优先使用 OpenCLAW Gateway）
+        result = None
+        if self.openclaw_enabled:
+            print("分析请求：尝试调用 OpenCLAW Gateway...")
+            result = self._call_openclaw_gateway(messages, temperature=0.5)
+            if result:
+                print("OpenCLAW Gateway 分析成功")
+
+        # 如果 OpenCLAW 失败，返回错误
+        if not result:
+            logger.error("对局分析失败：OpenCLAW 调用失败")
+            return {
+                "success": False,
+                "analysis": "AI 裁判暂时无法分析，请稍后再试。"
+            }
 
         if result:
             logger.info(f"=== 对局分析结果 ===\n{result}")

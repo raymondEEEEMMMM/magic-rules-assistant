@@ -17,6 +17,11 @@ class Config:
     MINIMAX_MODEL = os.getenv("MINIMAX_MODEL", "MiniMax-Text-01")
     MINIMAX_BASE_URL = "https://api.minimax.chat/v1"
 
+    # OpenCLAW Gateway 配置
+    OPENCLAW_ENABLED = os.getenv("OPENCLAW_ENABLED", "true").lower() == "true"
+    OPENCLAW_GATEWAY_URL = os.getenv("OPENCLAW_GATEWAY_URL", "http://127.0.0.1:18789")
+    OPENCLAW_GATEWAY_TOKEN = os.getenv("OPENCLAW_GATEWAY_TOKEN", "")
+
     # 数据库配置
     DATABASE_PATH = os.getenv("DATABASE_PATH", "./data/magic_rules.db")
 
