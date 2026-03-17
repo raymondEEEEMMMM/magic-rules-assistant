@@ -7,8 +7,15 @@
       "name": "openclaw-gateway",
       "type": "cloud-run",
       "region": "ap-guangzhou",
+      "sourceCode": {
+        "type": "code",
+        "url": "https://github.com/raymondEEEEMMMM/magic-rules-assistant"
+      },
       "configuration": {
-        "image": "openclaw-gateway:latest",
+        "sourceCode": {
+          "dockerfilePath": "cloudrun/openclaw-gateway/Dockerfile",
+          "buildDir": "cloudrun/openclaw-gateway"
+        },
         "cpu": 1,
         "memory": 2048,
         "port": 18789,
