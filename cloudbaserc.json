@@ -18,7 +18,8 @@
         "MYSQL_PORT": "27987",
         "MYSQL_USER": "mtgask",
         "MYSQL_PASSWORD": "Ray19940211",
-        "MYSQL_DATABASE": "magic-rules-assistant-0a1904c329"
+        "MYSQL_DATABASE": "magic-rules-assistant-0a1904c329",
+        "MINIMAX_API_KEY": "sk-cp-URGDcJUIBuZU7atnoz9ZCeyMg727_U_3FB-X7s3ajAQhBbhaSr0YEZhpClEclCGDsD6kZ8uIbetXHfvA2NZBMWOZf62jUlizfitxhq-9S_P4q79nfOYFI_4"
       }
     }
   ]

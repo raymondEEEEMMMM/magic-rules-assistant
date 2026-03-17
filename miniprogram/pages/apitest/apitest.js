@@ -1,401 +1,232 @@
 // pages/apitest/apitest.js
+const app = getApp()
+
 Page({
   data: {
-    apiBase: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com',
-    loading: false,
-    passedCount: 0,
-    failedCount: 0,
-    totalTime: 0,
-    testResults: [],
-    testId: 0
+    // AI 裁判测试
+    aiJudgeStatus: 'pending',
+    aiJudgeStatusText: '待测试',
+    aiJudgeLoading: false,
+    aiJudgeResult: '',
+
+    // 规则搜索测试
+    ruleSearchStatus: 'pending',
+    ruleSearchStatusText: '待测试',
+    ruleSearchLoading: false,
+    ruleSearchResult: '',
+
+    // 卡牌查询测试
+    cardSearchStatus: 'pending',
+    cardSearchStatusText: '待测试',
+    cardSearchLoading: false,
+    cardSearchResult: '',
+
+    // 关键词查询测试
+    keywordStatus: 'pending',
+    keywordStatusText: '待测试',
+    keywordLoading: false,
+    keywordResult: ''
   },
 
   onLoad() {
-    // 检查是否有缓存的API地址
-    const cachedApiBase = wx.getStorageSync('apiBase')
-    if (cachedApiBase) {
-      this.setData({ apiBase: cachedApiBase })
-    }
+    // 页面加载
   },
 
-  onApiInput(e) {
-    const apiBase = e.detail.value
-    this.setData({ apiBase })
-    wx.setStorageSync('apiBase', apiBase)
-  },
-
-  // 生成唯一ID
-  generateId() {
-    this.setData({ testId: this.data.testId + 1 })
-    return this.data.testId
-  },
-
-  // 添加测试结果
-  addTestResult(name, status, time, requestPath, response, statusCode, error) {
-    const testResults = [...this.data.testResults, {
-      id: this.generateId(),
-      name,
-      status,
-      time,
-      requestPath,
-      response: response ? JSON.stringify(response).substring(0, 500) : '',
-      statusCode,
-      error
-    }]
-
-    const passedCount = status === 'success' ? this.data.passedCount + 1 : this.data.passedCount
-    const failedCount = status === 'fail' ? this.data.failedCount + 1 : this.data.failedCount
-    const totalTime = this.data.totalTime + time
-
+  // 测试 AI 裁判 API
+  testAiJudge() {
     this.setData({
-      testResults,
-      passedCount,
-      failedCount,
-      totalTime
+      aiJudgeLoading: true,
+      aiJudgeStatus: 'pending',
+      aiJudgeStatusText: '测试中',
+      aiJudgeResult: ''
     })
-  },
 
-  // 执行HTTP请求
-  makeRequest(path, data = {}) {
-    return new Promise((resolve, reject) => {
-      const startTime = Date.now()
-      
-      wx.request({
-        url: `${this.data.apiBase}${path}`,
-        data,
-        method: 'GET',
-        success: (res) => {
-          const time = Date.now() - startTime
-          resolve({
-            statusCode: res.statusCode,
-            data: res.data,
-            time
+    wx.request({
+      url: `${app.globalData.apiBase}/api/ai-judge/chat`,
+      method: 'POST',
+      header: {
+        'Content-Type': 'application/json'
+      },
+      data: {
+        message: '你好，请回复"测试成功"',
+        session_id: 'apitest'
+      },
+      success: (res) => {
+        if (res.data && res.data.success) {
+          this.setData({
+            aiJudgeStatus: 'success',
+            aiJudgeStatusText: '通过',
+            aiJudgeResult: JSON.stringify(res.data, null, 2)
           })
-        },
-        fail: (err) => {
-          const time = Date.now() - startTime
-          reject({
-            error: err.errMsg || '请求失败',
-            time
+        } else {
+          this.setData({
+            aiJudgeStatus: 'error',
+            aiJudgeStatusText: '失败',
+            aiJudgeResult: JSON.stringify(res.data, null, 2)
           })
         }
-      })
-    })
-  },
-
-  // 测试1: 健康检查
-  async testHealth() {
-    if (this.data.loading) return
-    this.setData({ loading: true })
-
-    try {
-      const result = await this.makeRequest('/')
-      console.log('健康检查响应:', result)
-      const success = result.statusCode === 200 && result.data
-      
-      this.addTestResult(
-        '健康检查',
-        success ? 'success' : 'fail',
-        result.time,
-        '/',
-        result.data,
-        result.statusCode,
-        success ? null : '响应异常'
-      )
-    } catch (error) {
-      console.error('健康检查错误:', error)
-      this.addTestResult(
-        '健康检查',
-        'fail',
-        error.time,
-        '/',
-        null,
-        null,
-        error.error
-      )
-    }
-
-    this.setData({ loading: false })
-  },
-
-  // 测试2: 规则搜索
-  async testSearch() {
-    if (this.data.loading) return
-    this.setData({ loading: true })
-
-    try {
-      const result = await this.makeRequest('/wechat/api/search', { q: 'combat' })
-      console.log('规则搜索响应:', result)
-      const success = result.statusCode === 200 && result.data
-      
-      this.addTestResult(
-        '规则搜索',
-        success ? 'success' : 'fail',
-        result.time,
-        '/wechat/api/search?q=combat',
-        result.data,
-        result.statusCode,
-        success ? null : '响应数据异常'
-      )
-    } catch (error) {
-      console.error('规则搜索错误:', error)
-      this.addTestResult(
-        '规则搜索',
-        'fail',
-        error.time,
-        '/wechat/api/search?q=combat',
-        null,
-        null,
-        error.error
-      )
-    }
-
-    this.setData({ loading: false })
-  },
-
-  // 测试3: 关键词查询
-  async testKeyword() {
-    if (this.data.loading) return
-    this.setData({ loading: true })
-
-    try {
-      const result = await this.makeRequest('/wechat/api/keyword', { k: 'Lifelink' })
-      console.log('关键词查询响应:', result)
-      const success = result.statusCode === 200 && result.data
-      
-      this.addTestResult(
-        '关键词查询',
-        success ? 'success' : 'fail',
-        result.time,
-        '/wechat/api/keyword?k=Lifelink',
-        result.data,
-        result.statusCode,
-        success ? null : '响应数据异常'
-      )
-    } catch (error) {
-      console.error('关键词查询错误:', error)
-      this.addTestResult(
-        '关键词查询',
-        'fail',
-        error.time,
-        '/wechat/api/keyword?k=Lifelink',
-        null,
-        null,
-        error.error
-      )
-    }
-
-    this.setData({ loading: false })
-  },
-
-  // 测试4: 卡牌搜索
-  async testCard() {
-    if (this.data.loading) return
-    this.setData({ loading: true })
-
-    try {
-      const result = await this.makeRequest('/wechat/api/mtgch/search', { q: 'Lightning Bolt', page: 1, page_size: 5 })
-      console.log('卡牌搜索响应:', result)
-      const success = result.statusCode === 200 && result.data && result.data.items
-
-      this.addTestResult(
-        '卡牌搜索',
-        success ? 'success' : 'fail',
-        result.time,
-        '/wechat/api/mtgch/search?q=Lightning Bolt',
-        result.data,
-        result.statusCode,
-        success ? null : '响应数据异常'
-      )
-    } catch (error) {
-      console.error('卡牌搜索错误:', error)
-      this.addTestResult(
-        '卡牌搜索',
-        'fail',
-        error.time,
-        '/wechat/api/mtgch/search?q=Lightning Bolt',
-        null,
-        null,
-        error.error
-      )
-    }
-
-    this.setData({ loading: false })
-  },
-
-  // 测试5: 单张卡牌详情
-  async testCardDetail() {
-    if (this.data.loading) return
-    this.setData({ loading: true })
-
-    try {
-      // 先搜索获取一个卡牌ID
-      const searchResult = await this.makeRequest('/wechat/api/mtgch/search', { q: 'Lightning Bolt', page: 1, page_size: 1 })
-      console.log('搜索响应:', searchResult)
-
-      if (searchResult.statusCode === 200 && searchResult.data && searchResult.data.items && searchResult.data.items.length > 0) {
-        const cardId = searchResult.data.items[0].id
-        console.log('获取到卡牌ID:', cardId)
-
-        const result = await this.makeRequest('/wechat/api/mtgch/card', { id: cardId })
-        console.log('卡牌详情响应:', result)
-        const success = result.statusCode === 200 && result.data && result.data.name
-
-        this.addTestResult(
-          '单张卡牌详情',
-          success ? 'success' : 'fail',
-          result.time,
-          '/wechat/api/mtgch/card',
-          result.data,
-          result.statusCode,
-          success ? null : '响应数据异常'
-        )
-      } else {
-        this.addTestResult(
-          '单张卡牌详情',
-          'fail',
-          searchResult.time,
-          '/wechat/api/mtgch/card',
-          null,
-          searchResult.statusCode,
-          '无法获取测试用卡牌ID'
-        )
+      },
+      fail: (err) => {
+        this.setData({
+          aiJudgeStatus: 'error',
+          aiJudgeStatusText: '失败',
+          aiJudgeResult: `网络错误: ${err.errMsg}`
+        })
+      },
+      complete: () => {
+        this.setData({
+          aiJudgeLoading: false
+        })
       }
-    } catch (error) {
-      console.error('单张卡牌详情错误:', error)
-      this.addTestResult(
-        '单张卡牌详情',
-        'fail',
-        error.time,
-        '/wechat/api/mtgch/card',
-        null,
-        null,
-        error.error
-      )
-    }
-
-    this.setData({ loading: false })
+    })
   },
 
-  // 测试6: 随机卡牌
-  async testRandomCard() {
-    if (this.data.loading) return
-    this.setData({ loading: true })
-
-    try {
-      const result = await this.makeRequest('/wechat/api/mtgch/random')
-      console.log('随机卡牌响应:', result)
-      const success = result.statusCode === 200 && result.data && result.data.name
-
-      this.addTestResult(
-        '随机卡牌',
-        success ? 'success' : 'fail',
-        result.time,
-        '/wechat/api/mtgch/random',
-        result.data,
-        result.statusCode,
-        success ? null : '响应数据异常'
-      )
-    } catch (error) {
-      console.error('随机卡牌错误:', error)
-      this.addTestResult(
-        '随机卡牌',
-        'fail',
-        error.time,
-        '/wechat/api/mtgch/random',
-        null,
-        null,
-        error.error
-      )
-    }
-
-    this.setData({ loading: false })
-  },
-
-  // 测试7: 自动补全
-  async testAutocomplete() {
-    if (this.data.loading) return
-    this.setData({ loading: true })
-
-    try {
-      const result = await this.makeRequest('/wechat/api/mtgch/autocomplete', { q: 'light', size: 5 })
-      console.log('自动补全响应:', result)
-      const success = result.statusCode === 200 && result.data && result.data.suggestions
-
-      this.addTestResult(
-        '自动补全',
-        success ? 'success' : 'fail',
-        result.time,
-        '/wechat/api/mtgch/autocomplete?q=light',
-        result.data,
-        result.statusCode,
-        success ? null : '响应数据异常'
-      )
-    } catch (error) {
-      console.error('自动补全错误:', error)
-      this.addTestResult(
-        '自动补全',
-        'fail',
-        error.time,
-        '/wechat/api/mtgch/autocomplete?q=light',
-        null,
-        null,
-        error.error
-      )
-    }
-
-    this.setData({ loading: false })
-  },
-
-  // 测试5: 全部测试
-  async testAll() {
-    if (this.data.loading) return
+  // 测试 规则搜索 API
+  testRuleSearch() {
     this.setData({
-      loading: true,
-      passedCount: 0,
-      failedCount: 0,
-      totalTime: 0,
-      testResults: []
+      ruleSearchLoading: true,
+      ruleSearchStatus: 'pending',
+      ruleSearchStatusText: '测试中',
+      ruleSearchResult: ''
     })
 
-    const tests = [
-      () => this.testHealth(),
-      () => this.testSearch(),
-      () => this.testKeyword(),
-      () => this.testCard(),
-      () => this.testCardDetail(),
-      () => this.testRandomCard(),
-      () => this.testAutocomplete()
-    ]
-
-    for (const test of tests) {
-      await test()
-      // 添加延迟避免请求过快
-      await new Promise(resolve => setTimeout(resolve, 500))
-    }
-
-    this.setData({ loading: false })
-
-    // 显示总结
-    wx.showModal({
-      title: '测试完成',
-      content: `成功: ${this.data.passedCount}\n失败: ${this.data.failedCount}\n总耗时: ${this.data.totalTime}ms`,
-      showCancel: false
+    wx.request({
+      url: `${app.globalData.apiBase}/api/search`,
+      method: 'GET',
+      data: {
+        q: '战斗'
+      },
+      success: (res) => {
+        if (res.data && res.data.results) {
+          this.setData({
+            ruleSearchStatus: 'success',
+            ruleSearchStatusText: '通过',
+            ruleSearchResult: JSON.stringify(res.data, null, 2)
+          })
+        } else {
+          this.setData({
+            ruleSearchStatus: 'error',
+            ruleSearchStatusText: '失败',
+            ruleSearchResult: JSON.stringify(res.data, null, 2)
+          })
+        }
+      },
+      fail: (err) => {
+        this.setData({
+          ruleSearchStatus: 'error',
+          ruleSearchStatusText: '失败',
+          ruleSearchResult: `网络错误: ${err.errMsg}`
+        })
+      },
+      complete: () => {
+        this.setData({
+          ruleSearchLoading: false
+        })
+      }
     })
   },
 
-  // 清除结果
-  clearResults() {
+  // 测试卡牌查询 API
+  testCardSearch() {
     this.setData({
-      passedCount: 0,
-      failedCount: 0,
-      totalTime: 0,
-      testResults: [],
-      testId: 0
+      cardSearchLoading: true,
+      cardSearchStatus: 'pending',
+      cardSearchStatusText: '测试中',
+      cardSearchResult: ''
     })
-    wx.showToast({
-      title: '已清除',
-      icon: 'success'
+
+    wx.request({
+      url: `${app.globalData.apiBase}/api/card`,
+      method: 'GET',
+      data: {
+        n: '黑莲花'
+      },
+      success: (res) => {
+        if (res.data && res.data.success) {
+          this.setData({
+            cardSearchStatus: 'success',
+            cardSearchStatusText: '通过',
+            cardSearchResult: JSON.stringify(res.data, null, 2)
+          })
+        } else {
+          this.setData({
+            cardSearchStatus: 'error',
+            cardSearchStatusText: '失败',
+            cardSearchResult: JSON.stringify(res.data, null, 2)
+          })
+        }
+      },
+      fail: (err) => {
+        this.setData({
+          cardSearchStatus: 'error',
+          cardSearchStatusText: '失败',
+          cardSearchResult: `网络错误: ${err.errMsg}`
+        })
+      },
+      complete: () => {
+        this.setData({
+          cardSearchLoading: false
+        })
+      }
+    })
+  },
+
+  // 测试关键词查询 API
+  testKeyword() {
+    this.setData({
+      keywordLoading: true,
+      keywordStatus: 'pending',
+      keywordStatusText: '测试中',
+      keywordResult: ''
+    })
+
+    wx.request({
+      url: `${app.globalData.apiBase}/api/keyword`,
+      method: 'GET',
+      data: {
+        k: '飞行'
+      },
+      success: (res) => {
+        if (res.data && res.data.success) {
+          this.setData({
+            keywordStatus: 'success',
+            keywordStatusText: '通过',
+            keywordResult: JSON.stringify(res.data, null, 2)
+          })
+        } else {
+          this.setData({
+            keywordStatus: 'error',
+            keywordStatusText: '失败',
+            keywordResult: JSON.stringify(res.data, null, 2)
+          })
+        }
+      },
+      fail: (err) => {
+        this.setData({
+          keywordStatus: 'error',
+          keywordStatusText: '失败',
+          keywordResult: `网络错误: ${err.errMsg}`
+        })
+      },
+      complete: () => {
+        this.setData({
+          keywordLoading: false
+        })
+      }
+    })
+  },
+
+  // 复制响应结果
+  copyResult(e) {
+    const result = e.currentTarget.dataset.result
+    wx.setClipboardData({
+      data: result,
+      success: () => {
+        wx.showToast({
+          title: '已复制',
+          icon: 'success'
+        })
+      }
     })
   }
 })

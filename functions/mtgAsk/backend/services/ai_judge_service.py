@@ -5,7 +5,7 @@ import json
 import os
 import requests
 from typing import Dict, Optional, List
-from config import Config
+from backend.config import Config
 
 
 class AIJudgeService:

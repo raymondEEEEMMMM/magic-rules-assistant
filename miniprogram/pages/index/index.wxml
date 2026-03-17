@@ -4,9 +4,14 @@
   <view class="banner">
     <view class="banner-content">
       <text class="banner-title">mtgAsk</text>
-      <text class="banner-subtitle">Magic: The Gathering Rules Assistant</text>
+      <text class="banner-subtitle">万智牌规则问答助手</text>
     </view>
-    <view class="banner-decoration"></view>
+  </view>
+
+  <!-- 搜索入口 -->
+  <view class="search-box" bindtap="goToSearch">
+    <view class="search-icon">🔍</view>
+    <text class="search-placeholder">搜索规则、卡牌、关键词...</text>
   </view>
 
   <!-- 快速功能入口 -->
@@ -18,20 +23,20 @@
         <text class="action-text">关键词</text>
         <text class="action-desc">异能的规则解释</text>
       </view>
-      <view class="action-card" bindtap="goToRule">
-        <view class="action-icon">📜</view>
-        <text class="action-text">规则</text>
-        <text class="action-desc">游戏规则搜索</text>
-      </view>
       <view class="action-card" bindtap="goToCard">
         <view class="action-icon">🃏</view>
         <text class="action-text">卡牌</text>
         <text class="action-desc">查询卡牌信息</text>
       </view>
       <view class="action-card" bindtap="goToSearch">
-        <view class="action-icon">🔍</view>
-        <text class="action-text">搜索</text>
-        <text class="action-desc">综合搜索</text>
+        <view class="action-icon">📜</view>
+        <text class="action-text">规则</text>
+        <text class="action-desc">游戏规则搜索</text>
+      </view>
+      <view class="action-card ai-judge-card" bindtap="goToAIJudge">
+        <view class="action-icon">🤖</view>
+        <text class="action-text">AI 裁判</text>
+        <text class="action-desc">智能规则问答</text>
       </view>
     </view>
   </view>
@@ -46,61 +51,16 @@
     </view>
   </view>
 
-  <!-- 每日卡牌 -->
-  <view class="daily-card" bindtap="showRandomCard">
-    <view class="daily-header">
-      <text class="daily-title">🎲 今日随机卡牌</text>
+  <!-- 随机卡牌 -->
+  <view class="random-card" bindtap="showRandomCard">
+    <view class="random-header">
+      <text class="random-title">🎲 随机卡牌</text>
     </view>
-    <view class="daily-hint">点击查看一张随机卡牌</view>
+    <view class="random-hint">点击获取一张随机卡牌</view>
   </view>
 
-  <!-- 测试工具 -->
-  <view class="test-tools">
-    <view class="section-title">🧪 测试工具</view>
-    <view class="test-buttons">
-      <view class="test-card" bindtap="goToKeywordTest">
-        <view class="test-icon">📖</view>
-        <text class="test-title">关键词测试</text>
-        <text class="test-desc">测试关键词模块功能</text>
-      </view>
-      <view class="test-card" bindtap="autoTestLifelink">
-        <view class="test-icon">⚡</view>
-        <text class="test-title">自动化测试</text>
-        <text class="test-desc">测试系命异能查询流程</text>
-      </view>
-      <view class="test-card" bindtap="goToApiTest">
-        <view class="test-icon">🔧</view>
-        <text class="test-title">API测试</text>
-        <text class="test-desc">测试后端接口</text>
-      </view>
-    </view>
-  </view>
-
-  <!-- 功能说明 -->
-  <view class="features">
-    <view class="section-title">功能说明</view>
-    <view class="feature-list">
-      <view class="feature-item">
-        <text class="feature-icon">🔍</text>
-        <view class="feature-content">
-          <text class="feature-name">规则搜索</text>
-          <text class="feature-desc">输入关键词搜索相关游戏规则</text>
-        </view>
-      </view>
-      <view class="feature-item">
-        <text class="feature-icon">📖</text>
-        <view class="feature-content">
-          <text class="feature-name">关键词查询</text>
-          <text class="feature-desc">查询卡牌异能的详细规则解释</text>
-        </view>
-      </view>
-      <view class="feature-item">
-        <text class="feature-icon">🃏</text>
-        <view class="feature-content">
-          <text class="feature-name">卡牌查询</text>
-          <text class="feature-desc">搜索卡牌并查看详细信息</text>
-        </view>
-      </view>
-    </view>
+  <!-- API 测试入口 -->
+  <view class="api-test-link" bindtap="goToAPITest">
+    <text>🔧 API 测试</text>
   </view>
 </view>

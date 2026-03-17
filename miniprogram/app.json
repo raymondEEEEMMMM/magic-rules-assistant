@@ -4,9 +4,8 @@
     "pages/search/search",
     "pages/card/card",
     "pages/keyword/keyword",
-    "pages/rule/rule",
-    "pages/apitest/apitest",
-    "pages/test/test"
+    "pages/agent/agent",
+    "pages/apitest/apitest"
   ],
   "window": {
     "backgroundTextStyle": "light",
