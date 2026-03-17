@@ -3,9 +3,72 @@ AI 裁判服务 - 基于 MiniMax API
 """
 import json
 import os
+import logging
 import requests
+from datetime import datetime
 from typing import Dict, Optional, List
 from backend.config import Config
+from backend.services.mtgch_api import MTGCHAPIClient
+
+
+# 配置 AI 裁判专用日志
+_ai_logger = None
+
+
+def _get_ai_logger():
+    """获取或创建 AI 裁判日志记录器"""
+    global _ai_logger
+
+    # 检查是否在云函数环境中
+    is_cloud = bool(os.getenv("SCF_FUNCTION_NAME") or os.getenv("TENCENTCLOUD_RUNENV"))
+
+    # 如果已存在 logger，直接返回
+    if _ai_logger is not None:
+        return _ai_logger
+
+    # 创建日志记录器
+    logger = logging.getLogger("ai_judge")
+    logger.setLevel(logging.INFO)
+
+    # 云函数环境：只使用控制台 handler（stdout 会被云日志收集）
+    if is_cloud:
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
+        console_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+        logger.addHandler(console_handler)
+        _ai_logger = logger
+    else:
+        # 本地环境：创建日志目录和文件
+        try:
+            log_dir = Config.LOG_DIR
+            if not os.path.exists(log_dir):
+                os.makedirs(log_dir, exist_ok=True)
+
+            # AI 裁判专用日志文件
+            ai_log_file = os.path.join(log_dir, f"ai_judge_{datetime.now().strftime('%Y%m%d')}.log")
+
+            # 文件 handler
+            file_handler = logging.FileHandler(ai_log_file, encoding='utf-8')
+            file_handler.setLevel(logging.INFO)
+            file_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+
+            # 控制台 handler
+            console_handler = logging.StreamHandler()
+            console_handler.setLevel(logging.INFO)
+            console_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+
+            logger.addHandler(file_handler)
+            logger.addHandler(console_handler)
+        except Exception:
+            # 如果创建文件失败，只使用控制台
+            console_handler = logging.StreamHandler()
+            console_handler.setLevel(logging.INFO)
+            console_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+            logger.addHandler(console_handler)
+
+        _ai_logger = logger
+
+    return _ai_logger
 
 
 class AIJudgeService:
@@ -201,6 +264,43 @@ class AIJudgeService:
 
         return base_prompt
 
+    def _query_card(self, card_name: str) -> Optional[Dict]:
+        """
+        使用 mtgch API 查询卡牌信息
+
+        Args:
+            card_name: 卡牌名称
+
+        Returns:
+            卡牌信息字典，包含 name, type_line, oracle_text 等
+        """
+        logger = _get_ai_logger()
+
+        try:
+            # 使用已有的 MTGCH API 客户端
+            client = MTGCHAPIClient()
+            result = client.search_cards(card_name, page_size=1)
+
+            if result.get("items") and len(result["items"]) > 0:
+                card = result["items"][0]
+                logger.info(f"查询到卡牌: {card.get('name', card_name)}")
+
+                # 提取关键信息
+                return {
+                    "name": card.get("name", card_name),
+                    "type_line": card.get("type_line", ""),
+                    "oracle_text": card.get("oracle_text", ""),
+                    "mana_cost": card.get("mana_cost", ""),
+                    "power": card.get("power"),
+                    "toughness": card.get("toughness"),
+                    "colors": card.get("colors", []),
+                }
+            logger.warning(f"未找到卡牌: {card_name}")
+            return None
+        except Exception as e:
+            logger.error(f"查询卡牌失败: {card_name}, 错误: {e}")
+            return None
+
     def _call_api(self, messages: List[Dict], temperature: float = 0.7) -> Optional[str]:
         """调用 MiniMax API"""
         if not self.api_key:
@@ -219,7 +319,7 @@ class AIJudgeService:
         }
 
         try:
-            response = requests.post(url, json=payload, headers=headers, timeout=30)
+            response = requests.post(url, json=payload, headers=headers, timeout=60)
             response.raise_for_status()
             result = response.json()
 
@@ -229,6 +329,72 @@ class AIJudgeService:
         except Exception as e:
             print(f"MiniMax API 调用失败: {e}")
             return None
+
+    def _extract_card_names(self, text: str) -> List[str]:
+        """
+        从文本中提取可能的卡牌名称
+        检测引号、书名号、常见卡牌提及方式
+        """
+        import re
+
+        card_names = []
+
+        # 匹配中文引号、书名号等包围的卡牌名
+        patterns = [
+            r'「([^」]+)」',      # 日式引号
+            r'『([^』]+)』',      # 日式双引号
+            r'"([^"]+)"',         # 英文引号
+            r'《([^》]+)》',      # 书名号
+            r'【([^】]+)】',      # 方括号
+        ]
+
+        for pattern in patterns:
+            matches = re.findall(pattern, text)
+            card_names.extend(matches)
+
+        # 如果没有找到引号包围的名称，尝试提取常见的中文卡牌名
+        # 万智牌中文名称通常是 2-6 个汉字
+        if not card_names:
+            # 常见单字卡牌名称
+            common_cards = ['闪电击', '火球', '去除', '反击', '变脸', '抹消', '沉思', '体验']
+            for card in common_cards:
+                if card in text:
+                    card_names.append(card)
+
+        return card_names
+
+    def _enhance_message_with_cards(self, user_message: str) -> str:
+        """
+        检测用户消息中的卡牌名称并查询，附加卡牌信息
+        """
+        logger = _get_ai_logger()
+
+        # 提取可能的卡牌名称
+        card_names = self._extract_card_names(user_message)
+
+        if not card_names:
+            return user_message
+
+        # 查询每个卡牌
+        card_info_list = []
+        for card_name in card_names:
+            card = self._query_card(card_name)
+            if card:
+                card_info = f"【{card['name']}】{card['type_line']} - {card['oracle_text']}"
+                if card.get('mana_cost'):
+                    card_info += f" | 费用: {card['mana_cost']}"
+                if card.get('power') and card.get('toughness'):
+                    card_info += f" | P/T: {card['power']}/{card['toughness']}"
+                card_info_list.append(card_info)
+                logger.info(f"自动查询卡牌: {card['name']}")
+
+        # 如果找到卡牌信息，附加到用户消息
+        if card_info_list:
+            enhanced = user_message + "\n\n--- 自动查询的相关卡牌信息 ---\n" + "\n".join(card_info_list)
+            logger.info(f"已自动查询 {len(card_info_list)} 张卡牌")
+            return enhanced
+
+        return user_message
 
     def chat(self, user_message: str, session_id: str = "default") -> Dict:
         """
@@ -241,11 +407,20 @@ class AIJudgeService:
         Returns:
             {"success": bool, "reply": str}
         """
+        logger = _get_ai_logger()
+
+        # 记录用户提问
+        logger.info(f"=== 会话 [{session_id}] 用户提问 ===\n{user_message}")
+
         if not self.api_key:
+            logger.error("AI 裁判 API Key 未配置")
             return {
                 "success": False,
                 "reply": "AI 裁判服务暂未配置，请联系管理员。"
             }
+
+        # 自动检测并查询卡牌信息
+        enhanced_message = self._enhance_message_with_cards(user_message)
 
         # 获取或初始化会话历史
         if session_id not in self.conversation_history:
@@ -255,8 +430,8 @@ class AIJudgeService:
 
         history = self.conversation_history[session_id]
 
-        # 添加用户消息
-        history.append({"role": "user", "content": user_message})
+        # 添加用户消息（增强版）
+        history.append({"role": "user", "content": enhanced_message})
 
         # 调用 API
         reply = self._call_api(history)
@@ -264,6 +439,9 @@ class AIJudgeService:
         if reply:
             # 添加助手回复到历史
             history.append({"role": "assistant", "content": reply})
+
+            # 记录 AI 回复
+            logger.info(f"=== 会话 [{session_id}] AI 回复 ===\n{reply}")
 
             # 限制历史长度（保留 system + 最近10轮对话）
             if len(history) > 21:
@@ -274,6 +452,7 @@ class AIJudgeService:
                 "reply": reply
             }
         else:
+            logger.error(f"会话 [{session_id}] API 调用失败")
             return {
                 "success": False,
                 "reply": "AI 裁判暂时无法回答，请稍后再试。"
@@ -289,15 +468,21 @@ class AIJudgeService:
         Returns:
             {"success": bool, "analysis": str}
         """
-        if not self.api_key:
-            return {
-                "success": False,
-                "analysis": "AI 裁判服务暂未配置。"
-            }
+        logger = _get_ai_logger()
 
         game_state = request_data.get("game_state", "")
         cards = request_data.get("cards", [])
         question = request_data.get("question", "")
+
+        # 记录分析请求
+        logger.info(f"=== 对局分析请求 ===\n对局: {game_state}\n卡牌: {cards}\n问题: {question}")
+
+        if not self.api_key:
+            logger.error("AI 裁判 API Key 未配置")
+            return {
+                "success": False,
+                "analysis": "AI 裁判服务暂未配置。"
+            }
 
         # 构建分析请求
         analysis_prompt = f"""请分析以下对局情况：
@@ -321,11 +506,13 @@ class AIJudgeService:
         result = self._call_api(messages, temperature=0.5)
 
         if result:
+            logger.info(f"=== 对局分析结果 ===\n{result}")
             return {
                 "success": True,
                 "analysis": result
             }
         else:
+            logger.error("对局分析 API 调用失败")
             return {
                 "success": False,
                 "analysis": "分析失败，请稍后再试。"

@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 class Config:
     # 微信公众号配置
@@ -22,5 +23,9 @@ class Config:
     # API配置
     API_HOST = os.getenv("API_HOST", "0.0.0.0")
     API_PORT = int(os.getenv("API_PORT", "8000"))
+
+    # 日志配置
+    LOG_DIR = os.getenv("LOG_DIR", "./logs")
+    LOG_FILE = os.getenv("LOG_FILE", f"mtgask_{datetime.now().strftime('%Y%m%d')}.log")
 
 config = Config()

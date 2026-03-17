@@ -45,6 +45,7 @@ backend/.env
 
 # 日志
 *.log
+functions/mtgAsk/backend/logs/
 
 # 系统文件
 .DS_Store
