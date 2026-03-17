@@ -52,7 +52,8 @@ page {
 }
 
 .bot-avatar {
-  border: 2rpx solid #e0e0e0;
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  font-size: 44rpx;
 }
 
 .bubble {

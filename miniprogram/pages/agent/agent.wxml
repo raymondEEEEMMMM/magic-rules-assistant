@@ -1,0 +1,57 @@
+<!--pages/agent/agent.wxml-->
+<view class="container">
+  <!-- 消息列表 -->
+  <scroll-view class="message-list" scroll-y="true" scroll-into-view="{{scrollIntoView}}">
+    <!-- 欢迎消息 -->
+    <view class="message welcome-message" wx:if="{{messages.length === 0}}">
+      <view class="avatar bot-avatar">{{aiAvatar}}</view>
+      <view class="bubble">
+        <text>你好！我是 AI 裁判机器人！</text>
+        <text>我可以回答任何关于万智牌规则的问题，例如：</text>
+        <text>• "闪电击和塔莫耶夫敏捷的伤害顺序？"</text>
+        <text>• "反对派密探在多人游戏中如何运作？"</text>
+        <text>• "能否响应触发式异能？"</text>
+      </view>
+    </view>
+
+    <!-- 消息列表 -->
+    <view class="message {{item.role}}" wx:for="{{messages}}" wx:key="index" id="msg-{{index}}">
+      <view wx:if="{{item.role === 'assistant'}}" class="avatar bot-avatar">{{aiAvatar}}</view>
+      <view wx:else class="avatar user-avatar">👤</view>
+      <view class="bubble {{item.role}}">
+        <text wx:if="{{item.role === 'user'}}">{{item.content}}</text>
+        <text wx:else>{{item.content}}</text>
+      </view>
+    </view>
+
+    <!-- Loading -->
+    <view class="message bot" wx:if="{{loading}}">
+      <view class="avatar bot-avatar">{{aiAvatar}}</view>
+      <view class="bubble loading-bubble">
+        <view class="loading-dots">
+          <view class="dot"></view>
+          <view class="dot"></view>
+          <view class="dot"></view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 输入区域 -->
+  <view class="input-area">
+    <input
+      class="input-box"
+      type="text"
+      placeholder="输入你的问题..."
+      placeholder-class="input-placeholder"
+      bindinput="onInput"
+      bindconfirm="sendMessage"
+      value="{{inputValue}}"
+      confirm-type="send"
+      maxlength="500"
+    />
+    <view class="send-btn {{inputValue ? 'active' : ''}}" bindtap="sendMessage">
+      <text>发送</text>
+    </view>
+  </view>
+</view>

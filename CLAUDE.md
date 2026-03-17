@@ -83,7 +83,8 @@ functions/mtgAsk/
 │   │   ├── card_downloader.py # Download card data from MTGJSON
 │   │   ├── scheduler.py       # Scheduled tasks (03:00 daily, 10:00 Monday)
 │   │   ├── mtgch_api.py       # MTGCH API integration
-│   │   └── ai_judge_service.py # AI Judge (MiniMax API)
+│   │   ├── ai_judge_service.py # AI Judge (MiniMax API)
+│   │   └── log_service.py     # Unified logging (local + MySQL)
 │   └── wechat/
 │       └── handlers.py         # WeChat message handling
 ```
@@ -160,6 +161,16 @@ Key variables (in `.env.local` for local, `cloudbaserc.json` for cloud):
 ## Future Plans
 
 ### Completed Features
+
+### Unified Logging Service ✅
+- Log service: `backend/services/log_service.py`
+- Supports local file logs (`/tmp/logs/` in cloud, `logs/` locally)
+- Supports MySQL database logs (`ai_judge_logs` table)
+- Usage:
+  ```python
+  from backend.services.log_service import log_info, log_warning, log_error
+  log_info("service_name", "message", {"data": "optional"})
+  ```
 
 ### AI Judge Feature (Phase 2) ✅
 - Integrated MiniMax API for AI-powered rule Q&A

@@ -109,7 +109,48 @@ class RuleDatabase:
             import traceback
             traceback.print_exc()
             return []
-    
+
+    def _execute_write_sql(self, sql: str, params: tuple = None) -> bool:
+        """
+        执行写操作 SQL（INSERT, UPDATE, DELETE）
+        """
+        try:
+            import pymysql
+
+            # 如果没有配置密码，返回失败
+            if not self.mysql_password:
+                print("Warning: MySQL password not configured")
+                return False
+
+            conn = pymysql.connect(
+                host=self.mysql_host,
+                port=self.mysql_port,
+                user=self.mysql_user,
+                password=self.mysql_password,
+                database=self.mysql_database,
+                charset='utf8mb4',
+                connect_timeout=10
+            )
+
+            try:
+                with conn.cursor() as cursor:
+                    if params:
+                        cursor.execute(sql, params)
+                    else:
+                        cursor.execute(sql)
+                    conn.commit()
+                    return True
+            finally:
+                conn.close()
+        except ImportError:
+            print("Warning: pymysql not installed")
+            return False
+        except Exception as e:
+            print(f"Database write error: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+
     def search_by_keywords(self, keywords: List[str]) -> List[Dict]:
         """根据关键词搜索规则"""
         all_results = []

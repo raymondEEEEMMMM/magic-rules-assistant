@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
-from fastapi.responses import XMLResponse
+from fastapi.responses import XMLResponse, StreamingResponse
 from typing import Optional
 import hashlib
 from database import RuleDatabase
@@ -330,6 +330,53 @@ async def ai_judge_chat(request: Request):
     from services.ai_judge_service import ai_judge_service
     result = ai_judge_service.chat(message, session_id)
     return result
+
+@app.post("/api/ai-judge/chat/stream")
+async def ai_judge_chat_stream(request: Request):
+    """与 AI 裁判对话 - 流式响应"""
+    import json
+    import asyncio
+
+    body = await request.json()
+    message = body.get("message", "")
+    session_id = body.get("session_id", "default")
+
+    if not message:
+        return {"success": False, "reply": "消息不能为空"}
+
+    from services.ai_judge_service import ai_judge_service
+
+    # 设置 SSE 响应头
+    async def event_stream():
+        try:
+            # 将同步生成器转换为异步迭代
+            loop = asyncio.get_event_loop()
+            gen = ai_judge_service.stream_chat(message, session_id)
+
+            while True:
+                try:
+                    chunk = gen.__next__()
+                    if "error" in chunk:
+                        yield f"data: {json.dumps({'error': chunk['error']})}\n\n"
+                        break
+                    if "content" in chunk:
+                        yield f"data: {json.dumps({'content': chunk['content']})}\n\n"
+                    if "done" in chunk:
+                        yield f"data: {json.dumps({'done': True})}\n\n"
+                except StopIteration:
+                    break
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
 
 @app.post("/api/ai-judge/analyze")
 async def ai_judge_analyze(request: Request):
