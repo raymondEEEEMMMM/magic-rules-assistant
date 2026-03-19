@@ -7,6 +7,7 @@ import logging
 import requests
 from datetime import datetime
 from typing import Dict, Optional, List
+import paramiko
 try:
     from backend.config import Config
     from backend.services.mtgch_api import MTGCHAPIClient
@@ -156,8 +157,15 @@ class AIJudgeService:
 
         # OpenCLAW Gateway 配置
         self.openclaw_enabled = Config.OPENCLAW_ENABLED
-        self.openclaw_gateway_url = Config.OPENCLAW_GATEWAY_URL
-        self.openclaw_gateway_token = Config.OPENCLAW_GATEWAY_TOKEN
+        self.openclaw_host = Config.OPENCLAW_HOST
+        self.openclaw_port = Config.OPENCLAW_PORT
+        self.openclaw_ssh_user = Config.OPENCLAW_SSH_USER
+        self.openclaw_ssh_password = Config.OPENCLAW_SSH_PASSWORD
+        self.openclaw_ssh_key = Config.OPENCLAW_SSH_KEY
+        self.openclaw_agent = Config.OPENCLAW_AGENT
+
+        # Mock 模式
+        self.mock_mode = Config.OPENCLAW_MOCK
 
         # 加载规则内容
         self.rules_content = self._load_rules()
@@ -334,6 +342,17 @@ class AIJudgeService:
 
         return base_prompt
 
+    def _get_short_system_prompt(self) -> str:
+        """构建简短版系统提示词（减少 token 消耗）"""
+        return """你是一位专业的万智牌裁判。请简洁回答万智牌规则问题。
+
+要求：
+- 使用中文回答
+- 简洁明了
+- 引用规则编号
+
+回答格式：先给出结论，再简要解释。"""
+
     def _query_card(self, card_name: str) -> Optional[Dict]:
         """
         使用 mtgch API 查询卡牌信息
@@ -432,10 +451,16 @@ class AIJudgeService:
             return None
 
     def _call_openclaw_gateway(self, messages: List[Dict], temperature: float = 0.7) -> Optional[str]:
-        """调用 OpenCLAW Gateway HTTP API"""
-        print(f"=== OpenCLAW HTTP 请求 ===")
+        """调用 OpenCLAW Gateway CLI（通过 SSH）"""
+        print(f"=== OpenCLAW CLI 请求 ===")
         print(f"Enabled: {self.openclaw_enabled}")
-        print(f"Gateway URL: {self.openclaw_gateway_url}")
+        print(f"Host: {self.openclaw_host}:{self.openclaw_port}")
+        print(f"Agent: {self.openclaw_agent}")
+        print(f"Mock Mode: {self.mock_mode}")
+
+        if self.mock_mode:
+            print("Mock 模式：返回预设响应")
+            return self._get_mock_response(messages)
 
         if not self.openclaw_enabled:
             print("OpenCLAW 未启用")
@@ -452,77 +477,96 @@ class AIJudgeService:
             print("未找到用户消息")
             return None
 
-        url = f"{self.openclaw_gateway_url}/v1/chat/completions"
-        headers = {
-            "Content-Type": "application/json"
-        }
-        # 如果有 token 则添加认证头
-        if self.openclaw_gateway_token:
-            headers["Authorization"] = f"Bearer {self.openclaw_gateway_token}"
-
-        # 构建消息（只保留 system 和最新的 user 消息）
-        http_messages = []
-        for msg in messages:
-            if msg.get("role") in ["system", "user", "assistant"]:
-                http_messages.append({
-                    "role": msg["role"],
-                    "content": msg["content"]
-                })
-
-        payload = {
-            "model": "openclaw",
-            "messages": http_messages,
-            "temperature": temperature
-        }
-
         try:
-            print(f"Calling OpenCLAW Gateway: {url}")
-            print(f"User message: {user_message[:100]}...")
-            response = requests.post(url, json=payload, headers=headers, timeout=90)
-            print(f"Response Status: {response.status_code}")
+            # 构建 CLI 命令
+            # 使用 bash -i 来加载环境变量
+            escaped_message = user_message.replace('"', '\\"')
+            cmd = f'bash -i -c "openclaw agent --agent {self.openclaw_agent} -m \\"{escaped_message}\\" --json"'
 
-            if response.status_code != 200:
-                print(f"HTTP Error: {response.status_code}, {response.text[:200]}")
+            print(f"Executing: {cmd[:100]}...")
+
+            # SSH 连接并执行
+            client = paramiko.SSHClient()
+            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+            # 使用密钥或密码连接
+            if self.openclaw_ssh_key:
+                client.connect(
+                    self.openclaw_host,
+                    username=self.openclaw_ssh_user,
+                    key_filename=self.openclaw_ssh_key,
+                    timeout=30
+                )
+            elif self.openclaw_ssh_password:
+                client.connect(
+                    self.openclaw_host,
+                    username=self.openclaw_ssh_user,
+                    password=self.openclaw_ssh_password,
+                    timeout=30
+                )
+            else:
+                print("未配置 SSH 密钥或密码")
                 return None
 
-            result = response.json()
-            print(f"Response Keys: {list(result.keys())}")
+            stdin, stdout, stderr = client.exec_command(cmd, timeout=120)
+            output = stdout.read().decode()
+            error = stderr.read().decode()
 
-            # 提取回复内容 - OpenAI 兼容格式
-            content = ""
-            if "choices" in result and len(result["choices"]) > 0:
-                choice = result["choices"][0]
-                if "message" in choice:
-                    content = choice["message"].get("content", "")
+            client.close()
 
-            if content:
-                print(f"回复内容长度: {len(content)} 字符")
-                print(f"回复内容前200字: {content[:200]}...")
-                return content
+            if error and "bash: cannot set terminal" not in error:
+                print(f"STDERR: {error[:200]}")
 
-            # 如果没有标准字段，打印完整响应以便调试
-            print(f"完整响应: {json.dumps(result, ensure_ascii=False)[:500]}...")
-            return None
+            # 解析 JSON 响应
+            try:
+                result = json.loads(output)
+                if result.get("status") == "ok":
+                    payloads = result.get("result", {}).get("payloads", [])
+                    if payloads:
+                        content = payloads[0].get("text", "")
+                        print(f"回复内容长度: {len(content)} 字符")
+                        print(f"回复内容前200字: {content[:200]}...")
+                        return content
+
+                print(f"API 返回错误: {result}")
+                return None
+
+            except json.JSONDecodeError:
+                print(f"JSON 解析失败，原始输出: {output[:500]}")
+                return None
 
         except Exception as e:
-            print(f"OpenCLAW HTTP 调用失败: {e}")
+            print(f"OpenCLAW SSH 调用失败: {e}")
             return None
-                return None
 
-            except json.JSONDecodeError as e:
-                print(f"JSON 解析失败: {e}")
-                print(f"原始输出: {result.stdout[:500]}")
-                return None
+    def _get_mock_response(self, messages: List[Dict]) -> str:
+        """获取 Mock 响应（用于测试）"""
+        # 从消息中提取用户问题
+        user_message = ""
+        for msg in reversed(messages):
+            if msg.get("role") == "user":
+                user_message = msg.get("content", "")
+                break
 
-        except subprocess.TimeoutExpired:
-            print("OpenCLAW CLI 执行超时")
-            return None
-        except FileNotFoundError:
-            print("未找到 openclaw 命令，请确保已安装 OpenCLAW")
-            return None
-        except Exception as e:
-            print(f"OpenCLAW CLI 调用失败: {e}")
-            return None
+        # 简单的关键词匹配响应
+        user_lower = user_message.lower()
+
+        # 预设响应模板
+        responses = {
+            "default": "这是一个 Mock 响应，用于测试 AI 裁判功能。\n\n在生产环境中，这将调用 OpenCLAW Gateway 获取真实的 AI 回答。\n\n您的问题是：{question}",
+            "先攻": "先攻（First Strike）是万智牌中的关键词能力。\n\n根据规则 702.7：\n- 具有先攻的生物在战斗伤害步骤中先造成伤害\n- 然后普通战斗伤害步骤中，具有先攻的生物不再造成伤害\n- 如果双方都有先攻，同时造成伤害",
+            "闪电击": "闪电击（Lightning Bolt）是一张瞬间牌。\n\n效果：对任意目标造成3点伤害。\n\n根据规则：\n- 伤害立即结算（规则 119.7）\n- 可以指定生物、玩家或鹏洛客为目标",
+            "飞行": "飞行（Flying）是万智牌中的关键词能力。\n\n根据规则 702.9：\n- 具有飞行的生物只能被具有飞行或践踏的生物阻挡\n- 如果没有此类生物，可以直接攻击玩家或鹏洛客",
+            "堆叠": "堆叠（Stack）是万智牌中处理咒语和异能的区域。\n\n根据规则 405：\n- 咒语和异能在施放时进入堆叠\n- 从堆叠顶端开始结算\n- 玩家可以在结算前响应",
+            "触发": "触发式异能在满足条件时自动触发。\n\n根据规则 603：\n- 触发式异能在触发事件发生时进入堆叠\n- 由触发该异能的玩家操控者优先权时放入堆叠"
+        }
+
+        # 关键词匹配
+        for keyword, response in responses.items():
+            if keyword in user_lower:
+                return response.format(question=user_message)
+
+        return responses["default"].format(question=user_message)
 
     def _call_stream_api(self, messages: List[Dict], temperature: float = 0.7):
         """
@@ -649,13 +693,14 @@ class AIJudgeService:
 
         return user_message
 
-    def chat(self, user_message: str, session_id: str = "default") -> Dict:
+    def chat(self, user_message: str, session_id: str = "default", short_mode: bool = False) -> Dict:
         """
         与 AI 裁判对话
 
         Args:
             user_message: 用户消息
             session_id: 会话ID，用于维护对话历史
+            short_mode: 简短模式，减少 token 消耗（限制历史长度）
 
         Returns:
             {"success": bool, "reply": str}
@@ -663,18 +708,34 @@ class AIJudgeService:
         logger = _get_ai_logger()
 
         # 记录用户提问
-        logger.info(f"=== 会话 [{session_id}] 用户提问 ===\n{user_message}")
+        logger.info(f"=== 会话 [{session_id}] 用户提问 (short_mode={short_mode}) ===\n{user_message}")
 
         # 自动检测并查询卡牌信息
         enhanced_message = self._enhance_message_with_cards(user_message)
 
+        # 简短模式：使用简化版系统提示词
+        if short_mode:
+            system_prompt = self._get_short_system_prompt()
+            max_history = 2  # 简短模式只保留最近1轮对话
+        else:
+            system_prompt = self.system_prompt
+            max_history = 20  # 普通模式保留最近10轮对话
+
         # 获取或初始化会话历史
         if session_id not in self.conversation_history:
             self.conversation_history[session_id] = [
-                {"role": "system", "content": self.system_prompt}
+                {"role": "system", "content": system_prompt}
             ]
+        else:
+            # 更新系统提示词（以支持切换模式）
+            if self.conversation_history[session_id][0]["role"] == "system":
+                self.conversation_history[session_id][0]["content"] = system_prompt
 
         history = self.conversation_history[session_id]
+
+        # 简短模式：只保留 system + 最近 max_history 条消息
+        if short_mode and len(history) > max_history + 1:
+            history = [history[0]] + history[-(max_history):]
 
         # 添加用户消息（增强版）
         history.append({"role": "user", "content": enhanced_message})
@@ -809,7 +870,7 @@ class AIJudgeService:
                 "analysis": "分析失败，请稍后再试。"
             }
 
-    def stream_chat(self, user_message: str, session_id: str = "default"):
+    def stream_chat(self, user_message: str, session_id: str = "default", short_mode: bool = False):
         """
         与 AI 裁判对话 - 流式版本
         返回生成器，逐步 yield 内容片段
@@ -817,6 +878,7 @@ class AIJudgeService:
         Args:
             user_message: 用户消息
             session_id: 会话ID，用于维护对话历史
+            short_mode: 简短模式，减少 token 消耗
 
         Yields:
             {"content": str} - 内容片段
@@ -826,9 +888,9 @@ class AIJudgeService:
         logger = _get_ai_logger()
 
         # 记录用户提问
-        logger.info(f"=== 会话 [{session_id}] 流式提问 ===\n{user_message}")
+        logger.info(f"=== 会话 [{session_id}] 流式提问 (short_mode={short_mode}) ===\n{user_message}")
 
-        if not self.api_key:
+        if not self.api_key and not self.mock_mode:
             logger.error("AI 裁判 API Key 未配置")
             yield {"error": "AI 裁判服务暂未配置，请联系管理员。"}
             return
@@ -836,40 +898,72 @@ class AIJudgeService:
         # 自动检测并查询卡牌信息
         enhanced_message = self._enhance_message_with_cards(user_message)
 
+        # 简短模式：使用简化版系统提示词
+        if short_mode:
+            system_prompt = self._get_short_system_prompt()
+            max_history = 2  # 简短模式只保留最近1轮对话
+        else:
+            system_prompt = self.system_prompt
+            max_history = 20  # 普通模式保留最近10轮对话
+
         # 获取或初始化会话历史
         if session_id not in self.conversation_history:
             self.conversation_history[session_id] = [
-                {"role": "system", "content": self.system_prompt}
+                {"role": "system", "content": system_prompt}
             ]
+        else:
+            # 更新系统提示词（以支持切换模式）
+            if self.conversation_history[session_id][0]["role"] == "system":
+                self.conversation_history[session_id][0]["content"] = system_prompt
 
         history = self.conversation_history[session_id]
+
+        # 简短模式：只保留 system + 最近 max_history 条消息
+        if short_mode and len(history) > max_history + 1:
+            history = [history[0]] + history[-(max_history):]
 
         # 添加用户消息（增强版）
         history.append({"role": "user", "content": enhanced_message})
 
-        # 流式调用 API
+        # 流式调用 API（优先使用 OpenCLAW）
         full_reply = ""
-        try:
-            for chunk in self._call_stream_api(history):
-                if "error" in chunk:
-                    logger.error(f"流式 API 错误: {chunk['error']}")
-                    yield chunk
-                    return
-                if "content" in chunk:
-                    content = chunk["content"]
-                    full_reply += content
-                    yield {"content": content}
-        except Exception as e:
-            logger.error(f"流式对话异常: {e}")
-            yield {"error": str(e)}
-            return
+
+        if self.openclaw_enabled:
+            print("流式请求：尝试调用 OpenCLAW Gateway...")
+            # 调用 OpenCLAW Gateway（简化版，不支持流式，所以直接返回完整响应）
+            reply = self._call_openclaw_gateway(history)
+            if reply:
+                # 模拟流式输出
+                for i in range(0, len(reply), 10):
+                    yield {"content": reply[i:i+10]}
+                    import time
+                    time.sleep(0.05)
+                full_reply = reply
+            else:
+                yield {"error": "OpenCLAW 调用失败"}
+                return
+        else:
+            # 使用 MiniMax 流式 API
+            try:
+                for chunk in self._call_stream_api(history):
+                    if "error" in chunk:
+                        logger.error(f"流式 API 错误: {chunk['error']}")
+                        yield chunk
+                        return
+                    if "content" in chunk:
+                        content = chunk["content"]
+                        full_reply += content
+                        yield {"content": content}
+            except Exception as e:
+                logger.error(f"流式对话异常: {e}")
+                yield {"error": str(e)}
+                return
 
         # 添加助手回复到历史
         history.append({"role": "assistant", "content": full_reply})
 
-        # 限制历史长度（保留 system + 最近 20 条）
-        if len(history) > 21:
-            self.conversation_history[session_id] = [history[0]] + history[-20:]
+        # 更新会话历史
+        self.conversation_history[session_id] = history
 
         logger.info(f"=== 会话 [{session_id}] 流式回复完成 ===")
         yield {"done": True}

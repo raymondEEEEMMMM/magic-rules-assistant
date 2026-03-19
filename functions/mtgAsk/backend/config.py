@@ -17,10 +17,17 @@ class Config:
     MINIMAX_MODEL = os.getenv("MINIMAX_MODEL", "MiniMax-Text-01")
     MINIMAX_BASE_URL = "https://api.minimax.chat/v1"
 
-    # OpenCLAW Gateway 配置
+    # OpenCLAW Gateway 配置（自建服务器）
     OPENCLAW_ENABLED = os.getenv("OPENCLAW_ENABLED", "true").lower() == "true"
-    OPENCLAW_GATEWAY_URL = os.getenv("OPENCLAW_GATEWAY_URL", "http://127.0.0.1:18789")
-    OPENCLAW_GATEWAY_TOKEN = os.getenv("OPENCLAW_GATEWAY_TOKEN", "")
+    OPENCLAW_HOST = os.getenv("OPENCLAW_HOST", "101.43.48.45")  # 自建服务器 IP
+    OPENCLAW_PORT = os.getenv("OPENCLAW_PORT", "19601")
+    OPENCLAW_SSH_USER = os.getenv("OPENCLAW_SSH_USER", "root")
+    OPENCLAW_SSH_PASSWORD = os.getenv("OPENCLAW_SSH_PASSWORD", "")  # SSH 密码
+    OPENCLAW_SSH_KEY = os.getenv("OPENCLAW_SSH_KEY", "")  # SSH 密钥路径（绝对路径）
+    OPENCLAW_AGENT = os.getenv("OPENCLAW_AGENT", "main")  # Agent 名称
+
+    # Mock 模式配置（用于测试，不消耗 token）
+    OPENCLAW_MOCK = os.getenv("OPENCLAW_MOCK", "false").lower() == "true"
 
     # 数据库配置
     DATABASE_PATH = os.getenv("DATABASE_PATH", "./data/magic_rules.db")

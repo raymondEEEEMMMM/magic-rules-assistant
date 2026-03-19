@@ -7,6 +7,17 @@ import sys
 # 添加项目路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../functions/mtgAsk/backend"))
 
+# 配置 OpenCLAW Gateway（自建服务器）
+os.environ["OPENCLAW_ENABLED"] = "true"
+os.environ["OPENCLAW_HOST"] = "101.43.48.45"
+os.environ["OPENCLAW_PORT"] = "19601"
+os.environ["OPENCLAW_SSH_USER"] = "root"
+# 使用密码登录
+os.environ["OPENCLAW_SSH_PASSWORD"] = "Ray1994@"
+# 或使用密钥登录（需要绝对路径）
+# os.environ["OPENCLAW_SSH_KEY"] = "/Users/lianghaoming/cbworkplace/ai_judge/cc.pem"
+os.environ["OPENCLAW_AGENT"] = "main"
+
 # 优先使用 MINIMAX_API_KEY，否则尝试使用 ANTHROPIC_AUTH_TOKEN
 api_key = os.environ.get("MINIMAX_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN", "")
 if api_key:
@@ -18,6 +29,13 @@ from services.ai_judge_service import AIJudgeService
 def test_ai_judge_opposition_agent():
     """测试案例：EDH 局有2个反对派密探时的搜寻"""
     service = AIJudgeService()
+
+    # 打印 OpenCLAW 配置
+    print(f"\n[配置] openclaw_enabled: {service.openclaw_enabled}")
+    print(f"[配置] openclaw_host: {service.openclaw_host}")
+    print(f"[配置] openclaw_port: {service.openclaw_port}")
+    print(f"[配置] openclaw_ssh_user: {service.openclaw_ssh_user}")
+    print(f"[配置] openclaw_agent: {service.openclaw_agent}")
 
     # 检查是否配置了 API Key
     if not service.api_key:

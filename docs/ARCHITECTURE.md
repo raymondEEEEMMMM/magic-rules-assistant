@@ -251,10 +251,16 @@ miniprogram/
 |-----|------|-------|
 | ENVIRONMENT | 运行环境 | production |
 | WECHAT_TOKEN | 微信验证 Token | wx_mtg_rules_2024 |
-| MYSQL_HOST | MySQL 主机 | 172.17.0.5 |
-| MYSQL_PORT | MySQL 端口 | 3306 |
+| MYSQL_HOST | MySQL 主机 | sh-cynosdbmysql-grp-5ydpqjru.sql.tencentcdb.com |
+| MYSQL_PORT | MySQL 端口 | 27987 |
 | MYSQL_USER | MySQL 用户 | mtgask |
 | MYSQL_DATABASE | 数据库名称 | magic-rules-assistant-0a1904c329 |
+| OPENCLAW_ENABLED | 启用 OpenCLAW | true |
+| OPENCLAW_HOST | OpenCLAW 服务器 IP | 101.43.48.45 |
+| OPENCLAW_PORT | OpenCLAW 端口 | 19601 |
+| OPENCLAW_SSH_USER | SSH 用户名 | root |
+| OPENCLAW_SSH_PASSWORD | SSH 密码 | (环境变量) |
+| OPENCLAW_AGENT | Agent 名称 | main |
 
 ### 6.3 访问地址
 
@@ -265,20 +271,40 @@ miniprogram/
 
 ## 7. 扩展性设计
 
-### 7.1 AI 问答集成 (第二阶段)
+### 7.1 AI 裁判 (已完成)
 
-预留 AI 问答接口，可接入 OpenAI API 实现智能问答：
+已实现 AI 裁判功能，使用 OpenCLAW Gateway 提供智能问答：
 
-```python
-# 规划中的 AI 问答服务
-class AIService:
-    def __init__(self, openai_api_key: str):
-        self.client = OpenAI(api_key=openai_api_key)
-
-    def answer_question(self, question: str, context: dict) -> str:
-        # 基于规则上下文进行问答
-        pass
+**架构**：
 ```
+云函数 mtgAsk ──SSH+CLI──▶ OpenCLAW Gateway ──API──▶ MiniMax
+  /api/ai-judge/*      (自建服务器)           mtg-judge skill
+```
+
+> 注意：改用自建服务器后，通过 SSH 执行 `openclaw agent` CLI 调用
+
+**Gateway 配置**（自建服务器）：
+| 属性 | 值 |
+|------|-----|
+| 服务器 | 101.43.48.45 |
+| 端口 | 19601 |
+| SSH 用户 | root |
+| Skill | mtg-judge |
+
+**环境变量**：
+| 变量 | 说明 |
+|-----|------|
+| OPENCLAW_ENABLED | 启用 OpenCLAW (default: true) |
+| OPENCLAW_HOST | 服务器 IP |
+| OPENCLAW_PORT | 端口 |
+| OPENCLAW_SSH_USER | SSH 用户名 |
+| OPENCLAW_SSH_PASSWORD | SSH 密码 |
+| OPENCLAW_AGENT | Agent 名称 (default: main) |
+
+**API 端点**：
+- `POST /api/ai-judge/chat` - AI 裁判问答
+- `POST /api/ai-judge/analyze` - 局势分析
+- `POST /api/ai-judge/clear` - 清除会话
 
 ### 7.2 缓存机制
 
