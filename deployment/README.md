@@ -10,14 +10,10 @@ deployment/
 ├── scripts/                        # 部署脚本
 │   ├── start.sh                    # 本地启动脚本
 │   └── cloudbaserc.json           # CloudBase 配置文件
-├── docker/                         # Docker 相关
-│   └── Dockerfile                  # Docker 镜像构建文件
 └── docs/                           # 部署文档
     ├── CloudBase部署指南.md         # CloudBase 部署完整指南
-    ├── CloudBase部署完成报告.md     # 部署完成状态报告
-    ├── MTGCH API部署报告.md        # MTGCH API 部署说明
-    ├── MTGCH API部署问题诊断.md    # 问题诊断与解决方案
-    ├── MTGCH API最终部署报告.md    # 最终部署状态
+    ├── plan_openclaw_cloud.md     # OpenCLAW Gateway 部署方案
+    ├── MTGCH API最终部署报告.md    # MTGCH API 部署报告
     └── MTGCH部署最终总结.md        # MTGCH 部署总结
 ```
 
@@ -44,18 +40,6 @@ python main.py
 ```bash
 # 部署云函数
 tcb fn deploy magic-rules-api -e <env-id> --httpFn --yes
-
-# 或使用 MCP 工具部署
-```
-
-### Docker 部署
-
-```bash
-# 构建镜像
-docker build -f deployment/docker/Dockerfile -t mtg-rules-api .
-
-# 运行容器
-docker run -p 80:80 mtg-rules-api
 ```
 
 ## 部署环境信息
@@ -63,8 +47,8 @@ docker run -p 80:80 mtg-rules-api
 ### 当前 CloudBase 环境
 
 - **环境 ID**: `magic-rules-assistant-0a1904c329`
-- **函数名称**: `magic-rules-api`
-- **运行时**: Python 3.10
+- **函数名称**: `mtgAsk`
+- **运行时**: Python 3.9
 - **访问地址**: `https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com`
 
 ### API 端点
@@ -77,10 +61,44 @@ docker run -p 80:80 mtg-rules-api
 | `/api/search` | GET | 规则搜索 |
 | `/api/keyword` | GET | 关键词查询 |
 | `/api/card` | GET | 卡牌查询 |
-| `/api/mtgch/search` | GET | MTGCH 卡牌搜索 |
-| `/api/mtgch/card` | GET | MTGCH 单张卡牌 |
-| `/api/mtgch/random` | GET | MTGCH 随机卡牌 |
-| `/api/mtgch/autocomplete` | GET | MTGCH 自动补全 |
+| `/api/ai-judge/chat` | POST | AI 裁判问答 |
+| `/api/ai-judge/analyze` | POST | 游戏局势分析 |
+
+## AI 裁判部署
+
+AI 裁判功能基于 OpenCLAW Gateway，部署在自建服务器上。
+
+### 架构
+
+```
+微信小程序/公众号 → 云函数 mtgAsk → SSH + CLI → OpenCLAW Gateway (自建服务器)
+                                                              ↓
+                                                        ai_judge skill
+                                                              ↓
+                                                        MiniMax API
+```
+
+### 自建服务器配置
+
+| 属性 | 值 |
+|------|-----|
+| 服务器 IP | 101.43.48.45 |
+| SSH 端口 | 22 |
+| Gateway 端口 | 18789 |
+
+### 知识库同步
+
+知识库存储在 `functions/mtgAsk/backend/data/magic-comp-rules-zh-cn-agent/`，与 GitHub 仓库完全对齐。
+
+```bash
+# 同步知识库到本地（从 GitHub）
+python functions/mtgAsk/scripts/sync_judge_knowledge.py --rules --force
+
+# 同步到服务器
+python functions/mtgAsk/scripts/sync_judge_knowledge.py --skill
+```
+
+详见 [OpenCLAW Gateway 部署方案](docs/plan_openclaw_cloud.md)
 
 ## 文档说明
 
@@ -92,31 +110,17 @@ docker run -p 80:80 mtg-rules-api
 - 微信公众号配置
 - 测试验证
 
-### CloudBase部署完成报告.md
-当前部署状态报告，包含：
-- 已完成的配置
-- 访问地址
-- 测试方法
-- 故障排查
+### plan_openclaw_cloud.md
+OpenCLAW Gateway 部署方案，包含：
+- 自建服务器配置
+- 知识库同步说明
+- 环境变量配置
 
-### MTGCH API部署报告.md
+### MTGCH API最终部署报告.md
 MTGCH API 集成说明，包含：
 - 新增 API 端点
 - 查询方式说明
 - 本地测试结果
-
-### MTGCH API部署问题诊断.md
-部署过程中的问题与解决方案，包含：
-- 函数类型不匹配问题
-- 依赖缺失问题
-- 路由未生效问题
-- 多种解决方案
-
-### MTGCH API最终部署报告.md
-最终部署状态和待解决问题。
-
-### MTGCH部署最终总结.md
-MTGCH API 部署的总结文档。
 
 ## 脚本说明
 
@@ -134,13 +138,6 @@ CloudBase 配置文件，包含：
 - 环境变量
 - HTTP 访问路径
 
-### Dockerfile
-Docker 镜像构建文件：
-- 基于 Python 3.10 slim 镜像
-- 安装项目依赖
-- 复制代码和数据
-- 配置运行参数
-
 ## 常见问题
 
 ### 1. 部署失败
@@ -153,10 +150,10 @@ Docker 镜像构建文件：
 - 检查 Token 配置
 - 确认消息加解密方式
 
-### 3. MTGCH API 不工作
-- 检查 requests 库是否安装
-- 查看函数日志
-- 参考 [MTGCH API部署问题诊断.md](docs/MTGCH API部署问题诊断.md)
+### 3. AI 裁判不工作
+- 检查 SSH 连接到服务器的配置
+- 确认知识库是否同步
+- 查看云函数日志
 
 ## 相关链接
 
