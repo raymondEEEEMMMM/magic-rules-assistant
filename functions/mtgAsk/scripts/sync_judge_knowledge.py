@@ -64,8 +64,23 @@ class KnowledgeSync:
         "markdown/9.md",
         # 术语表
         "markdown/glossarycn.md",
+        "markdown/glossary.md",        # 英文术语表
         "markdown/translatedterms.md",
-        # 知识图谱
+        # 其他 markdown 文件
+        "markdown/index.md",           # 规则索引
+        "markdown/intro.md",           # 简介
+        "markdown/credits.md",        # 贡献者
+        # 知识图谱（新位置 references/）
+        "references/triggered-abilities.md",
+        "references/stack-priority.md",
+        "references/continuous-effects.md",
+        "references/copy-effects.md",
+        "references/prevention-effects.md",
+        "references/replacement-effects.md",
+    ]
+
+    # 知识图谱旧位置（兼容）
+    KNOWLEDGE_FILES_LEGACY = [
         "knowledge-map/triggered-abilities.md",
         "knowledge-map/stack-priority.md",
         "knowledge-map/continuous-effects.md",
@@ -279,60 +294,6 @@ class KnowledgeSync:
 
         return synced_count
 
-    def _sync_to_openclaw(self) -> int:
-        """
-        将本地知识库同步到 OpenCLAW Gateway 技能目录
-
-        Returns:
-            同步的文件数量
-        """
-        if not os.path.exists(self.KNOWLEDGE_DIR):
-            logger.warning("本地知识库目录不存在，跳过 OpenCLAW 同步")
-            return 0
-
-        synced_count = 0
-
-        # 遍历知识库目录中的所有文件
-        for root, dirs, files in os.walk(self.KNOWLEDGE_DIR):
-            for file in files:
-                if file.startswith('.'):
-                    continue
-
-                # 计算相对路径
-                rel_path = os.path.relpath(os.path.join(root, file), self.KNOWLEDGE_DIR)
-                source_file = os.path.join(root, file)
-                dest_file = os.path.join(self.OPENCLAW_SKILLS_DIR, rel_path)
-
-                # 确保目标目录存在
-                os.makedirs(os.path.dirname(dest_file), exist_ok=True)
-
-                # 检查是否需要更新（比较文件内容或时间）
-                needs_update = True
-                if os.path.exists(dest_file):
-                    source_mtime = os.path.getmtime(source_file)
-                    dest_mtime = os.path.getmtime(dest_file)
-                    if source_mtime <= dest_mtime:
-                        needs_update = False
-
-                if needs_update:
-                    # 复制文件
-                    try:
-                        with open(source_file, 'r', encoding='utf-8') as sf:
-                            content = sf.read()
-                        with open(dest_file, 'w', encoding='utf-8') as df:
-                            df.write(content)
-                        synced_count += 1
-                        logger.info(f"  → 已同步: {rel_path}")
-                    except Exception as e:
-                        logger.warning(f"  → 同步失败: {rel_path} - {e}")
-
-        if synced_count > 0:
-            logger.info(f"✓ OpenCLAW Gateway 知识库同步完成: {synced_count} 个文件")
-        else:
-            logger.info("✓ OpenCLAW Gateway 知识库已是最新")
-
-        return synced_count
-
     def _init_cloud_storage(self):
         """初始化云存储客户端"""
         try:
@@ -430,11 +391,6 @@ class KnowledgeSync:
             logger.info(f"  日期: {commit_date}")
             logger.info(f"  文件: {len(downloaded_files)} 个")
             logger.info(f"  总字符: {total_chars:,}")
-
-            # 同步到 OpenCLAW Gateway
-            if len(downloaded_files) > 0:
-                openclaw_synced = self._sync_to_openclaw()
-                logger.info(f"  OpenCLAW 同步: {openclaw_synced} 个文件")
 
             return {
                 "success": True,
