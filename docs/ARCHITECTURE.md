@@ -390,24 +390,36 @@ python functions/mtgAsk/scripts/sync_judge_knowledge.py --force
 
 ### 7.7 目录结构
 
-**裁判相关目录：**
+**AI 裁判知识库目录（与 magic-comp-rules-zh-cn-agent 对齐）：**
 
 ```
-ai_judge/
-├── 345.md              # 裁判技能定义
-├── cc.pem              # SSH 客户端证书
-└── 345-head.jpg        # 技能头像
-
-functions/mtgAsk/
-├── backend/
-│   ├── services/
-│   │   └── ai_judge_service.py  # AI 裁判服务
-│   └── data/
-│       └── knowledge/           # 知识库本地副本
-│           ├── markdown/        # 规则文件
-│           └── knowledge-map/  # 知识图谱
+functions/mtgAsk/backend/data/magic-comp-rules-zh-cn-agent/
+├── skill.md              # 技能定义
+├── 345.md                # 裁判技能定义（旧版兼容）
+├── cc.pem                # SSH 客户端证书
+├── markdown/             # 规则文件（1-9章 + 术语表）
+│   ├── 1.md ~ 9.md
+│   ├── glossarycn.md    # 中文术语表
+│   ├── glossary.md       # 英文术语表
+│   ├── index.md          # 规则索引
+│   ├── intro.md          # 简介
+│   ├── credits.md        # 贡献者
+│   └── translatedterms.md
+├── references/           # 知识图谱
+│   ├── triggered-abilities.md
+│   ├── stack-priority.md
+│   ├── continuous-effects.md
+│   ├── copy-effects.md
+│   ├── prevention-effects.md
+│   └── replacement-effects.md
 └── scripts/
     └── sync_judge_knowledge.py # 同步脚本
+```
+
+**服务器端目录：**
+```
+/root/openclaw/workspace/skills/ai_judge/
+└── (与本地目录结构相同)
 ```
 
 ---

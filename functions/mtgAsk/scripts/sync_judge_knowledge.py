@@ -44,11 +44,9 @@ class KnowledgeSync:
     KNOWLEDGE_BRANCH = "master"
     KNOWLEDGE_BASE_URL = f"https://raw.githubusercontent.com/{KNOWLEDGE_REPO}/{KNOWLEDGE_BRANCH}"
 
-    # 本地数据目录
+    # 本地数据目录（与 magic-comp-rules-zh-cn-agent 对齐）
     LOCAL_DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'backend', 'data')
-    RULES_DIR = os.path.join(LOCAL_DATA_DIR, 'rules')
-    KNOWLEDGE_DIR = os.path.join(LOCAL_DATA_DIR, 'knowledge')
-    CARDS_DIR = os.path.join(LOCAL_DATA_DIR, 'cards')
+    KNOWLEDGE_DIR = os.path.join(LOCAL_DATA_DIR, 'magic-comp-rules-zh-cn-agent')
 
     # 知识库文件列表
     KNOWLEDGE_FILES = [
@@ -92,15 +90,9 @@ class KnowledgeSync:
     # OpenCLAW Gateway 技能目录（服务器路径）
     OPENCLAW_SERVER_PATH = os.getenv("OPENCLAW_SERVER_PATH", "/root/openclaw/workspace/skills/ai_judge")
 
-    # 本地 AI 裁判目录
-    AI_JUDGE_LOCAL_DIR = os.path.join(
-        os.path.dirname(__file__), '..', '..', '..',
-        'ai_judge'
-    )
-
     # SSH 配置
     OPENCLAW_HOST = os.getenv("OPENCLAW_HOST", "101.43.48.45")
-    OPENCLAW_PORT = int(os.getenv("OPENCLAW_PORT_SSH", "19601"))
+    OPENCLAW_PORT = int(os.getenv("OPENCLAW_PORT_SSH", "22"))
     OPENCLAW_USER = os.getenv("OPENCLAW_SSH_USER", "root")
     OPENCLAW_PASSWORD = os.getenv("OPENCLAW_SSH_PASSWORD", "")
     OPENCLAW_KEY = os.getenv("OPENCLAW_SSH_KEY", "")
@@ -114,9 +106,7 @@ class KnowledgeSync:
 
     def _ensure_directories(self):
         """确保目录存在"""
-        os.makedirs(self.RULES_DIR, exist_ok=True)
         os.makedirs(self.KNOWLEDGE_DIR, exist_ok=True)
-        os.makedirs(self.CARDS_DIR, exist_ok=True)
 
     def _init_ssh(self):
         """初始化 SSH 连接"""
@@ -180,27 +170,14 @@ class KnowledgeSync:
             return result
 
         try:
-            # 1. 同步 ai_judge/ 目录
-            logger.info("开始同步 ai_judge/ 目录...")
-            ai_judge_count = self._sync_directory_via_ssh(
-                self.AI_JUDGE_LOCAL_DIR,
+            # 同步整个知识库目录（与 magic-comp-rules-zh-cn-agent 对齐）
+            logger.info("开始同步 magic-comp-rules-zh-cn-agent/ 目录...")
+            knowledge_count = self._sync_directory_via_ssh(
+                self.KNOWLEDGE_DIR,
                 self.OPENCLAW_SERVER_PATH
             )
-            result["ai_judge_files"] = ai_judge_count
-            logger.info(f"✓ ai_judge/ 同步完成: {ai_judge_count} 个文件")
-
-            # 2. 同步 knowledge/ 目录
-            logger.info("开始同步 knowledge/ 目录...")
-            knowledge_path = os.path.join(
-                os.path.dirname(__file__), '..', 'backend', 'data', 'knowledge'
-            )
-            knowledge_dest = os.path.join(self.OPENCLAW_SERVER_PATH, 'knowledge')
-            knowledge_count = self._sync_directory_via_ssh(
-                knowledge_path,
-                knowledge_dest
-            )
             result["knowledge_files"] = knowledge_count
-            logger.info(f"✓ knowledge/ 同步完成: {knowledge_count} 个文件")
+            logger.info(f"✓ magic-comp-rules-zh-cn-agent/ 同步完成: {knowledge_count} 个文件")
 
             result["success"] = True
 
