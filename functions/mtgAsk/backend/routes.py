@@ -366,8 +366,55 @@ async def ai_judge_analyze(request: Request):
     return result
 
 @app.post("/api/ai-judge/clear")
-async def ai_judge_clear_session(session_id: str = "default"):
+async def ai_judge_clear_session(request: Request):
     """清除 AI 裁判会话历史"""
+    body = await request.json()
+    session_id = body.get("session_id", "default")
+    from services.ai_judge_service import ai_judge_service
+    ai_judge_service.clear_session(session_id)
+    return {"success": True, "message": "会话已清除"}
+
+# ==================== 微信 HTTP 访问路径 AI 裁判 API ====================
+
+@app.post("/wechat/api/ai-judge/chat")
+async def wechat_ai_judge_chat(request: Request):
+    """与 AI 裁判对话 - 微信HTTP访问"""
+    body = await request.json()
+    message = body.get("message", "")
+    session_id = body.get("session_id", "default")
+    clear_history = body.get("clear_history", False)
+    short_mode = body.get("short_mode", False)
+
+    if not message:
+        return {"success": False, "reply": "消息不能为空"}
+
+    from services.ai_judge_service import ai_judge_service
+
+    if clear_history:
+        ai_judge_service.clear_session(session_id)
+
+    result = ai_judge_service.chat(message, session_id, short_mode=short_mode)
+    return result
+
+
+@app.post("/wechat/api/ai-judge/new-session")
+async def wechat_ai_judge_new_session(request: Request):
+    """创建新会话 - 微信HTTP访问"""
+    body = await request.json()
+    session_id = body.get("session_id", "default")
+    reset_agent = body.get("reset_agent", True)
+
+    from services.ai_judge_service import ai_judge_service
+    result = ai_judge_service.new_session(session_id, reset_agent)
+    return result
+
+
+@app.post("/wechat/api/ai-judge/clear")
+async def wechat_ai_judge_clear_session(request: Request):
+    """清除会话 - 微信HTTP访问"""
+    body = await request.json()
+    session_id = body.get("session_id", "default")
+
     from services.ai_judge_service import ai_judge_service
     ai_judge_service.clear_session(session_id)
     return {"success": True, "message": "会话已清除"}
