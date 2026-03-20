@@ -14,7 +14,7 @@
  * api.searchCard('Lightning Bolt').then(data => { ... })
  */
 
-const API_BASE = 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la'
+const FUNCTION_NAME = 'mtgAsk'
 
 /**
  * API 封装对象
@@ -29,7 +29,7 @@ const api = {
     if (!keyword || !keyword.trim()) {
       return Promise.reject('请输入搜索关键词')
     }
-    return this.request('/wechat/api/search', { q: keyword })
+    return this.request('/api/search', { q: keyword })
   },
 
   /**
@@ -41,7 +41,7 @@ const api = {
     if (!keyword || !keyword.trim()) {
       return Promise.reject('请输入关键词')
     }
-    return this.request('/wechat/api/keyword', { k: keyword })
+    return this.request('/api/keyword', { k: keyword })
   },
 
   /**
@@ -55,7 +55,7 @@ const api = {
     if (!cardName || !cardName.trim()) {
       return Promise.reject('请输入卡牌名称')
     }
-    return this.request('/wechat/api/mtgch/search', {
+    return this.request('/api/mtgch/search', {
       q: cardName,
       page,
       page_size: pageSize
@@ -79,7 +79,7 @@ const api = {
     if (!cardId) {
       return Promise.reject('请输入卡牌ID')
     }
-    return this.request('/wechat/api/mtgch/card', { id: cardId })
+    return this.request('/api/mtgch/card', { id: cardId })
   },
 
   /**
@@ -92,7 +92,7 @@ const api = {
     if (!setCode || !number) {
       return Promise.reject('请输入系列代码和编号')
     }
-    return this.request('/wechat/api/mtgch/card', { set: setCode, number })
+    return this.request('/api/mtgch/card', { set: setCode, number })
   },
 
   /**
@@ -105,7 +105,7 @@ const api = {
     if (!query || !query.trim()) {
       return Promise.reject('请输入搜索内容')
     }
-    return this.request('/wechat/api/mtgch/autocomplete', { q: query, size })
+    return this.request('/api/mtgch/autocomplete', { q: query, size })
   },
 
   // ==================== AI 裁判 API ====================
@@ -159,13 +159,13 @@ const api = {
   },
 
   /**
-   * 通用请求方法
-   * @param {string} url - 请求路径
+   * 通用请求方法 - 使用 wx.cloud.callFunction
+   * @param {string} path - 请求路径
    * @param {object} data - 请求数据
    * @param {object} options - 额外配置
    * @returns {Promise}
    */
-  request(url, data = {}, options = {}) {
+  request(path, data = {}, options = {}) {
     const { method = 'GET', showLoading = true } = options
 
     return new Promise((resolve, reject) => {
@@ -173,41 +173,75 @@ const api = {
         wx.showLoading({ title: '加载中...' })
       }
 
-      wx.request({
-        url: API_BASE + url,
-        data,
-        method,
-        header: {
-          'content-type': 'application/json'
-        },
-        success(res) {
+      // 构建调用参数
+      const callData = {
+        httpMethod: method,
+        path: path,
+        ...data
+      }
+
+      // GET 请求用 queryString，POST 请求用 body
+      if (method === 'GET') {
+        // 将 data 转为 queryString 格式
+        const queryParts = []
+        for (const key in data) {
+          if (data[key] !== undefined && data[key] !== null) {
+            queryParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
+          }
+        }
+        callData.queryString = queryParts.join('&')
+        delete callData.path
+        callData.path = '/' + path
+      } else {
+        // POST 请求
+        callData.body = JSON.stringify(data)
+        delete callData.path
+        callData.path = '/' + path
+      }
+
+      wx.cloud.callFunction({
+        name: FUNCTION_NAME,
+        data: callData,
+        success: res => {
           if (showLoading) {
             wx.hideLoading()
           }
 
-          if (res.statusCode !== 200) {
-            reject(`请求失败: ${res.statusCode}`)
+          // 解析云函数返回的结果
+          if (res.errMsg && res.errMsg.includes('fail')) {
+            reject(`请求失败: ${res.errMsg}`)
             return
           }
 
-          if (res.data.error) {
-            reject(res.data.error)
+          // 云函数返回的是 { statusCode, headers, body }
+          let result = res.result
+          if (result && result.body) {
+            // 解析 body 字符串
+            try {
+              result = typeof result.body === 'string' ? JSON.parse(result.body) : result.body
+            } catch (e) {
+              console.error('解析响应失败:', e)
+            }
+          }
+
+          if (result && result.error) {
+            reject(result.error)
             return
           }
 
-          resolve(res.data)
+          resolve(result)
         },
-        fail(err) {
+        fail: err => {
           if (showLoading) {
             wx.hideLoading()
           }
 
-          console.error('API 请求失败:', err)
+          console.error('云函数调用失败:', err)
 
           // 判断错误类型
-          if (err.errMsg.includes('timeout')) {
+          if (err.errMsg && err.errMsg.includes('timeout')) {
             reject('请求超时，请检查网络')
-          } else if (err.errMsg.includes('fail')) {
+          } else if (err.errMsg && err.errMsg.includes('fail')) {
             reject('网络连接失败')
           } else {
             reject('请求失败，请稍后重试')

@@ -1,5 +1,7 @@
 // pages/keyword/keyword.js
-const API_BASE = 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la'
+
+// 引入 API 工具
+const api = require('../../utils/api')
 
 Page({
   data: {
@@ -52,38 +54,33 @@ Page({
       searchDone: false
     })
 
-    wx.request({
-      url: `${API_BASE}/wechat/api/search`,
-      data: { q: keyword },
-      success: (res) => {
-        if (res.statusCode === 200 && res.data && res.data.results) {
-          const results = res.data.results
-          this.setData({
-            searching: false,
-            searchDone: true,
-            keywordResults: results.keyword_abilities || [],
-            ruleResults: results.rules || []
-          })
-        } else {
-          this.setData({
-            searching: false,
-            searchDone: true,
-            keywordResults: [],
-            ruleResults: []
-          })
-        }
-      },
-      fail: (err) => {
-        console.error('搜索失败:', err)
+    api.searchRules(keyword).then(res => {
+      if (res && res.results) {
+        const results = res.results
         this.setData({
           searching: false,
-          searchDone: true
+          searchDone: true,
+          keywordResults: results.keyword_abilities || [],
+          ruleResults: results.rules || []
         })
-        wx.showToast({
-          title: '搜索失败',
-          icon: 'none'
+      } else {
+        this.setData({
+          searching: false,
+          searchDone: true,
+          keywordResults: [],
+          ruleResults: []
         })
       }
+    }).catch(err => {
+      console.error('搜索失败:', err)
+      this.setData({
+        searching: false,
+        searchDone: true
+      })
+      wx.showToast({
+        title: '搜索失败',
+        icon: 'none'
+      })
     })
   },
 
@@ -112,48 +109,36 @@ Page({
   fetchKeywordDetail(keyword) {
     wx.showLoading({ title: '加载中...' })
 
-    wx.request({
-      url: `${API_BASE}/wechat/api/keyword`,
-      data: { k: keyword },
-      method: 'GET',
-      success: (res) => {
-        wx.hideLoading()
+    api.getKeyword(keyword).then(res => {
+      wx.hideLoading()
 
-        if (res.statusCode === 200 && res.data && res.data.result) {
-          const result = res.data.result
-          this.setData({
-            keywordDetail: result
-          })
+      if (res && res.result) {
+        const result = res.result
+        this.setData({
+          keywordDetail: result
+        })
 
-          // 获取相关规则
-          this.fetchRelatedRules(keyword)
-        }
-      },
-      fail: (err) => {
-        wx.hideLoading()
-        console.error('获取关键词详情失败:', err)
+        // 获取相关规则
+        this.fetchRelatedRules(keyword)
       }
+    }).catch(err => {
+      wx.hideLoading()
+      console.error('获取关键词详情失败:', err)
     })
   },
 
   // 获取相关规则
   fetchRelatedRules(keyword) {
-    wx.request({
-      url: `${API_BASE}/wechat/api/search`,
-      data: { q: keyword },
-      method: 'GET',
-      success: (res) => {
-        if (res.statusCode === 200 && res.data && res.data.results) {
-          const rules = res.data.results.rules || []
-          // 取前5条相关规则
-          this.setData({
-            relatedRules: rules.slice(0, 5)
-          })
-        }
-      },
-      fail: (err) => {
-        console.error('获取相关规则失败:', err)
+    api.searchRules(keyword).then(res => {
+      if (res && res.results) {
+        const rules = res.results.rules || []
+        // 取前5条相关规则
+        this.setData({
+          relatedRules: rules.slice(0, 5)
+        })
       }
+    }).catch(err => {
+      console.error('获取相关规则失败:', err)
     })
   },
 

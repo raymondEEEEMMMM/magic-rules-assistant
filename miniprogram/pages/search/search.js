@@ -1,8 +1,8 @@
 // pages/search/search.js
 const app = getApp()
 
-// API 配置
-const API_BASE = 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la'
+// 引入 API 工具
+const api = require('../../utils/api')
 
 Page({
   data: {
@@ -55,38 +55,26 @@ Page({
 
   // 调用后端API搜索
   performSearch(keyword) {
-    wx.request({
-      url: `${API_BASE}/wechat/api/search`,
-      data: { q: keyword },
-      success: (res) => {
-        if (res.statusCode === 200 && res.data) {
-          const results = res.data.results || {}
-          this.setData({
-            loading: false,
-            searchDone: true,
-            ruleResults: results.rules || [],
-            keywordResults: results.keyword_abilities || [],
-            cardResults: results.cards || [],
-            results: res.data.results
-          })
-        } else {
-          this.setData({
-            loading: false,
-            searchDone: true
-          })
-        }
-      },
-      fail: (err) => {
-        console.error('搜索失败:', err)
-        this.setData({
-          loading: false,
-          searchDone: true
-        })
-        wx.showToast({
-          title: '搜索失败',
-          icon: 'none'
-        })
-      }
+    api.searchRules(keyword).then(res => {
+      const results = res.results || {}
+      this.setData({
+        loading: false,
+        searchDone: true,
+        ruleResults: results.rules || [],
+        keywordResults: results.keyword_abilities || [],
+        cardResults: results.cards || [],
+        results: res.results
+      })
+    }).catch(err => {
+      console.error('搜索失败:', err)
+      this.setData({
+        loading: false,
+        searchDone: true
+      })
+      wx.showToast({
+        title: '搜索失败',
+        icon: 'none'
+      })
     })
   },
 

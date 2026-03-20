@@ -1,11 +1,9 @@
 // pages/agent/agent.js
 const app = getApp()
 
-// 引入 Markdown 工具
+// 引入 API 工具和 Markdown 工具
+const api = require('../../utils/api')
 const { markdownToPlainText, parseMarkdown } = require('../../utils/markdown')
-
-// API 配置
-const API_BASE = 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la'
 
 // AI 头像（emoji 机器人图标）
 const AI_AVATAR = '🤖'
@@ -75,62 +73,49 @@ Page({
     const shortMode = this.data.shortMode
     const sessionId = this.data.sessionId
 
-    wx.request({
-      url: `${API_BASE}/api/ai-judge/chat`,
-      method: 'POST',
-      header: {
-        'Content-Type': 'application/json'
-      },
-      data: {
-        message: message,
-        session_id: sessionId,
-        short_mode: shortMode
-      },
-      success(res) {
-        if (res.data && res.data.success && res.data.reply) {
-          // 解析 Markdown 为 rich-text 节点
-          const parsedNodes = parseMarkdown(res.data.reply)
+    api.aiJudgeChat(message, sessionId).then(res => {
+      if (res && res.success && res.reply) {
+        // 解析 Markdown 为 rich-text 节点
+        const parsedNodes = parseMarkdown(res.reply)
 
-          // 更新消息，保留原始内容和解析后的节点
-          const messages = that.data.messages
-          messages[aiMessageIndex] = {
-            role: 'assistant',
-            content: res.data.reply,  // 原始 Markdown 内容
-            parsedNodes: parsedNodes   // 解析后的 rich-text 节点
-          }
-
-          that.setData({
-            messages: messages,
-            loading: false,
-            scrollIntoView: `msg-${aiMessageIndex}`
-          })
-        } else {
-          that.setData({
-            messages: that.data.messages.map((msg, i) =>
-              i === aiMessageIndex ? {
-                ...msg,
-                content: res.data?.reply || '抱歉，我暂时无法回答。',
-                parsedNodes: parseMarkdown(res.data?.reply || '抱歉，我暂时无法回答。')
-              } : msg
-            ),
-            loading: false
-          })
+        // 更新消息，保留原始内容和解析后的节点
+        const messages = that.data.messages
+        messages[aiMessageIndex] = {
+          role: 'assistant',
+          content: res.reply,  // 原始 Markdown 内容
+          parsedNodes: parsedNodes   // 解析后的 rich-text 节点
         }
-      },
-      fail(err) {
-        console.error('API error:', err)
-        const errorMsg = '网络错误，请检查网络后重试。'
+
+        that.setData({
+          messages: messages,
+          loading: false,
+          scrollIntoView: `msg-${aiMessageIndex}`
+        })
+      } else {
         that.setData({
           messages: that.data.messages.map((msg, i) =>
             i === aiMessageIndex ? {
               ...msg,
-              content: errorMsg,
-              parsedNodes: parseMarkdown(errorMsg)
+              content: res?.reply || '抱歉，我暂时无法回答。',
+              parsedNodes: parseMarkdown(res?.reply || '抱歉，我暂时无法回答。')
             } : msg
           ),
           loading: false
         })
       }
+    }).catch(err => {
+      console.error('API error:', err)
+      const errorMsg = '网络错误，请检查网络后重试。'
+      that.setData({
+        messages: that.data.messages.map((msg, i) =>
+          i === aiMessageIndex ? {
+            ...msg,
+            content: errorMsg,
+            parsedNodes: parseMarkdown(errorMsg)
+          } : msg
+        ),
+        loading: false
+      })
     })
   },
 
@@ -143,36 +128,24 @@ Page({
       content: '确定要开始新的对话吗？当前会话历史将被清除。',
       success(res) {
         if (res.confirm) {
-          // 调用新建会话 API
-          wx.request({
-            url: `${API_BASE}/api/ai-judge/new-session`,
-            method: 'POST',
-            header: {
-              'Content-Type': 'application/json'
-            },
-            data: {
-              session_id: that.data.sessionId,
-              reset_agent: true
-            },
-            success(res) {
-              // 清除本地会话历史
-              that.setData({
-                messages: [],
-                sessionId: 'miniprogram_' + Date.now()  // 新的会话 ID
-              })
+          // 清除云端会话
+          api.aiJudgeClear(that.data.sessionId).then(() => {
+            // 清除本地会话历史
+            that.setData({
+              messages: [],
+              sessionId: 'miniprogram_' + Date.now()  // 新的会话 ID
+            })
 
-              wx.showToast({
-                title: '已新建会话',
-                icon: 'success'
-              })
-            },
-            fail(err) {
-              console.error('新建会话失败:', err)
-              wx.showToast({
-                title: '新建会话失败',
-                icon: 'none'
-              })
-            }
+            wx.showToast({
+              title: '已新建会话',
+              icon: 'success'
+            })
+          }).catch(err => {
+            console.error('新建会话失败:', err)
+            wx.showToast({
+              title: '新建会话失败',
+              icon: 'none'
+            })
           })
         }
       }
