@@ -1,5 +1,5 @@
 // pages/keyword/keyword.js
-const API_BASE = 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com'
+const API_BASE = 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la'
 
 Page({
   data: {
