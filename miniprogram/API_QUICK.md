@@ -8,7 +8,7 @@
 
 ```javascript
 // API 基础地址
-const API_BASE = 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com'
+const API_BASE = 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com'
 ```
 
 ## 快速示例
@@ -75,11 +75,31 @@ wx.request({
 })
 ```
 
+### 6. AI 裁判问答
+```javascript
+wx.request({
+  url: `${API_BASE}/api/ai-judge/chat`,
+  method: 'POST',
+  header: {
+    'Content-Type': 'application/json'
+  },
+  data: {
+    message: '闪电击的伤害何时结算？',
+    session_id: 'miniprogram'
+  },
+  success(res) {
+    if (res.data.success) {
+      console.log('AI 回答:', res.data.reply)
+    }
+  }
+})
+```
+
 ## 完整封装
 
 ```javascript
 // utils/api.js
-const API_BASE = 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com'
+const API_BASE = 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com'
 
 const api = {
   // 搜索规则

@@ -1,16 +1,32 @@
 <!--pages/agent/agent.wxml-->
 <view class="container">
+  <!-- 顶部工具栏 -->
+  <view class="toolbar">
+    <view class="mode-toggle">
+      <view class="toggle-btn {{shortMode ? '' : 'active'}}" bindtap="setShortMode" data-mode="false">
+        标准
+      </view>
+      <view class="toggle-btn {{shortMode ? 'active' : ''}}" bindtap="setShortMode" data-mode="true">
+        简洁
+      </view>
+    </view>
+    <view class="toolbar-btns">
+      <view class="toolbar-btn" bindtap="clearSession">清除</view>
+      <view class="toolbar-btn" bindtap="newSession">新建</view>
+    </view>
+  </view>
+
   <!-- 消息列表 -->
   <scroll-view class="message-list" scroll-y="true" scroll-into-view="{{scrollIntoView}}">
     <!-- 欢迎消息 -->
     <view class="message welcome-message" wx:if="{{messages.length === 0}}">
       <view class="avatar bot-avatar">{{aiAvatar}}</view>
       <view class="bubble">
-        <text>你好！我是 AI 裁判机器人！</text>
-        <text>我可以回答任何关于万智牌规则的问题，例如：</text>
-        <text>• "闪电击和塔莫耶夫敏捷的伤害顺序？"</text>
-        <text>• "反对派密探在多人游戏中如何运作？"</text>
-        <text>• "能否响应触发式异能？"</text>
+        <text class="welcome-title">你好！我是 AI 裁判机器人！</text>
+        <text class="welcome-desc">我可以回答任何关于万智牌规则的问题，例如：</text>
+        <text class="welcome-example">• "闪电击和塔莫耶夫敏捷的伤害顺序？"</text>
+        <text class="welcome-example">• "反对派密探在多人游戏中如何运作？"</text>
+        <text class="welcome-example">• "能否响应触发式异能？"</text>
       </view>
     </view>
 
@@ -19,8 +35,10 @@
       <view wx:if="{{item.role === 'assistant'}}" class="avatar bot-avatar">{{aiAvatar}}</view>
       <view wx:else class="avatar user-avatar">👤</view>
       <view class="bubble {{item.role}}">
+        <!-- 用户消息 -->
         <text wx:if="{{item.role === 'user'}}">{{item.content}}</text>
-        <text wx:else>{{item.content}}</text>
+        <!-- AI 消息 - 使用 rich-text 渲染 Markdown -->
+        <rich-text wx:else nodes="{{item.parsedNodes}}"></rich-text>
       </view>
     </view>
 

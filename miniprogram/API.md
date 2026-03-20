@@ -4,7 +4,7 @@
 
 ## 基础信息
 
-- **API 基础地址**: `https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/`
+- **API 基础地址**: `https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/`
 - **请求方式**: `GET` / `POST`
 - **响应格式**: `JSON`
 - **字符编码**: `UTF-8`
@@ -42,7 +42,7 @@ GET /
 ### 请求示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/',
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/',
   method: 'GET'
 })
 ```
@@ -76,7 +76,7 @@ GET /wechat/api/search?q={keyword}
 ### 请求示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/search',
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/search',
   data: {
     q: 'combat'
   },
@@ -128,7 +128,7 @@ function searchRules(keyword) {
   wx.showLoading({ title: '搜索中...' })
   
   wx.request({
-    url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/search',
+    url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/search',
     data: { q: keyword },
     method: 'GET',
     success(res) {
@@ -172,7 +172,7 @@ GET /wechat/api/keyword?k={keyword}
 ### 请求示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/keyword',
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/keyword',
   data: {
     k: 'Flying'
   },
@@ -202,7 +202,7 @@ function getKeyword(keyword) {
   wx.showLoading({ title: '查询中...' })
   
   wx.request({
-    url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/keyword',
+    url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/keyword',
     data: { k: keyword },
     method: 'GET',
     success(res) {
@@ -259,7 +259,7 @@ GET /wechat/api/mtgch/search?q={card_name}&page={page}&page_size={page_size}
 ### 请求示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/mtgch/search',
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/mtgch/search',
   data: {
     q: 'Lightning Bolt',
     page: 1,
@@ -299,7 +299,7 @@ function searchCard(cardName, page = 1) {
   wx.showLoading({ title: '搜索中...' })
   
   wx.request({
-    url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/mtgch/search',
+    url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/mtgch/search',
     data: { 
       q: cardName,
       page,
@@ -351,7 +351,7 @@ searchCard('Lightning Bolt')
 ### 小程序错误处理示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/search',
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/search',
   data: { q: keyword },
   method: 'GET',
   success(res) {
@@ -463,7 +463,7 @@ apiRequest({
 ### Page 完整代码
 ```javascript
 // pages/index/index.js
-const API_BASE = 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com'
+const API_BASE = 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com'
 
 Page({
   data: {
@@ -572,14 +572,14 @@ GET /wechat/api/mtgch/card?set={set_code}&number={collector_number}
 ```javascript
 // 通过 UUID 查询
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/mtgch/card',
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/mtgch/card',
   data: { id: 'card-uuid' },
   method: 'GET'
 })
 
 // 通过系列代码+编号查询
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/mtgch/card',
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/mtgch/card',
   data: { set: 'M19', number: '149' },
   method: 'GET'
 })
@@ -622,7 +622,7 @@ GET /wechat/api/mtgch/autocomplete?q={query}&size={size}
 ### 请求示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com/wechat/api/mtgch/autocomplete',
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/mtgch/autocomplete',
   data: { q: 'light', size: 5 },
   method: 'GET',
   success(res) {
@@ -675,6 +675,122 @@ function onInput(e) {
     })
   }, 300)
 }
+```
+
+---
+
+## 7. AI 裁判 (OpenCLAW)
+
+### 接口
+```
+POST /api/ai-judge/chat
+```
+
+### 请求参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| message | string | 是 | 用户问题 |
+| session_id | string | 否 | 会话 ID（默认: miniprogram） |
+
+### 请求示例
+```javascript
+wx.request({
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/api/ai-judge/chat',
+  method: 'POST',
+  header: {
+    'Content-Type': 'application/json'
+  },
+  data: {
+    message: '闪电击的伤害何时结算？',
+    session_id: 'miniprogram'
+  },
+  success(res) {
+    console.log(res.data)
+  }
+})
+```
+
+### 响应示例
+```json
+{
+  "success": true,
+  "reply": "闪电击的伤害会在其结算时立即造成...",
+  "debug": {
+    "session_id": "miniprogram",
+    "user_message": "闪电击的伤害何时结算？",
+    "message_count": 2
+  }
+}
+```
+
+### 流式响应
+
+```
+POST /api/ai-judge/chat/stream
+```
+
+支持 SSE 流式响应，返回格式：
+```
+data: {"content": "首"}
+data: {"content": "部分"}
+data: {"content": "内容"}
+data: {"done": true}
+```
+
+### 局势分析
+
+```
+POST /api/ai-judge/analyze
+```
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| game_state | string | 是 | 游戏状态描述 |
+| question | string | 是 | 具体问题 |
+| session_id | string | 否 | 会话 ID |
+
+### 清除会话
+
+```
+POST /api/ai-judge/clear
+```
+
+清除指定会话的历史记录。
+
+### 小程序使用示例
+```javascript
+// AI 裁判问答
+function askAIJudge(question) {
+  wx.showLoading({ title: '思考中...' })
+
+  wx.request({
+    url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/api/ai-judge/chat',
+    method: 'POST',
+    header: {
+      'Content-Type': 'application/json'
+    },
+    data: {
+      message: question,
+      session_id: 'miniprogram'
+    },
+    success(res) {
+      wx.hideLoading()
+      if (res.data.success) {
+        console.log('AI 回答:', res.data.reply)
+      } else {
+        wx.showToast({ title: '回答失败', icon: 'none' })
+      }
+    },
+    fail(err) {
+      wx.hideLoading()
+      wx.showToast({ title: '网络错误', icon: 'none' })
+    }
+  })
+}
+
+// 使用
+askAIJudge('闪电击的伤害何时结算？')
 ```
 
 ---

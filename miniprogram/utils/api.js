@@ -14,7 +14,7 @@
  * api.searchCard('Lightning Bolt').then(data => { ... })
  */
 
-const API_BASE = 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com'
+const API_BASE = 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com'
 
 /**
  * API 封装对象
@@ -106,6 +106,56 @@ const api = {
       return Promise.reject('请输入搜索内容')
     }
     return this.request('/wechat/api/mtgch/autocomplete', { q: query, size })
+  },
+
+  // ==================== AI 裁判 API ====================
+
+  /**
+   * AI 裁判问答
+   * @param {string} message - 用户问题
+   * @param {string} sessionId - 会话 ID（可选）
+   * @returns {Promise}
+   */
+  aiJudgeChat(message, sessionId = 'miniprogram') {
+    if (!message || !message.trim()) {
+      return Promise.reject('请输入问题')
+    }
+    return this.request('/api/ai-judge/chat', {
+      message,
+      session_id: sessionId
+    }, { method: 'POST', showLoading: false })
+  },
+
+  /**
+   * AI 裁判局势分析
+   * @param {string} gameState - 游戏状态描述
+   * @param {string} question - 具体问题
+   * @param {string} sessionId - 会话 ID（可选）
+   * @returns {Promise}
+   */
+  aiJudgeAnalyze(gameState, question, sessionId = 'miniprogram') {
+    if (!gameState || !gameState.trim()) {
+      return Promise.reject('请输入游戏状态')
+    }
+    if (!question || !question.trim()) {
+      return Promise.reject('请输入问题')
+    }
+    return this.request('/api/ai-judge/analyze', {
+      game_state: gameState,
+      question,
+      session_id: sessionId
+    }, { method: 'POST' })
+  },
+
+  /**
+   * 清除 AI 裁判会话
+   * @param {string} sessionId - 会话 ID（可选）
+   * @returns {Promise}
+   */
+  aiJudgeClear(sessionId = 'miniprogram') {
+    return this.request('/api/ai-judge/clear', {
+      session_id: sessionId
+    }, { method: 'POST' })
   },
 
   /**

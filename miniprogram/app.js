@@ -11,7 +11,7 @@
 App({
   globalData: {
     // API 基础地址
-    apiBase: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com',
+    apiBase: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com',
     userInfo: null
   },
 

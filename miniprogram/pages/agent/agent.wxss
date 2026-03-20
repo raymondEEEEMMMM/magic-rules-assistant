@@ -10,6 +10,112 @@ page {
   height: 100vh;
 }
 
+/* 工具栏 */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 30rpx;
+  background-color: #fff;
+  border-bottom: 1rpx solid #eee;
+}
+
+.mode-toggle {
+  display: flex;
+}
+
+.toggle-btn {
+  padding: 10rpx 24rpx;
+  font-size: 24rpx;
+  color: #666;
+  background-color: #f0f0f0;
+  border-radius: 30rpx;
+  margin-right: 10rpx;
+}
+
+.toggle-btn.active {
+  color: #fff;
+  background-color: #07c160;
+}
+
+.toolbar-btns {
+  display: flex;
+  gap: 20rpx;
+}
+
+.toolbar-btn {
+  padding: 10rpx 20rpx;
+  font-size: 24rpx;
+  color: #666;
+  background-color: #f0f0f0;
+  border-radius: 20rpx;
+}
+
+/* 欢迎消息样式 */
+.welcome-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.welcome-desc {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 16rpx;
+}
+
+.welcome-example {
+  font-size: 26rpx;
+  color: #07c160;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+/* rich-text 样式 */
+.bubble.assistant rich-text p {
+  margin: 8rpx 0;
+}
+
+.bubble.assistant rich-text h2 {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #11998e;
+  margin: 16rpx 0 8rpx;
+}
+
+.bubble.assistant rich-text h3 {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin: 12rpx 0 6rpx;
+}
+
+.bubble.assistant rich-text h4 {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #555;
+  margin: 10rpx 0 6rpx;
+}
+
+.bubble.assistant rich-text strong {
+  font-weight: bold;
+  color: #333;
+}
+
+.bubble.assistant rich-text em {
+  font-style: italic;
+  color: #666;
+}
+
+.bubble.assistant rich-text .code-inline {
+  background-color: #f5f5f5;
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
+  font-family: monospace;
+  font-size: 26rpx;
+}
+
 /* 消息列表 */
 .message-list {
   flex: 1;

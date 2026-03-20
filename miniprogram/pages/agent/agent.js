@@ -2,10 +2,10 @@
 const app = getApp()
 
 // 引入 Markdown 工具
-const { markdownToPlainText } = require('../../utils/markdown')
+const { markdownToPlainText, parseMarkdown } = require('../../utils/markdown')
 
 // API 配置
-const API_BASE = 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com'
+const API_BASE = 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la'
 
 // AI 头像（emoji 机器人图标）
 const AI_AVATAR = '🤖'
@@ -16,11 +16,19 @@ Page({
     messages: [],
     loading: false,
     scrollIntoView: '',
-    aiAvatar: AI_AVATAR
+    aiAvatar: AI_AVATAR,
+    shortMode: false,  // 简洁模式，减少 token 消耗
+    sessionId: 'miniprogram'  // 会话 ID
   },
 
   onLoad() {
     // 页面加载
+  },
+
+  // 切换模式
+  setShortMode(e) {
+    const mode = e.currentTarget.dataset.mode === 'true'
+    this.setData({ shortMode: mode })
   },
 
   // 输入监听
@@ -45,7 +53,9 @@ Page({
     const aiMessageIndex = newMessages.length
     newMessages.push({
       role: 'assistant',
-      content: ''
+      content: '',
+      rawContent: '',
+      parsedNodes: []
     })
 
     this.setData({
@@ -55,91 +65,15 @@ Page({
       scrollIntoView: `msg-${aiMessageIndex}`
     })
 
-    // 调用 AI 裁判流式 API
-    this.streamChat(content, aiMessageIndex)
+    // 调用 AI 裁判 API
+    this.chat(content, aiMessageIndex)
   },
 
-  // 流式聊天
-  streamChat(message, aiMessageIndex) {
+  // 聊天
+  chat(message, aiMessageIndex) {
     const that = this
-
-    // 使用 wx.request 下载流式数据
-    const task = wx.request({
-      url: `${API_BASE}/api/ai-judge/chat/stream`,
-      method: 'POST',
-      header: {
-        'Content-Type': 'application/json'
-      },
-      enableChunked: true,  // 启用分块传输
-      data: {
-        message: message,
-        session_id: 'miniprogram'
-      },
-      success(res) {
-        // 如果不是分块传输，回退到普通模式
-        that.setData({
-          loading: false
-        })
-      },
-      fail(err) {
-        console.error('流式请求失败，回退到普通模式:', err)
-        that.fallbackChat(message, aiMessageIndex)
-      }
-    })
-
-    // 在 task 级别维护内容
-    let fullContent = ''
-
-    // 监听接收到数据
-    task.onChunkReceived((res) => {
-      const arrayBuffer = res.data
-      const uint8Array = new Uint8Array(arrayBuffer)
-      const text = new TextDecoder('utf-8').decode(uint8Array)
-
-      console.log('收到 chunk:', text)
-
-      // 解析 SSE 格式的数据
-      const lines = text.split('\n')
-
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const dataStr = line.slice(6)
-          if (dataStr === '[DONE]') {
-            // 流结束
-            that.setData({ loading: false })
-            return
-          }
-
-          try {
-            const data = JSON.parse(dataStr)
-            if (data.content) {
-              fullContent += data.content
-
-              // 更新消息内容
-              const messages = that.data.messages
-              if (messages[aiMessageIndex]) {
-                messages[aiMessageIndex].content = fullContent
-                that.setData({
-                  messages: messages,
-                  scrollIntoView: `msg-${aiMessageIndex}`
-                })
-              }
-            }
-            if (data.done || data.error) {
-              console.log('流结束, fullContent:', fullContent)
-              that.setData({ loading: false })
-            }
-          } catch (e) {
-            console.log('解析错误:', e, 'dataStr:', dataStr)
-          }
-        }
-      }
-    })
-  },
-
-  // 回退到普通 API（非流式）
-  fallbackChat(message, aiMessageIndex) {
-    const that = this
+    const shortMode = this.data.shortMode
+    const sessionId = this.data.sessionId
 
     wx.request({
       url: `${API_BASE}/api/ai-judge/chat`,
@@ -149,17 +83,35 @@ Page({
       },
       data: {
         message: message,
-        session_id: 'miniprogram'
+        session_id: sessionId,
+        short_mode: shortMode
       },
       success(res) {
-        if (res.data && res.data.success) {
-          // 逐步显示内容（模拟打字效果），先转换 Markdown 为纯文本
-          const plainText = markdownToPlainText(res.data.reply)
-          that.typewriterEffect(plainText, aiMessageIndex)
+        if (res.data && res.data.success && res.data.reply) {
+          // 解析 Markdown 为 rich-text 节点
+          const parsedNodes = parseMarkdown(res.data.reply)
+
+          // 更新消息，保留原始内容和解析后的节点
+          const messages = that.data.messages
+          messages[aiMessageIndex] = {
+            role: 'assistant',
+            content: res.data.reply,  // 原始 Markdown 内容
+            parsedNodes: parsedNodes   // 解析后的 rich-text 节点
+          }
+
+          that.setData({
+            messages: messages,
+            loading: false,
+            scrollIntoView: `msg-${aiMessageIndex}`
+          })
         } else {
           that.setData({
             messages: that.data.messages.map((msg, i) =>
-              i === aiMessageIndex ? { ...msg, content: res.data?.reply || '抱歉，我暂时无法回答。' } : msg
+              i === aiMessageIndex ? {
+                ...msg,
+                content: res.data?.reply || '抱歉，我暂时无法回答。',
+                parsedNodes: parseMarkdown(res.data?.reply || '抱歉，我暂时无法回答。')
+              } : msg
             ),
             loading: false
           })
@@ -167,9 +119,14 @@ Page({
       },
       fail(err) {
         console.error('API error:', err)
+        const errorMsg = '网络错误，请检查网络后重试。'
         that.setData({
           messages: that.data.messages.map((msg, i) =>
-            i === aiMessageIndex ? { ...msg, content: '网络错误，请检查网络后重试。' } : msg
+            i === aiMessageIndex ? {
+              ...msg,
+              content: errorMsg,
+              parsedNodes: parseMarkdown(errorMsg)
+            } : msg
           ),
           loading: false
         })
@@ -177,31 +134,70 @@ Page({
     })
   },
 
-  // 打字机效果
-  typewriterEffect(fullText, aiMessageIndex) {
+  // 新建会话
+  newSession() {
     const that = this
-    let currentIndex = 0
-    const speed = 30 // 每个字符间隔毫秒
 
-    const messages = that.data.messages
+    wx.showModal({
+      title: '新建会话',
+      content: '确定要开始新的对话吗？当前会话历史将被清除。',
+      success(res) {
+        if (res.confirm) {
+          // 调用新建会话 API
+          wx.request({
+            url: `${API_BASE}/api/ai-judge/new-session`,
+            method: 'POST',
+            header: {
+              'Content-Type': 'application/json'
+            },
+            data: {
+              session_id: that.data.sessionId,
+              reset_agent: true
+            },
+            success(res) {
+              // 清除本地会话历史
+              that.setData({
+                messages: [],
+                sessionId: 'miniprogram_' + Date.now()  // 新的会话 ID
+              })
 
-    function typeNextChar() {
-      if (currentIndex < fullText.length) {
-        const currentContent = messages[aiMessageIndex].content || ''
-        messages[aiMessageIndex].content = currentContent + fullText[currentIndex]
-
-        that.setData({
-          messages: messages,
-          scrollIntoView: `msg-${aiMessageIndex}`
-        })
-
-        currentIndex++
-        setTimeout(typeNextChar, speed)
-      } else {
-        that.setData({ loading: false })
+              wx.showToast({
+                title: '已新建会话',
+                icon: 'success'
+              })
+            },
+            fail(err) {
+              console.error('新建会话失败:', err)
+              wx.showToast({
+                title: '新建会话失败',
+                icon: 'none'
+              })
+            }
+          })
+        }
       }
-    }
+    })
+  },
 
-    typeNextChar()
+  // 清除当前会话
+  clearSession() {
+    const that = this
+
+    wx.showModal({
+      title: '清除会话',
+      content: '确定要清除当前对话记录吗？',
+      success(res) {
+        if (res.confirm) {
+          that.setData({
+            messages: []
+          })
+
+          wx.showToast({
+            title: '已清除对话',
+            icon: 'success'
+          })
+        }
+      }
+    })
   }
 })

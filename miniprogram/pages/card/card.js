@@ -1,6 +1,6 @@
 // pages/card/card.js
 const app = getApp()
-const API_BASE = 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com'
+const API_BASE = 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com'
 
 Page({
   data: {

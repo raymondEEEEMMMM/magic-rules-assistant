@@ -11,34 +11,104 @@ function parseMarkdown(text) {
   const nodes = []
   const lines = text.split('\n')
 
-  for (let i = 0; i < lines.length; i++) {
+  let i = 0
+  while (i < lines.length) {
     let line = lines[i]
+
+    // 代码块处理
+    if (line.startsWith('```')) {
+      // 收集代码块内容
+      let codeContent = ''
+      i++
+      while (i < lines.length && !lines[i].startsWith('```')) {
+        codeContent += (codeContent ? '\n' : '') + lines[i]
+        i++
+      }
+      nodes.push({
+        name: 'p',
+        attrs: { style: 'background-color: #f5f5f5; padding: 16rpx; border-radius: 8rpx; margin: 8rpx 0; font-family: monospace; font-size: 26rpx; white-space: pre-wrap; word-break: break-all;' },
+        children: [{ type: 'text', text: codeContent }]
+      })
+      i++
+      continue
+    }
 
     // 跳过空行
     if (!line.trim()) {
+      i++
       continue
     }
 
     // 标题处理
+    if (line.startsWith('#### ')) {
+      nodes.push({
+        name: 'p',
+        attrs: { style: 'font-size: 28rpx; font-weight: bold; color: #555; margin-top: 16rpx;' },
+        children: [{ type: 'text', text: line.slice(5) }]
+      })
+      i++
+      continue
+    }
     if (line.startsWith('### ')) {
       nodes.push({
-        name: 'h4',
+        name: 'p',
+        attrs: { style: 'font-size: 30rpx; font-weight: bold; color: #333; margin-top: 16rpx;' },
         children: [{ type: 'text', text: line.slice(4) }]
       })
+      i++
       continue
     }
     if (line.startsWith('## ')) {
       nodes.push({
-        name: 'h3',
+        name: 'p',
+        attrs: { style: 'font-size: 32rpx; font-weight: bold; color: #11998e; margin-top: 20rpx;' },
         children: [{ type: 'text', text: line.slice(3) }]
       })
+      i++
       continue
     }
     if (line.startsWith('# ')) {
       nodes.push({
-        name: 'h2',
+        name: 'p',
+        attrs: { style: 'font-size: 36rpx; font-weight: bold; color: #11998e; margin: 16rpx 0;' },
         children: [{ type: 'text', text: line.slice(2) }]
       })
+      i++
+      continue
+    }
+
+    // 分隔线
+    if (line.match(/^---+$/)) {
+      nodes.push({
+        name: 'p',
+        attrs: { style: 'border-bottom: 1rpx solid #eee; margin: 16rpx 0;' },
+        children: []
+      })
+      i++
+      continue
+    }
+
+    // 表格处理
+    if (line.startsWith('|') && line.includes('|')) {
+      // 跳过表头分隔行
+      if (line.match(/^\|[-:\s|]+\|$/)) {
+        i++
+        continue
+      }
+      // 解析表格行
+      const cells = line.split('|').filter(c => c.trim())
+      if (cells.length > 0) {
+        let tableRow = { name: 'p', attrs: { style: 'margin: 4rpx 0;' }, children: [] }
+        cells.forEach((cell, idx) => {
+          const cellText = cell.trim()
+          tableRow.children.push({
+            type: 'text',
+            text: (idx > 0 ? ' | ' : '') + cellText
+          })
+        })
+        nodes.push(tableRow)
+      }
+      i++
       continue
     }
 
@@ -46,8 +116,10 @@ function parseMarkdown(text) {
     if (line.match(/^[-*] /)) {
       nodes.push({
         name: 'p',
-        children: [{ type: 'text', text: '  • ' + parseInline(line.slice(2)) }]
+        attrs: { style: 'margin: 8rpx 0; padding-left: 16rpx;' },
+        children: [{ type: 'text', text: '• ' + parseInline(line.slice(2)) }]
       })
+      i++
       continue
     }
 
@@ -57,26 +129,32 @@ function parseMarkdown(text) {
       if (match) {
         nodes.push({
           name: 'p',
-          children: [{ type: 'text', text: '  ' + match[1] + '. ' + parseInline(match[2]) }]
+          attrs: { style: 'margin: 8rpx 0; padding-left: 16rpx;' },
+          children: [{ type: 'text', text: match[1] + '. ' + parseInline(match[2]) }]
         })
+        i++
         continue
       }
     }
 
-    // 代码块（行内）
-    if (line.includes('`') && !line.startsWith('```')) {
+    // 引用块
+    if (line.startsWith('> ')) {
       nodes.push({
         name: 'p',
-        children: parseInlineNodes(line)
+        attrs: { style: 'border-left: 6rpx solid #11998e; padding-left: 16rpx; color: #666; margin: 12rpx 0; font-style: italic;' },
+        children: [{ type: 'text', text: line.slice(2) }]
       })
+      i++
       continue
     }
 
-    // 普通段落
+    // 普通段落 - 处理行内格式
     nodes.push({
       name: 'p',
+      attrs: { style: 'margin: 8rpx 0; line-height: 1.6;' },
       children: parseInlineNodes(line)
     })
+    i++
   }
 
   return nodes
@@ -160,11 +238,21 @@ function markdownToPlainText(text) {
   return text
     // 代码块
     .replace(/```[\s\S]*?```/g, '')
+    // 移除表格分隔行
+    .replace(/^\|[-:\s|]+\|$/gm, '')
+    // 表格行
+    .replace(/\|/g, ' | ')
+    // 行内代码
     .replace(/`([^`]+)`/g, '$1')
     // 标题
+    .replace(/^#### /gm, '')
     .replace(/^### /gm, '')
     .replace(/^## /gm, '')
     .replace(/^# /gm, '')
+    // 分隔线
+    .replace(/^---+$/gm, '')
+    // 引用
+    .replace(/^> /gm, '')
     // 粗体
     .replace(/\*\*([^*]+)\*\*/g, '$1')
     // 斜体
@@ -174,6 +262,8 @@ function markdownToPlainText(text) {
     .replace(/^\d+\. /gm, '')
     // 链接
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    // 多个空行合并为一个
+    .replace(/\n{3,}/g, '\n\n')
     // 清理多余空白
     .trim()
 }
