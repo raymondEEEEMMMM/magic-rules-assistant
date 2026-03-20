@@ -4,3 +4,4 @@
 requests==2.31.0
 pymysql==1.1.0
 python-dotenv==1.0.0
+paramiko>=2.12.0

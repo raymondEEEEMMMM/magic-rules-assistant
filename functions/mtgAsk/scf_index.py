@@ -637,13 +637,15 @@ class RequestHandler(BaseHTTPRequestHandler):
                     self.wfile.write('success'.encode('utf-8'))
                     return
 
-            # AI Judge API
+            # AI Judge API - 支持 /ai-judge/chat 和 /api/ai-judge/chat
             if '/ai-judge/chat' in self.path:
                 print(f"AI Judge chat request, body: {body_str}")
                 try:
                     request_body = json.loads(body_str) if body_str else {}
                     message = request_body.get('message', '')
                     session_id = request_body.get('session_id', 'default')
+                    clear_history = request_body.get('clear_history', False)
+                    short_mode = request_body.get('short_mode', False)
 
                     if not message:
                         self.send_response(200)
@@ -655,7 +657,12 @@ class RequestHandler(BaseHTTPRequestHandler):
 
                     # 调用 AI Judge 服务
                     from backend.services.ai_judge_service import ai_judge_service
-                    result = ai_judge_service.chat(message, session_id)
+
+                    # 如果请求清除历史
+                    if clear_history:
+                        ai_judge_service.clear_session(session_id)
+
+                    result = ai_judge_service.chat(message, session_id, short_mode=short_mode)
 
                     self.send_response(200)
                     self.send_header('Content-Type', 'application/json')
@@ -677,6 +684,33 @@ class RequestHandler(BaseHTTPRequestHandler):
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()
                     response = {'success': False, 'reply': f'错误: {str(e)}'}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
+
+            # AI Judge 新会话 API
+            if '/ai-judge/new-session' in self.path:
+                print(f"AI Judge new-session request, body: {body_str}")
+                try:
+                    request_body = json.loads(body_str) if body_str else {}
+                    session_id = request_body.get('session_id', 'default')
+                    reset_agent = request_body.get('reset_agent', True)
+
+                    # 调用 AI Judge 服务
+                    from backend.services.ai_judge_service import ai_judge_service
+                    result = ai_judge_service.new_session(session_id, reset_agent)
+
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+                    return
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'success': False, 'message': f'错误: {str(e)}'}
                     self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
                     return
 
