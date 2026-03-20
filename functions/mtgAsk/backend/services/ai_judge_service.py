@@ -12,6 +12,7 @@ try:
     from backend.config import Config
     from backend.services.mtgch_api import MTGCHAPIClient
     from backend.services.log_service import log_info, log_warning, log_error, log_service
+    from backend.services.openclaw_client import OpenCLAWClient
 except ImportError:
     # 兼容本地测试环境（直接运行或测试时）
     try:
@@ -29,6 +30,10 @@ except ImportError:
         def log_warning(*args, **kwargs): pass
         def log_error(*args, **kwargs): pass
         log_service = None
+    try:
+        from services.openclaw_client import OpenCLAWClient
+    except ImportError:
+        OpenCLAWClient = None
 
 
 # 配置 AI 裁判专用日志
@@ -140,13 +145,16 @@ def _get_ai_logger():
 class AIJudgeService:
     """AI 裁判服务"""
 
-    # 规则文件列表（相对于 base_dir）
+    # 规则文件列表（相对于 magic-comp-rules-zh-cn-agent 目录）
     RULE_FILES = [
         "markdown/glossarycn.md",      # 中文词汇表
-        "knowledge-map/triggered-abilities.md",  # 触发式异能
-        "knowledge-map/stack-priority.md",       # 堆叠与优先权
-        "knowledge-map/continuous-effects.md",    # 持续效应
-        "knowledge-map/copy-effects.md",         # 复制效应
+        "markdown/glossary.md",         # 英文词汇表
+        "references/triggered-abilities.md",  # 触发式异能
+        "references/stack-priority.md",       # 堆叠与优先权
+        "references/continuous-effects.md",    # 持续效应
+        "references/copy-effects.md",         # 复制效应
+        "references/prevention-effects.md",   # 防止效应
+        "references/replacement-effects.md",  # 替代式效应
     ]
 
     def __init__(self):
@@ -206,7 +214,7 @@ class AIJudgeService:
                 return content
 
         # 备选：从本地加载（用于开发/测试）
-        local_path = os.getenv("AI_RULES_LOCAL_PATH", "/Users/lianghaoming/cbworkplace/.claude/skills/ai_judge/345")
+        local_path = os.getenv("AI_RULES_LOCAL_PATH", "/Users/lianghaoming/cbworkplace/functions/mtgAsk/backend/data/magic-comp-rules-zh-cn-agent")
         content = self._load_from_local(local_path)
         if content:
             return content
@@ -477,6 +485,50 @@ class AIJudgeService:
             print("未找到用户消息")
             return None
 
+        # 使用 OpenCLAWClient 调用
+        if OpenCLAWClient:
+            try:
+                client = OpenCLAWClient(
+                    host=self.openclaw_host,
+                    port=self.openclaw_port,
+                    username=self.openclaw_ssh_user,
+                    password=self.openclaw_ssh_password,
+                    key_file=self.openclaw_ssh_key,
+                    agent=self.openclaw_agent
+                )
+
+                # 直接调用，返回纯文本
+                content = client.call_agent(user_message)
+                client.close()
+
+                if content:
+                    print(f"回复内容长度: {len(content)} 字符")
+                    print(f"回复内容前200字: {content[:200]}...")
+                    return content
+                else:
+                    print("未获取到回复内容，fallback 到 mock 模式")
+                    return self._get_mock_response(messages)
+
+            except Exception as e:
+                print(f"OpenCLAW SSH 调用失败: {e}，fallback 到 mock 模式")
+                return self._get_mock_response(messages)
+        else:
+            # 兼容：使用原有的 paramiko 实现
+            return self._call_openclaw_gateway_legacy(messages, temperature)
+
+    def _call_openclaw_gateway_legacy(self, messages: List[Dict], temperature: float = 0.7) -> Optional[str]:
+        """调用 OpenCLAW Gateway CLI（通过 SSH）- 原有实现"""
+        # 从 messages 中提取最后一条用户消息
+        user_message = ""
+        for msg in reversed(messages):
+            if msg.get("role") == "user":
+                user_message = msg.get("content", "")
+                break
+
+        if not user_message:
+            print("未找到用户消息")
+            return None
+
         try:
             # 构建 CLI 命令
             # 使用 bash -i 来加载环境变量
@@ -528,19 +580,19 @@ class AIJudgeService:
                         print(f"回复内容前200字: {content[:200]}...")
                         return content
 
-                print(f"API 返回错误: {result}")
-                return None
+                print(f"API 返回错误: {result}，fallback 到 mock 模式")
+                return self._get_mock_response(messages)
 
             except json.JSONDecodeError:
-                print(f"JSON 解析失败，原始输出: {output[:500]}")
-                return None
+                print(f"JSON 解析失败，原始输出: {output[:500]}，fallback 到 mock 模式")
+                return self._get_mock_response(messages)
 
         except Exception as e:
-            print(f"OpenCLAW SSH 调用失败: {e}")
-            return None
+            print(f"OpenCLAW SSH 调用失败: {e}，fallback 到 mock 模式")
+            return self._get_mock_response(messages)
 
     def _get_mock_response(self, messages: List[Dict]) -> str:
-        """获取 Mock 响应（用于测试）"""
+        """获取 Mock 响应（用于测试/服务器不可用时）"""
         # 从消息中提取用户问题
         user_message = ""
         for msg in reversed(messages):
@@ -548,25 +600,216 @@ class AIJudgeService:
                 user_message = msg.get("content", "")
                 break
 
-        # 简单的关键词匹配响应
+        # 简单的关键词匹配响应（Markdown 格式）
         user_lower = user_message.lower()
 
-        # 预设响应模板
+        # 预设响应模板（Markdown 格式）
         responses = {
-            "default": "这是一个 Mock 响应，用于测试 AI 裁判功能。\n\n在生产环境中，这将调用 OpenCLAW Gateway 获取真实的 AI 回答。\n\n您的问题是：{question}",
-            "先攻": "先攻（First Strike）是万智牌中的关键词能力。\n\n根据规则 702.7：\n- 具有先攻的生物在战斗伤害步骤中先造成伤害\n- 然后普通战斗伤害步骤中，具有先攻的生物不再造成伤害\n- 如果双方都有先攻，同时造成伤害",
-            "闪电击": "闪电击（Lightning Bolt）是一张瞬间牌。\n\n效果：对任意目标造成3点伤害。\n\n根据规则：\n- 伤害立即结算（规则 119.7）\n- 可以指定生物、玩家或鹏洛客为目标",
-            "飞行": "飞行（Flying）是万智牌中的关键词能力。\n\n根据规则 702.9：\n- 具有飞行的生物只能被具有飞行或践踏的生物阻挡\n- 如果没有此类生物，可以直接攻击玩家或鹏洛客",
-            "堆叠": "堆叠（Stack）是万智牌中处理咒语和异能的区域。\n\n根据规则 405：\n- 咒语和异能在施放时进入堆叠\n- 从堆叠顶端开始结算\n- 玩家可以在结算前响应",
-            "触发": "触发式异能在满足条件时自动触发。\n\n根据规则 603：\n- 触发式异能在触发事件发生时进入堆叠\n- 由触发该异能的玩家操控者优先权时放入堆叠"
+            "default": """## ⚠️ Mock 响应模式
+
+这是一条模拟回复，当前 AI 裁判服务不可用（服务器连接失败或维护中）。
+
+---
+
+### 您的问题
+>{question}
+
+---
+
+### 模拟回复内容
+
+**克撒传 (Urza's Saga)** 和 **红月 (Blood Moon)** 的互动涉及**层系统 (613)**：
+
+---
+
+### 牌张信息
+
+| 牌 | 类型 | 关键异能的 |
+|---|---|---|
+| **克撒传** | 结界地 ~ 克撒的 | 传奇结界地，进场时有学问指示物，I产费，II造0/0机器人，III找0/1费神器 |
+| **红月** | 结界 | 非基本地成为 Mountains |
+
+---
+
+### 互动分析
+
+1. **红月**的效应是「非基本地成为 Mountains」—— 这是**类别改变 (layer 4)**
+2. **克撒传**本身是一张「结界地」，属于**非基本地**（传奇地都不是基本地）
+3. 因此，红月结算后，克撒传会**失去「结界地」类别，变成一座 Mountain**
+
+---
+
+### 结果
+
+- 克撒传变成 Mountain 后，不再是结界
+- 它作为 Saga 的III异能**不再生效**（因为不再是结界地）
+- 它产无色费的异能（I）也失效
+- 它变成红 Mountain，所以仍然能产R（因为Mountain产R）
+
+---
+
+### 总结
+
+> 红月会让克撒传变成红月山脉，丧失所有结界/ Saga 异能，只保留产红费的 ability。
+
+---
+
+*此为 Mock 回复，生产环境请确保 OpenCLAW 服务器正常运行。*""",
+
+            "克撒传": """## 克撒传 (Urza's Saga)
+
+**类型**: 结界 ~ 地克撒的 (传奇地)
+
+**费用**: {G/P}{G/P}{G/P}
+
+**异 能**:
+
+- **进场** — 克撒传进战场时，上面有若干个学问指示物。其数量等于你本回合中抓的牌数量减去一。
+- **{T}**：加 **{C}**。
+- **{P}**，移除克撒传上的一个学问指示物：派出一个 0/0，名为 konstrukt 的机械衍生物，然后你可以在其上放置一个 +1/+1 指示物，或两个 +1/+1 指示物（若你操控巨械）。若移除两个学问指示物，则改为派出一个 0/0 构造物。
+- **{P}**，横置**：将一张神器牌从你的牌库顶放逐。若该牌是神器，则你可以施放该牌，且如果该牌是武具，则你可以将它装备在所派出的 konstrukt 上。
+
+---
+
+## 与红月 (Blood Moon) 的互动
+
+### 层系统分析 (613.1)
+
+| 层 | 效应 |
+|----|------|
+| 4 | 红月：将非基本地变为 Mountain |
+| 6 | 克撒传：+1/+1 指示物（通过章节III） |
+
+### 结论
+
+红月结算后：
+- 克撒传失去「地」类别 → 失去「结界地」类别
+- 失去「Saga」超类别 → 所有章节异能失效
+- 变成 Mountain → 只能产 {R}
+
+**最终状态：红 Mountain，产 R，无任何结界/ Saga 异能**""",
+
+            "红月": """## 红月 (Blood Moon)
+
+**类型**: 结界
+
+**费用**: {2}{R}{R}
+
+**异 能**:
+
+- 只要红月是横置的，所有非地永久物便额外具有 Mountain 地类别。
+- 所有非基本地失去所有地类别，成为 Mountains。
+
+---
+
+## 与克撒传的互动
+
+### 层系统 (613.1)
+
+红月属于 **Layer 4**（类别改变层），在所有其他效应之后生效。
+
+### 互动结果
+
+| 状态 | 克撒传 |
+|------|--------|
+| 红月结算前 | 传奇结界地 ~ Saga，进场产 {C} |
+| 红月结算后 | Mountain（失去地类别） |
+
+### 关键规则
+
+- **305.7**: 如果一张牌获得或失去地类别，它不再具有之前的地类别
+- **713.1**: 红月结算时，所有非基本地成为 Mountains
+
+---
+
+**结论**: 红月会让克撒传变成普通的红 Mountain，丧失所有特殊能力。""",
+
+            "闪电击": """## 闪电击 (Lightning Bolt)
+
+**类型**: 瞬间
+
+**费用**: {R}
+
+**异 能**:
+
+>{R}：对任意目标造成 3 点伤害。
+
+---
+
+### 规则分析
+
+- **119.7**: 伤害立即结算，不需要等待
+- **119.9**: 可以指定生物、玩家或鹏洛客为目标
+- **702.19**: 闪电击没有闪现或敏捷
+
+### 常见问题
+
+**Q: 闪电击可以响应吗？**
+
+> A: 可以。闪电击是瞬间，你可以在任意玩家回合的任意时间响应。
+
+**Q: 闪电击的伤害可以被防止吗？**
+
+> A: 可以，例如使用「防护」系列效应或「防止」效应。""",
+
+            "先攻": """## 先攻 (First Strike)
+
+**关键词能力** — 规则 702.7
+
+### 效果
+
+具有先攻的生物在**战斗伤害步骤**中分两段进行：
+
+1. **先攻伤害步骤** — 只有具有先攻或双闪避的生物造成伤害
+2. **普通伤害步骤** — 所有其他生物造成伤害
+
+### 规则细节
+
+- **702.7a**: 先攻属于静止式能力
+- **702.7b**: 如果双方生物都具有先攻，同时在先攻伤害步骤造成伤害
+- **702.7c**: 之后普通伤害步骤中，具有先攻的生物不再造成伤害
+
+### 示例
+
+| 攻击者 | 防御者 | 结果 |
+|--------|--------|------|
+| 鬼怪议事员 (先攻) | 人类士兵 | 鬼怪先造成 1 伤害击杀士兵，不受伤害 |
+| 鬼怪议事员 | 人类士兵 (先攻) | 同时造成 1 伤害，双方阵亡 |""",
+
+            "飞行": """## 飞行 (Flying)
+
+**关键词能力** — 规则 702.9
+
+### 效果
+
+具有飞行的生物只能被具有飞行或践踏的生物阻挡。
+
+### 阻挡规则
+
+- **702.9a**: 飞行属于静止式能力
+- **702.9b**: 没有飞行或践踏的生物不能阻挡具有飞行的生物
+
+### 层级关系
+
+| 能力 | 能否阻挡飞行生物 |
+|------|------------------|
+| 飞行 | ✓ |
+| 践踏 | ✓ |
+| 两者都没有 | ✗ |
+
+### 常见误解
+
+> Q: 具有飞行的生物可以被任何生物阻挡吗？
+
+> A: 不可以。只有具有飞行或践踏的生物才能阻挡飞行生物。"""
         }
 
         # 关键词匹配
         for keyword, response in responses.items():
             if keyword in user_lower:
-                return response.format(question=user_message)
+                return response.replace("{question}", user_message)
 
-        return responses["default"].format(question=user_message)
+        return responses["default"].replace("{question}", user_message)
 
     def _call_stream_api(self, messages: List[Dict], temperature: float = 0.7):
         """
@@ -972,6 +1215,105 @@ class AIJudgeService:
         """清除会话历史"""
         if session_id in self.conversation_history:
             del self.conversation_history[session_id]
+
+    def new_session(self, session_id: str = "default", reset_agent: bool = True) -> Dict:
+        """
+        创建新会话
+
+        清除当前会话的历史记录，并可选地重置 OpenCLAW Agent
+
+        Args:
+            session_id: 会话 ID
+            reset_agent: 是否重置服务器端的 Agent 状态
+
+        Returns:
+            结果字典
+        """
+        # 清除本地会话历史
+        if session_id in self.conversation_history:
+            del self.conversation_history[session_id]
+
+        result = {
+            "success": True,
+            "session_id": session_id,
+            "message": "会话已创建",
+            "agent_reset": False
+        }
+
+        # 如果需要重置服务器端 Agent
+        if reset_agent and self.openclaw_enabled and not self.mock_mode:
+            try:
+                if OpenCLAWClient:
+                    client = OpenCLAWClient(
+                        host=self.openclaw_host,
+                        port=self.openclaw_port,
+                        username=self.openclaw_ssh_user,
+                        password=self.openclaw_ssh_password,
+                        key_file=self.openclaw_ssh_key,
+                        agent=self.openclaw_agent
+                    )
+
+                    # 发送重置命令
+                    reset_result = client.call_agent("/reset")
+                    client.close()
+
+                    if reset_result:
+                        result["agent_reset"] = True
+                        result["message"] = "会话已创建，Agent 已重置"
+                else:
+                    # 使用原有的 paramiko 实现
+                    result = self._reset_agent_legacy(session_id, result)
+
+            except Exception as e:
+                print(f"重置 Agent 失败: {e}")
+                result["message"] = f"会话已创建，但 Agent 重置失败: {e}"
+
+        return result
+
+    def _reset_agent_legacy(self, session_id: str, result: Dict) -> Dict:
+        """重置 Agent - 原有实现"""
+        import paramiko
+
+        try:
+            client = paramiko.SSHClient()
+            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+            if self.openclaw_ssh_key:
+                client.connect(
+                    self.openclaw_host,
+                    username=self.openclaw_ssh_user,
+                    key_filename=self.openclaw_ssh_key,
+                    timeout=30
+                )
+            elif self.openclaw_ssh_password:
+                client.connect(
+                    self.openclaw_host,
+                    username=self.openclaw_ssh_user,
+                    password=self.openclaw_ssh_password,
+                    timeout=30
+                )
+            else:
+                return result
+
+            # 发送重置命令
+            cmd = f'bash -i -c "openclaw agent --agent {self.openclaw_agent} -m \\"/reset\\" --json"'
+            stdin, stdout, stderr = client.exec_command(cmd, timeout=30)
+            output = stdout.read().decode()
+            client.close()
+
+            # 尝试解析响应
+            try:
+                json_result = json.loads(output)
+                if json_result.get("status") == "ok":
+                    result["agent_reset"] = True
+                    result["message"] = "会话已创建，Agent 已重置"
+            except:
+                pass
+
+        except Exception as e:
+            print(f"重置 Agent 失败: {e}")
+
+        return result
 
 
 # 全局实例
