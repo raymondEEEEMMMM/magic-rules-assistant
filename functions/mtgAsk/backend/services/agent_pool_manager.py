@@ -66,7 +66,7 @@ class AgentPoolManager:
 
     def _create_remote_agent(self, agent_name: str) -> bool:
         """
-        在 OpenCLAW Gateway 上创建 Agent
+        在 OpenCLAW Gateway 上创建 Agent（在 Docker 容器中运行）
 
         Args:
             agent_name: Agent 名称
@@ -76,23 +76,105 @@ class AgentPoolManager:
         """
         try:
             with OpenCLAWClient() as client:
-                # 使用正确的 openclaw agents add 命令
                 workspace_dir = f"/home/openclaw/agents/{agent_name}"
-                cmd = f'bash -i -c "openclaw agents add {agent_name} --workspace {workspace_dir} --non-interactive --json"'
-                stdin, stdout, stderr = client._get_ssh_client().exec_command(cmd, timeout=60)
-                output = stdout.read().decode()
-                error = stderr.read().decode()
 
-                print(f"[AgentPool] 创建 Agent {agent_name}: output={output[:200]}, error={error[:200]}")
+                # 1. 创建 workspace 目录
+                create_workspace = f"mkdir -p {workspace_dir} && chown -R openclaw:openclaw {workspace_dir}"
+                client._get_ssh_client().exec_command(create_workspace, timeout=10)
 
-                # 检查是否创建成功
-                if "error" in output.lower() or "Error" in output:
-                    print(f"[AgentPool] Agent {agent_name} 创建可能失败: {output}")
+                # 2. 启动 Docker 容器（资源限制 + 网络隔离 + 安全加固）
+                container_name = f"openclaw-{agent_name}"
+                docker_cmd = f"docker run -d --name {container_name} " \
+                    f"-v {workspace_dir}:/workspace " \
+                    f"--memory=512m --cpus=0.5 " \
+                    f"--network=none " \
+                    f"--read-only " \
+                    f"--user openclaw " \
+                    f"-w /workspace " \
+                    f"--security-opt=no-new-privileges " \
+                    f"--cap-drop=ALL " \
+                    f"openclaw-runtime " \
+                    f"sleep infinity"
+                stdin, stdout, stderr = client._get_ssh_client().exec_command(docker_cmd, timeout=30)
+                container_id = stdout.read().decode().strip()
+                if not container_id:
+                    print(f"[AgentPool] Docker 容器创建失败")
                     return False
+
+                # 3. 在容器内创建 agent
+                exec_cmd = f"docker exec {container_name} bash -c 'openclaw agents add {agent_name} --workspace /workspace --non-interactive --json' 2>&1"
+                stdin, stdout, stderr = client._get_ssh_client().exec_command(exec_cmd, timeout=60)
+                output = stdout.read().decode()
+
+                print(f"[AgentPool] 创建 Agent {agent_name}: {output[:200]}")
+
+                # 4. 注入 MTG 裁判 prompt
+                self._inject_mtg_prompt(client, workspace_dir)
 
                 return True
         except Exception as e:
             print(f"[AgentPool] 创建远程 Agent 失败: {e}")
+            return False
+
+    def _inject_mtg_prompt(self, client, workspace_dir: str) -> bool:
+        """注入万智牌裁判 prompt 到 SOUL.md"""
+        soul_md = """# SOUL.md - 万智牌专业裁判
+
+## 角色定义
+
+你是万智牌专业裁判，以严谨、专业的态度回答问题。
+
+## 身份
+
+- **名称**: 裁判 (Judge)
+- **用户称呼**: 牌手 (Player)
+- **职责**: 解答万智牌规则、卡牌效果、游戏机制相关问题
+
+## 回答风格
+
+- 严谨、准确、专业
+- 使用标准万智牌术语
+- 引用具体规则编号（如规则 702.9 飞行）
+- 结构清晰，逻辑严谨
+
+## 范围限制
+
+**只回答万智牌相关问题**，包括：
+- 游戏规则（如战斗、咒语、异能）
+- 卡牌效果解读
+- 赛事规则
+- 牌库/手牌管理
+- 指挥官模式规则
+
+**拒绝回答**：
+- 与万智牌无关的问题
+- 政治、宗教、或其他娱乐话题
+- 数学/编程等非游戏问题
+
+当问题超出范围时，礼貌地回答：
+「抱歉，这个问题超出万智牌范围。作为万智牌裁判，我只能回答与游戏相关的问题。」
+
+## 持续性
+
+每次会话都是新的开始。这些文件是你的记忆。阅读并更新它们。
+"""
+        identity_md = """# IDENTITY.md - 万智牌裁判
+
+- **Name:** 裁判 (Judge)
+- **Creature:** AI 裁判
+- **Vibe:** 严谨、专业、准确
+- **Emoji:** ⚖️
+"""
+        try:
+            # 写入 SOUL.md
+            cmd = f'cat > {workspace_dir}/SOUL.md << \'SOUL_EOF\'\n{soul_md}\nSOUL_EOF'
+            client._get_ssh_client().exec_command(cmd, timeout=10)
+            # 写入 IDENTITY.md
+            cmd = f'cat > {workspace_dir}/IDENTITY.md << \'ID_EOF\'\n{identity_md}\nID_EOF'
+            client._get_ssh_client().exec_command(cmd, timeout=10)
+            return True
+        except Exception as e:
+            print(f"[AgentPool] 注入 prompt 失败: {e}")
             return False
 
     def _destroy_remote_agent(self, agent_name: str) -> bool:
