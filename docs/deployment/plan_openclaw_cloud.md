@@ -19,11 +19,11 @@
 
 | 属性 | 值 |
 |------|-----|
-| 服务器 IP | 101.43.48.45 |
+| 服务器 IP | (环境变量 OPENCLAW_HOST) |
 | SSH 端口 | 22 |
-| SSH 用户 | root |
+| SSH 用户 | openclaw |
 | Gateway 端口 | 18789 |
-| 技能目录 | /root/openclaw/workspace/skills/ai_judge |
+| Agent 目录 | /home/openclaw/agents/ |
 
 ## 知识库同步
 
@@ -67,10 +67,11 @@ python functions/mtgAsk/scripts/sync_judge_knowledge.py --skill
 | 变量 | 说明 | 默认值 |
 |-----|------|-------|
 | OPENCLAW_ENABLED | 启用 OpenCLAW | true |
-| OPENCLAW_HOST | 服务器 IP | 101.43.48.45 |
+| OPENCLAW_HOST | 服务器 IP | (环境变量) |
 | OPENCLAW_PORT | SSH 端口 | 22 |
-| OPENCLAW_SSH_USER | SSH 用户名 | root |
-| OPENCLAW_SSH_PASSWORD | SSH 密码 | - |
+| OPENCLAW_SSH_USER | SSH 用户名 | openclaw |
+| OPENCLAW_SSH_KEY | SSH 密钥路径 | (环境变量) |
+| OPENCLAW_SSH_KEY_CONTENT | SSH 私钥内容 | (环境变量) |
 | OPENCLAW_AGENT | Agent 名称 | main |
 
 ### API 端点
@@ -100,5 +101,5 @@ curl -X POST https://<mtgask-url>/api/ai-judge/chat \
 
 2. 检查服务器知识库：
 ```bash
-ssh root@101.43.48.45 "ls -la /root/openclaw/workspace/skills/ai_judge/"
+ssh openclaw@$OPENCLAW_HOST "ls -la /home/openclaw/agents/"
 ```

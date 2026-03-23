@@ -47,17 +47,22 @@ openclaw agent --agent main -m "闪电击的伤害何时结算？" --json
 ### 直接 SSH 执行
 
 ```bash
-ssh root@101.43.48.45 "bash -i -c 'openclaw agent --agent main -m \"闪电击的伤害何时结算？\" --json'"
+ssh openclaw@$OPENCLAW_HOST "bash -i -c 'openclaw agent --agent main -m \"闪电击的伤害何时结算？\" --json'"
 ```
 
 ### 通过 Python paramiko
 
 ```python
 import paramiko
+from io import StringIO
 
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-client.connect("101.43.48.45", port=22, username="root", password="xxx")
+
+# 使用私钥内容连接
+key_content = os.getenv("OPENCLAW_SSH_KEY_CONTENT", "")
+pkey = paramiko.PKey.from_private_key(StringIO(key_content))
+client.connect(os.getenv("OPENCLAW_HOST"), port=22, username="openclaw", pkey=pkey)
 
 cmd = 'bash -i -c "openclaw agent --agent main -m \"闪电击的伤害何时结算？\" --json"'
 stdin, stdout, stderr = client.exec_command(cmd, timeout=120)
@@ -99,22 +104,22 @@ client.close()
 | 变量名 | 说明 | 默认值 |
 |--------|------|--------|
 | `OPENCLAW_ENABLED` | 启用开关 | true |
-| `OPENCLAW_HOST` | 服务器地址 | 101.43.48.45 |
+| `OPENCLAW_HOST` | 服务器地址 | (环境变量) |
 | `OPENCLAW_PORT` | SSH 端口 | 22 |
-| `OPENCLAW_SSH_USER` | SSH 用户名 | root |
-| `OPENCLAW_SSH_PASSWORD` | SSH 密码 | - |
-| `OPENCLAW_SSH_KEY` | SSH 密钥路径 | - |
+| `OPENCLAW_SSH_USER` | SSH 用户名 | openclaw |
+| `OPENCLAW_SSH_KEY` | SSH 私钥/内容 | - |
+| `OPENCLAW_SSH_KEY_CONTENT` | SSH 私钥内容 | - |
 | `OPENCLAW_AGENT` | Agent 名称 | main |
 
 ### 服务器配置
 
 | 属性 | 值 |
 |------|-----|
-| 服务器 IP | 101.43.48.45 |
+| 服务器 IP | (环境变量 OPENCLAW_HOST) |
 | SSH 端口 | 22 |
-| SSH 用户 | root |
+| SSH 用户 | openclaw |
 | Gateway 端口 | 18789 |
-| 技能目录 | /root/openclaw/workspace/skills/ai_judge |
+| Agent 目录 | /home/openclaw/agents/ |
 
 ## Python 客户端
 
@@ -125,10 +130,9 @@ from backend.services.openclaw_client import OpenCLAWClient
 
 # 创建客户端
 client = OpenCLAWClient(
-    host="101.43.48.45",
+    host=os.getenv("OPENCLAW_HOST", "101.43.48.45"),
     port=22,
-    username="root",
-    password="xxx",
+    username="openclaw",
     agent="main"
 )
 
@@ -149,7 +153,7 @@ client.close()
 ```python
 from backend.services.openclaw_client import OpenCLAWClient
 
-with OpenCLAWClient(password="xxx") as client:
+with OpenCLAWClient() as client:
     result = client.call_agent("问题")
     print(result)
 ```
@@ -160,7 +164,7 @@ with OpenCLAWClient(password="xxx") as client:
 from backend.services.openclaw_client import call_openclaw
 
 # 快速调用
-result = call_openclaw("闪电击的伤害何时结算？", password="xxx")
+result = call_openclaw("闪电击的伤害何时结算？")
 ```
 
 ## 错误处理
@@ -168,7 +172,7 @@ result = call_openclaw("闪电击的伤害何时结算？", password="xxx")
 ```python
 from backend.services.openclaw_client import OpenCLAWClient
 
-client = OpenCLAWClient(password="xxx")
+client = OpenCLAWClient()
 
 result = client.call_agent_json("问题")
 if result.get("status") == "ok":
