@@ -32,6 +32,13 @@
 - ✅ MySQL 数据库连接配置
 - ✅ 云端 API 测试验证
 
+### AI 裁判功能
+- ✅ OpenCLAW Gateway 集成
+- ✅ Per-user Agent 隔离（基于微信 openid）
+- ✅ Docker 沙箱隔离（512MB RAM, 0.5 CPU）
+- ✅ MTG 裁判 Persona 注入（SOUL.md）
+- ✅ MiniMax API 驱动
+
 ## ⚠️ 当前数据限制
 
 > **重要**: 后端当前**只支持英文规则查询**，支持**中文卡牌查询**（通过 MTGCH API）。
@@ -46,9 +53,9 @@
 
 ## 📦 技术栈
 - 后端: Python + FastAPI
-- 数据库: SQLite
-- AI问答: OpenAI API (第二阶段)
-- 部署: 待定
+- 数据库: SQLite (本地) / MySQL (云端)
+- AI: OpenCLAW Gateway + MiniMax API
+- 部署: CloudBase 云函数
 
 ## 🏗️ 项目结构
 ```
@@ -152,11 +159,16 @@ curl 'http://localhost:8000/api/keyword?k=践踏'
 - `GET /api/rules/vectorization` - 获取向量化数据
 - `GET /api/rules/status` - 获取规则状态
 
-### 卡牌数据端点（开发中）
+### 卡牌数据端点
 - `GET /api/cards/search?name=` - 搜索卡牌
 - `GET /api/cards/keywords?list=` - 按关键词搜索
 - `GET /api/cards/keywords/list` - 获取所有关键词
 - `GET /api/cards/stats` - 获取数据库统计
+
+### AI 裁判端点
+- `POST /api/ai-judge/chat` - AI 裁判对话
+- `POST /api/ai-judge/new-session` - 创建新会话
+- `POST /api/ai-judge/clear` - 清除会话历史
 
 ## 💬 用户交互示例
 
@@ -212,11 +224,13 @@ curl 'http://localhost:8000/api/keyword?k=践踏'
 
 ## 📖 下一步计划
 
-### 第二阶段：AI 裁判功能
-- [ ] **AI 裁判接入**
-  - 使用 LLM（如 DeepSeek、腾讯混元）分析对局情况
-  - 判断触发时机、支付费用、优先权等
-  - 回答规则问题（如「能否施放这张牌？」）
+### ✅ 已完成：AI 裁判功能
+- ✅ OpenCLAW Gateway 部署
+- ✅ Per-user Agent 隔离
+- ✅ Docker 沙箱隔离
+- ✅ MTG 裁判 Persona
+
+### 待完成功能
 - [ ] 复杂场景分析
 - [ ] 每日一题功能
 - [ ] 用户提问系统
@@ -229,7 +243,7 @@ curl 'http://localhost:8000/api/keyword?k=践踏'
 - [ ] 单元测试
 - [ ] **中文规则数据接入**（支持中文规则查询）
 
-### AI 裁判功能设计
+### AI 裁判功能设计（已实现）
 ```
 用户: 我场上有塔莫耶夫，对手施放闪电击指定我的塔莫耶夫，能否响应触发敏捷异能在闪电击造成伤害前造成1点伤害？
 
