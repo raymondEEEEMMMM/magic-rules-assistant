@@ -107,7 +107,7 @@ class AgentPoolManager:
         """
         try:
             with OpenCLAWClient() as client:
-                cmd = f'bash -i -c "openclaw agents delete {agent_name} --non-interactive"'
+                cmd = f'bash -i -c "openclaw agents delete {agent_name} --force"'
                 stdin, stdout, stderr = client._get_ssh_client().exec_command(cmd, timeout=30)
                 return True
         except Exception as e:
