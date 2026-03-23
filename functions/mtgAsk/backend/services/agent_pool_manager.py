@@ -82,12 +82,12 @@ class AgentPoolManager:
                 create_workspace = f"mkdir -p {workspace_dir} && chown -R openclaw:openclaw {workspace_dir}"
                 client._get_ssh_client().exec_command(create_workspace, timeout=10)
 
-                # 2. 启动 Docker 容器（资源限制 + 网络隔离 + 安全加固）
+                # 2. 启动 Docker 容器（资源限制 + 安全加固）
+                # 注意：保留网络访问以便 skill 能够查询 Scryfall/mtgch 等 API
                 container_name = f"openclaw-{agent_name}"
                 docker_cmd = f"docker run -d --name {container_name} " \
                     f"-v {workspace_dir}:/workspace " \
                     f"--memory=512m --cpus=0.5 " \
-                    f"--network=none " \
                     f"--read-only " \
                     f"--user openclaw " \
                     f"-w /workspace " \
