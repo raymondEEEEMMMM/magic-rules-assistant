@@ -85,8 +85,10 @@ class AgentPoolManager:
                 # 2. 启动 Docker 容器（资源限制 + 安全加固）
                 # 注意：保留网络访问以便 skill 能够查询 Scryfall/mtgch 等 API
                 container_name = f"openclaw-{agent_name}"
+                skills_path = "/home/openclaw/.openclaw/workspace/skills"
                 docker_cmd = f"docker run -d --name {container_name} " \
                     f"-v {workspace_dir}:/workspace " \
+                    f"-v {skills_path}:/workspace/skills:ro " \
                     f"--memory=512m --cpus=0.5 " \
                     f"--read-only " \
                     f"--user openclaw " \
@@ -108,7 +110,7 @@ class AgentPoolManager:
 
                 print(f"[AgentPool] 创建 Agent {agent_name}: {output[:200]}")
 
-                # 4. 注入 MTG 裁判 prompt
+                # 4. 注入基础 prompt（角色定义）
                 self._inject_mtg_prompt(client, workspace_dir)
 
                 return True
