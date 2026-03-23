@@ -66,7 +66,12 @@ class AgentPoolManager:
 
     def _create_remote_agent(self, agent_name: str) -> bool:
         """
-        在 OpenCLAW Gateway 上创建 Agent（在 Docker 容器中运行）
+        在 OpenCLAW Gateway 上创建 Agent
+
+        架构：
+        - Gateway 运行在 host 上（通过 systemd 管理）
+        - Agent workspace 创建在 host 文件系统
+        - Gateway 的 sandbox 会在收到请求时自动创建容器并挂载 workspace
 
         Args:
             agent_name: Agent 名称
@@ -77,48 +82,38 @@ class AgentPoolManager:
         try:
             with OpenCLAWClient() as client:
                 workspace_dir = f"/home/openclaw/agents/{agent_name}"
+                ssh = client._get_ssh_client()
 
                 # 1. 创建 workspace 目录
                 create_workspace = f"mkdir -p {workspace_dir} && chown -R openclaw:openclaw {workspace_dir}"
-                client._get_ssh_client().exec_command(create_workspace, timeout=10)
+                ssh.exec_command(create_workspace, timeout=10)
 
-                # 2. 启动 Docker 容器（资源限制 + 安全加固）
-                # 注意：保留网络访问以便 skill 能够查询 Scryfall/mtgch 等 API
-                container_name = f"openclaw-{agent_name}"
-                skills_path = "/home/openclaw/.openclaw/workspace/skills"
-                docker_cmd = f"docker run -d --name {container_name} " \
-                    f"-v {workspace_dir}:/workspace " \
-                    f"-v {skills_path}:/workspace/skills:ro " \
-                    f"--memory=512m --cpus=0.5 " \
-                    f"--read-only " \
-                    f"--user openclaw " \
-                    f"-w /workspace " \
-                    f"--security-opt=no-new-privileges " \
-                    f"--cap-drop=ALL " \
-                    f"openclaw-runtime " \
-                    f"sleep infinity"
-                stdin, stdout, stderr = client._get_ssh_client().exec_command(docker_cmd, timeout=30)
-                container_id = stdout.read().decode().strip()
-                if not container_id:
-                    print(f"[AgentPool] Docker 容器创建失败")
+                # 2. 注入 MTG prompt 到 workspace
+                self._inject_mtg_prompt(ssh, workspace_dir)
+
+                # 3. 链接 skills 目录到 workspace
+                skills_link = f"ln -sf /home/openclaw/.openclaw/workspace/skills {workspace_dir}/skills"
+                ssh.exec_command(skills_link, timeout=10)
+
+                # 4. 在 host 上注册 agent（不是容器内！）
+                # 这个命令会修改 openclaw.json，添加 agent 配置
+                register_cmd = f"bash -i -c 'openclaw agents add {agent_name} --workspace {workspace_dir} --non-interactive --json' 2>&1"
+                stdin, stdout, stderr = ssh.exec_command(register_cmd, timeout=60)
+                output = stdout.read().decode().strip()
+
+                # 检查是否注册成功
+                if output and ("error" not in output.lower() or "already exists" in output.lower()):
+                    print(f"[AgentPool] Agent {agent_name} 注册成功: {output[:200]}")
+                    return True
+                else:
+                    print(f"[AgentPool] Agent {agent_name} 注册失败: {output[:200]}")
                     return False
 
-                # 3. 在容器内创建 agent
-                exec_cmd = f"docker exec {container_name} bash -c 'openclaw agents add {agent_name} --workspace /workspace --non-interactive --json' 2>&1"
-                stdin, stdout, stderr = client._get_ssh_client().exec_command(exec_cmd, timeout=60)
-                output = stdout.read().decode()
-
-                print(f"[AgentPool] 创建 Agent {agent_name}: {output[:200]}")
-
-                # 4. 注入基础 prompt（角色定义）
-                self._inject_mtg_prompt(client, workspace_dir)
-
-                return True
         except Exception as e:
             print(f"[AgentPool] 创建远程 Agent 失败: {e}")
             return False
 
-    def _inject_mtg_prompt(self, client, workspace_dir: str) -> bool:
+    def _inject_mtg_prompt(self, ssh, workspace_dir: str) -> bool:
         """注入万智牌裁判 prompt 到 SOUL.md"""
         soul_md = """# SOUL.md - 万智牌专业裁判
 
@@ -168,12 +163,18 @@ class AgentPoolManager:
 - **Emoji:** ⚖️
 """
         try:
+            # 使用 SFTP 写入文件
+            sftp = ssh.open_sftp()
+
             # 写入 SOUL.md
-            cmd = f'cat > {workspace_dir}/SOUL.md << \'SOUL_EOF\'\n{soul_md}\nSOUL_EOF'
-            client._get_ssh_client().exec_command(cmd, timeout=10)
+            with sftp.file(f"{workspace_dir}/SOUL.md", 'w') as f:
+                f.write(soul_md)
             # 写入 IDENTITY.md
-            cmd = f'cat > {workspace_dir}/IDENTITY.md << \'ID_EOF\'\n{identity_md}\nID_EOF'
-            client._get_ssh_client().exec_command(cmd, timeout=10)
+            with sftp.file(f"{workspace_dir}/IDENTITY.md", 'w') as f:
+                f.write(identity_md)
+
+            sftp.close()
+            print(f"[AgentPool] Prompt 注入成功: {workspace_dir}")
             return True
         except Exception as e:
             print(f"[AgentPool] 注入 prompt 失败: {e}")
@@ -191,12 +192,13 @@ class AgentPoolManager:
         """
         try:
             with OpenCLAWClient() as client:
-                # 删除 agent
-                cmd = f'bash -i -c "openclaw agents delete {agent_name} --force"'
-                client._get_ssh_client().exec_command(cmd, timeout=30)
+                ssh = client._get_ssh_client()
+                # 删除 agent（使用 gateway CLI）
+                cmd = f'bash -i -c "openclaw agents delete {agent_name} --force" 2>&1'
+                ssh.exec_command(cmd, timeout=30)
                 # 清理残留目录
                 cleanup_cmd = f'rm -rf /home/openclaw/agents/{agent_name}'
-                client._get_ssh_client().exec_command(cleanup_cmd, timeout=10)
+                ssh.exec_command(cleanup_cmd, timeout=10)
                 return True
         except Exception as e:
             print(f"[AgentPool] 销毁远程 Agent 失败: {e}")
@@ -343,11 +345,10 @@ class AgentPoolManager:
 
         try:
             with OpenCLAWClient() as client:
-                # 设置使用该 agent
-                client.agent = agent_name
-                # 发送 reset 命令
-                cmd = f'bash -i -c "openclaw agent --agent {agent_name} --reset"'
-                client._get_ssh_client().exec_command(cmd, timeout=30)
+                ssh = client._get_ssh_client()
+                # 重置 agent 会话
+                cmd = f'bash -i -c "openclaw agents delete {agent_name} --force && openclaw agents add {agent_name} --workspace /home/openclaw/agents/{agent_name} --non-interactive --json" 2>&1'
+                ssh.exec_command(cmd, timeout=60)
                 return True
         except Exception as e:
             print(f"[AgentPool] 重置 Agent 失败: {e}")

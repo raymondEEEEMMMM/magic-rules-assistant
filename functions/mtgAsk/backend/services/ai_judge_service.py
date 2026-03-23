@@ -175,6 +175,7 @@ class AIJudgeService:
         self.openclaw_ssh_user = Config.OPENCLAW_SSH_USER
         self.openclaw_ssh_password = Config.OPENCLAW_SSH_PASSWORD
         self.openclaw_ssh_key = Config.OPENCLAW_SSH_KEY
+        self.openclaw_ssh_key_content = Config.OPENCLAW_SSH_KEY_CONTENT
         self.openclaw_agent = Config.OPENCLAW_AGENT
 
         # Mock 模式
@@ -516,7 +517,7 @@ class AIJudgeService:
                     port=self.openclaw_port,
                     username=self.openclaw_ssh_user,
                     password=self.openclaw_ssh_password,
-                    key_file=self.openclaw_ssh_key,
+                    key_content=self.openclaw_ssh_key_content,
                     agent=effective_agent
                 )
 
@@ -1286,7 +1287,7 @@ class AIJudgeService:
                         port=self.openclaw_port,
                         username=self.openclaw_ssh_user,
                         password=self.openclaw_ssh_password,
-                        key_file=self.openclaw_ssh_key,
+                        key_content=self.openclaw_ssh_key_content,
                         agent=self.openclaw_agent
                     )
 
@@ -1315,7 +1316,18 @@ class AIJudgeService:
             client = paramiko.SSHClient()
             client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-            if self.openclaw_ssh_key:
+            if self.openclaw_ssh_key_content:
+                from io import BytesIO
+                import base64
+                key_file = BytesIO(base64.b64decode(self.openclaw_ssh_key_content))
+                pkey = paramiko.Ed25519Key.from_private_key(key_file)
+                client.connect(
+                    self.openclaw_host,
+                    username=self.openclaw_ssh_user,
+                    pkey=pkey,
+                    timeout=30
+                )
+            elif self.openclaw_ssh_key:
                 client.connect(
                     self.openclaw_host,
                     username=self.openclaw_ssh_user,

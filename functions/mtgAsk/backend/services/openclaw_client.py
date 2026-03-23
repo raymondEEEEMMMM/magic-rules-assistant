@@ -35,6 +35,7 @@ class OpenCLAWConfig:
     username: str = "root"
     password: Optional[str] = None
     key_file: Optional[str] = None
+    key_content: Optional[str] = None  # SSH 私钥内容
     agent: str = "main"
     timeout: int = 120
 
@@ -85,14 +86,68 @@ class OpenCLAWClient:
             # 使用密钥或密码连接
             if self.key_content:
                 # 使用私钥内容连接
-                from io import StringIO
-                key_io = StringIO(self.key_content)
-                pkey = paramiko.PKey.from_private_key(key_io)
+                from io import BytesIO
+                import base64
+                import tempfile
+                import os
+
+                key_content = self.key_content.strip()
+
+                # 检查是否是带标记的 OpenSSH 格式
+                if key_content.startswith('-----BEGIN'):
+                    # 写入临时文件，paramiko 需要文件路径来读取 OpenSSH 格式密钥
+                    try:
+                        # 创建临时文件
+                        fd, key_path = tempfile.mkstemp(suffix='_ssh_key')
+                        os.write(fd, key_content.encode('utf-8'))
+                        os.close(fd)
+
+                        # 设置权限
+                        os.chmod(key_path, 0o600)
+
+                        # 使用文件路径连接
+                        self._ssh_client.connect(
+                            self.host,
+                            port=self.port,
+                            username=self.username,
+                            key_filename=key_path,
+                            timeout=30
+                        )
+
+                        # 清理临时文件
+                        try:
+                            os.unlink(key_path)
+                        except:
+                            pass
+
+                        return self._ssh_client
+                    except Exception:
+                        # 继续尝试密码认证
+                        pass
+
+                # 如果密钥方式失败，尝试 base64 解码后的密钥内容
+                try:
+                    key_bytes = base64.b64decode(key_content)
+                    key_file = BytesIO(key_bytes)
+                    pkey = paramiko.Ed25519Key.from_private_key(key_file)
+                    self._ssh_client.connect(
+                        self.host,
+                        port=self.port,
+                        username=self.username,
+                        pkey=pkey,
+                        timeout=30
+                    )
+                except Exception:
+                    # 继续尝试密码认证
+                    pass
+
+            # 密码认证（如果密钥方式失败）
+            if self.password:
                 self._ssh_client.connect(
                     self.host,
                     port=self.port,
                     username=self.username,
-                    pkey=pkey,
+                    password=self.password,
                     timeout=30
                 )
             elif self.key_file:
@@ -101,14 +156,6 @@ class OpenCLAWClient:
                     port=self.port,
                     username=self.username,
                     key_filename=self.key_file,
-                    timeout=30
-                )
-            elif self.password:
-                self._ssh_client.connect(
-                    self.host,
-                    port=self.port,
-                    username=self.username,
-                    password=self.password,
                     timeout=30
                 )
             else:
@@ -178,9 +225,6 @@ class OpenCLAWClient:
             stdin, stdout, stderr = client.exec_command(cmd, timeout=timeout)
             output = stdout.read().decode()
             error = stderr.read().decode()
-
-            if error and "bash: cannot set terminal" not in error:
-                print(f"STDERR: {error[:200]}")
 
             # 尝试解析 JSON 响应，如果失败则返回纯文本
             try:
