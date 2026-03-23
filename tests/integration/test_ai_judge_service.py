@@ -10,10 +10,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../functions/mtgA
 # 配置 OpenCLAW Gateway（自建服务器）
 os.environ["OPENCLAW_ENABLED"] = "true"
 os.environ["OPENCLAW_HOST"] = "101.43.48.45"
-os.environ["OPENCLAW_PORT"] = "19601"
+os.environ["OPENCLAW_PORT"] = "22"
 os.environ["OPENCLAW_SSH_USER"] = "root"
-# 使用密码登录
-os.environ["OPENCLAW_SSH_PASSWORD"] = "Ray1994@"
+# 使用密码登录（测试时通过环境变量设置，不要硬编码）
+os.environ["OPENCLAW_SSH_PASSWORD"] = os.environ.get("OPENCLAW_SSH_PASSWORD", "")
 # 或使用密钥登录（需要绝对路径）
 # os.environ["OPENCLAW_SSH_KEY"] = "/Users/lianghaoming/cbworkplace/ai_judge/cc.pem"
 os.environ["OPENCLAW_AGENT"] = "main"

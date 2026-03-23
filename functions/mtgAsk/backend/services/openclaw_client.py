@@ -59,6 +59,7 @@ class OpenCLAWClient:
         self.username = kwargs.get("username", config.username)
         self.password = kwargs.get("password", config.password)
         self.key_file = kwargs.get("key_file", config.key_file)
+        self.key_content = kwargs.get("key_content", config.key_content)  # SSH 私钥内容（Base64 或明文）
         self.agent = kwargs.get("agent", config.agent)
         self.timeout = kwargs.get("timeout", config.timeout)
 
@@ -68,6 +69,7 @@ class OpenCLAWClient:
         self.username = os.getenv("OPENCLAW_SSH_USER", self.username)
         self.password = os.getenv("OPENCLAW_SSH_PASSWORD", self.password)
         self.key_file = os.getenv("OPENCLAW_SSH_KEY", self.key_file)
+        self.key_content = os.getenv("OPENCLAW_SSH_KEY_CONTENT", self.key_content)
         # agent 参数以传入值优先，不被环境变量覆盖
 
         self._ssh_client = None
@@ -81,7 +83,19 @@ class OpenCLAWClient:
             self._ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
             # 使用密钥或密码连接
-            if self.key_file:
+            if self.key_content:
+                # 使用私钥内容连接
+                from io import StringIO
+                key_io = StringIO(self.key_content)
+                pkey = paramiko.PKey.from_private_key(key_io)
+                self._ssh_client.connect(
+                    self.host,
+                    port=self.port,
+                    username=self.username,
+                    pkey=pkey,
+                    timeout=30
+                )
+            elif self.key_file:
                 self._ssh_client.connect(
                     self.host,
                     port=self.port,

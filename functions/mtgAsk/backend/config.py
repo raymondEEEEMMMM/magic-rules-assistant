@@ -21,9 +21,10 @@ class Config:
     OPENCLAW_ENABLED = os.getenv("OPENCLAW_ENABLED", "true").lower() == "true"
     OPENCLAW_HOST = os.getenv("OPENCLAW_HOST", "101.43.48.45")  # 自建服务器 IP
     OPENCLAW_PORT = os.getenv("OPENCLAW_PORT", "19601")
-    OPENCLAW_SSH_USER = os.getenv("OPENCLAW_SSH_USER", "root")
+    OPENCLAW_SSH_USER = os.getenv("OPENCLAW_SSH_USER", "openclaw")  # 专用用户，非 root
     OPENCLAW_SSH_PASSWORD = os.getenv("OPENCLAW_SSH_PASSWORD", "")  # SSH 密码
     OPENCLAW_SSH_KEY = os.getenv("OPENCLAW_SSH_KEY", "")  # SSH 密钥路径（绝对路径）
+    OPENCLAW_SSH_KEY_CONTENT = os.getenv("OPENCLAW_SSH_KEY_CONTENT", "")  # SSH 私钥内容（Base64 编码）
     OPENCLAW_AGENT = os.getenv("OPENCLAW_AGENT", "main")  # Agent 名称
 
     # Agent 池配置

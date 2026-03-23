@@ -77,7 +77,7 @@ class AgentPoolManager:
         try:
             with OpenCLAWClient() as client:
                 # 使用正确的 openclaw agents add 命令
-                workspace_dir = f"/root/.openclaw/agents/{agent_name}"
+                workspace_dir = f"/home/openclaw/agents/{agent_name}"
                 cmd = f'bash -i -c "openclaw agents add {agent_name} --workspace {workspace_dir} --non-interactive --json"'
                 stdin, stdout, stderr = client._get_ssh_client().exec_command(cmd, timeout=60)
                 output = stdout.read().decode()
@@ -111,7 +111,7 @@ class AgentPoolManager:
                 cmd = f'bash -i -c "openclaw agents delete {agent_name} --force"'
                 client._get_ssh_client().exec_command(cmd, timeout=30)
                 # 清理残留目录
-                cleanup_cmd = f'rm -rf /root/.openclaw/agents/{agent_name}'
+                cleanup_cmd = f'rm -rf /home/openclaw/agents/{agent_name}'
                 client._get_ssh_client().exec_command(cleanup_cmd, timeout=10)
                 return True
         except Exception as e:
