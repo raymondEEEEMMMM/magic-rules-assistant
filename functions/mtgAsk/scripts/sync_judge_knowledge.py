@@ -88,12 +88,12 @@ class KnowledgeSync:
     ]
 
     # OpenCLAW Gateway 技能目录（服务器路径）
-    OPENCLAW_SERVER_PATH = os.getenv("OPENCLAW_SERVER_PATH", "/root/openclaw/workspace/skills/ai_judge")
+    OPENCLAW_SERVER_PATH = os.getenv("OPENCLAW_SERVER_PATH", "/home/openclaw/.openclaw/workspace/skills/ai_judge")
 
     # SSH 配置
     OPENCLAW_HOST = os.getenv("OPENCLAW_HOST", "101.43.48.45")
     OPENCLAW_PORT = int(os.getenv("OPENCLAW_PORT_SSH", "22"))
-    OPENCLAW_USER = os.getenv("OPENCLAW_SSH_USER", "root")
+    OPENCLAW_USER = os.getenv("OPENCLAW_SSH_USER", "openclaw")
     OPENCLAW_PASSWORD = os.getenv("OPENCLAW_SSH_PASSWORD", "")
     OPENCLAW_KEY = os.getenv("OPENCLAW_SSH_KEY", "")
 
@@ -151,7 +151,7 @@ class KnowledgeSync:
         同步裁判技能到自建服务器
 
         同步内容：
-        1. ai_judge/ 目录（345.md, cc.pem, 345-head.jpg）
+        1. ai_judge/ 目录（SKILL.md, cc.pem, markdown/, references/）
         2. knowledge/ 目录（规则 + 知识图谱）
 
         Returns:
