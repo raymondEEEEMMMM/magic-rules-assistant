@@ -107,8 +107,12 @@ class AgentPoolManager:
         """
         try:
             with OpenCLAWClient() as client:
+                # 删除 agent
                 cmd = f'bash -i -c "openclaw agents delete {agent_name} --force"'
-                stdin, stdout, stderr = client._get_ssh_client().exec_command(cmd, timeout=30)
+                client._get_ssh_client().exec_command(cmd, timeout=30)
+                # 清理残留目录
+                cleanup_cmd = f'rm -rf /root/.openclaw/agents/{agent_name}'
+                client._get_ssh_client().exec_command(cleanup_cmd, timeout=10)
                 return True
         except Exception as e:
             print(f"[AgentPool] 销毁远程 Agent 失败: {e}")
