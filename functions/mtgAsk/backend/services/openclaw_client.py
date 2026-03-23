@@ -62,13 +62,13 @@ class OpenCLAWClient:
         self.agent = kwargs.get("agent", config.agent)
         self.timeout = kwargs.get("timeout", config.timeout)
 
-        # 从环境变量读取（优先级最高）
+        # 从环境变量读取默认值（kwargs 已有的值不会被覆盖）
         self.host = os.getenv("OPENCLAW_HOST", self.host)
         self.port = int(os.getenv("OPENCLAW_PORT", str(self.port)))
         self.username = os.getenv("OPENCLAW_SSH_USER", self.username)
         self.password = os.getenv("OPENCLAW_SSH_PASSWORD", self.password)
         self.key_file = os.getenv("OPENCLAW_SSH_KEY", self.key_file)
-        self.agent = os.getenv("OPENCLAW_AGENT", self.agent)
+        # agent 参数以传入值优先，不被环境变量覆盖
 
         self._ssh_client = None
 

@@ -26,6 +26,10 @@ class Config:
     OPENCLAW_SSH_KEY = os.getenv("OPENCLAW_SSH_KEY", "")  # SSH 密钥路径（绝对路径）
     OPENCLAW_AGENT = os.getenv("OPENCLAW_AGENT", "main")  # Agent 名称
 
+    # Agent 池配置
+    OPENCLAW_MAX_AGENTS = int(os.getenv("OPENCLAW_MAX_AGENTS", "100"))  # 最大 Agent 数量
+    OPENCLAW_IDLE_TIMEOUT = int(os.getenv("OPENCLAW_IDLE_TIMEOUT", "30"))  # 空闲超时（分钟）
+
     # Mock 模式配置（用于测试，不消耗 token）
     OPENCLAW_MOCK = os.getenv("OPENCLAW_MOCK", "false").lower() == "true"
 

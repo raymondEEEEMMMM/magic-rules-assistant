@@ -89,12 +89,16 @@ class RequestHandler(BaseHTTPRequestHandler):
             # 解析路径和查询参数
             path = self.path
             query_params = {}
-            
+
+            # 规范化路径：处理双斜杠等问题
+            while '//' in path:
+                path = path.replace('//', '/')
+
             if '?' in path:
                 path, query_string = path.split('?', 1)
                 query_params = parse_qs(query_string)
                 query_params = {k: v[0] if len(v) == 1 else v for k, v in query_params.items()}
-            
+
             print(f"Parsed path: {path}")
             print(f"Query params: {query_params}")
             print(f"Current directory: {os.getcwd()}")
@@ -147,7 +151,35 @@ class RequestHandler(BaseHTTPRequestHandler):
                     response = {'error': str(e), 'traceback': traceback.format_exc()}
                     self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
                     return
-            
+
+            # 规则详情查询 API（支持 /api/rule、/rule）
+            elif path in ('/api/rule', '/rule'):
+                try:
+                    from backend.database import RuleDatabase
+
+                    db = RuleDatabase()
+                    rule_number = query_params.get('n', '')
+                    if not rule_number:
+                        rule_number = query_params.get('rule_number', '')
+
+                    result = db.get_rule_by_number(rule_number)
+
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'rule_number': rule_number, 'result': result}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False, default=str).encode('utf-8'))
+                    return
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    self.send_response(500)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'error': str(e)}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
+
             # 关键词查询 API（支持 /api/keyword、/keyword 和 /wechat/api/keyword）
             elif path in ('/api/keyword', '/keyword', '/wechat/api/keyword'):
                 # 关键词查询 API
@@ -170,6 +202,54 @@ class RequestHandler(BaseHTTPRequestHandler):
                     import traceback
                     traceback.print_exc()
                     self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'keyword': keyword, 'result': None, 'error': 'Database not found'}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    self.send_response(500)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'error': str(e)}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
+
+            # 规则详情查询 API
+            elif path in ('/api/rule', '/rule', '/wechat/api/rule'):
+                try:
+                    from backend.database import RuleDatabase
+
+                    db = RuleDatabase()
+                    rule_number = query_params.get('n', query_params.get('rule_number', ''))
+
+                    if not rule_number:
+                        self.send_response(400)
+                        self.send_header('Content-Type', 'application/json')
+                        self.end_headers()
+                        response = {'error': '缺少规则编号参数 n'}
+                        self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                        return
+
+                    result = db.get_rule_by_number(rule_number)
+
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'rule_number': rule_number, 'result': result}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False, default=str).encode('utf-8'))
+                    return
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    self.send_response(500)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'error': str(e)}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()
                     response = {'keyword': keyword, 'result': None, 'error': 'Database not found'}
@@ -436,6 +516,81 @@ class RequestHandler(BaseHTTPRequestHandler):
         print(f"Body: {body_str}")
         
         try:
+            # AI Judge API - 必须在微信消息处理之前
+            if '/ai-judge/chat' in self.path:
+                print(f"AI Judge chat request, body: {body_str}")
+                try:
+                    request_body = json.loads(body_str) if body_str else {}
+                    message = request_body.get('message', '')
+                    session_id = request_body.get('session_id', 'default')
+                    clear_history = request_body.get('clear_history', False)
+                    short_mode = request_body.get('short_mode', False)
+                    openid = request_body.get('openid', None)
+
+                    if not message:
+                        self.send_response(200)
+                        self.send_header('Content-Type', 'application/json')
+                        self.end_headers()
+                        response = {'success': False, 'reply': '消息不能为空'}
+                        self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                        return
+
+                    from backend.services.ai_judge_service import ai_judge_service
+
+                    if clear_history:
+                        ai_judge_service.clear_session(session_id)
+
+                    result = ai_judge_service.chat(message, session_id, short_mode=short_mode, openid=openid)
+
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+                    return
+                except json.JSONDecodeError as e:
+                    print(f"JSON decode error: {e}")
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'success': False, 'reply': '请求格式错误'}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'success': False, 'reply': f'错误: {str(e)}'}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
+
+            # AI Judge 新会话 API
+            if '/ai-judge/new-session' in self.path:
+                print(f"AI Judge new-session request, body: {body_str}")
+                try:
+                    request_body = json.loads(body_str) if body_str else {}
+                    session_id = request_body.get('session_id', 'default')
+                    reset_agent = request_body.get('reset_agent', True)
+
+                    from backend.services.ai_judge_service import ai_judge_service
+                    result = ai_judge_service.new_session(session_id, reset_agent)
+
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+                    return
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'success': False, 'message': f'错误: {str(e)}'}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
+
             # 微信消息处理
             if '/wechat' in self.path:
                 # 确保数据库可用
@@ -646,6 +801,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                     session_id = request_body.get('session_id', 'default')
                     clear_history = request_body.get('clear_history', False)
                     short_mode = request_body.get('short_mode', False)
+                    openid = request_body.get('openid', None)
 
                     if not message:
                         self.send_response(200)
@@ -662,7 +818,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                     if clear_history:
                         ai_judge_service.clear_session(session_id)
 
-                    result = ai_judge_service.chat(message, session_id, short_mode=short_mode)
+                    result = ai_judge_service.chat(message, session_id, short_mode=short_mode, openid=openid)
 
                     self.send_response(200)
                     self.send_header('Content-Type', 'application/json')
@@ -768,7 +924,20 @@ def main_handler(event, context):
     # 解析请求
     http_method = event.get('httpMethod', 'GET')
     path = event.get('path', '/')
+    # 规范化路径
+    while '//' in path:
+        path = path.replace('//', '/')
+
+    # 尝试从多个位置获取 query_string
+    # 1. 直接从 event 获取
     query_string = event.get('queryString', '')
+
+    # 2. 如果有 params，构建 query_string (MCP 工具调用)
+    if 'params' in event and isinstance(event['params'], dict):
+        params = event['params']
+        if params:
+            query_string = '&'.join([f"{k}={v}" for k, v in params.items()])
+
     headers = event.get('headers', {})
 
     # 从多个位置尝试获取 body
@@ -785,17 +954,8 @@ def main_handler(event, context):
     elif body and not isinstance(body, str):
         body = str(body)
 
-    # 如果 body 仍然为空，检查 params
-    if not body and 'params' in event:
-        params = event.get('params', {})
-        if isinstance(params, dict):
-            import json
-            body = json.dumps(params)
-
-    # CloudBase HTTP 访问使用 queryStringParameters 而不是 queryString
+    # CloudBase HTTP API Gateway 使用 queryStringParameters
     query_string_params = event.get('queryStringParameters', {})
-
-    # 如果有 queryStringParameters，构建查询字符串
     if query_string_params:
         query_string = '&'.join([f"{k}={v}" for k, v in query_string_params.items()])
 
@@ -811,7 +971,11 @@ def main_handler(event, context):
     class MockHandler(RequestHandler):
         def __init__(self):
             self.headers = headers
-            self.path = path + ('?' + query_string if query_string else '')
+            # 规范化路径
+            full_path = path + ('?' + query_string if query_string else '')
+            while '//' in full_path:
+                full_path = full_path.replace('//', '/')
+            self.path = full_path
             self.command = http_method
             self.rfile = BytesIO(body.encode('utf-8') if body else b'')
             self.wfile = BytesIO()

@@ -12,7 +12,9 @@
       "memorySize": 512,
       "envVariables": {
         "ENVIRONMENT": "production",
-        "WECHAT_TOKEN": "wx_mtg_rules_2024"
+        "WECHAT_TOKEN": "wx_mtg_rules_2024",
+        "OPENCLAW_MAX_AGENTS": "100",
+        "OPENCLAW_IDLE_TIMEOUT": "30"
       },
       "http": {
         "path": "wechat"

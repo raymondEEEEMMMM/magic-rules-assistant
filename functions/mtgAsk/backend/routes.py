@@ -326,12 +326,14 @@ async def ai_judge_chat(request: Request):
     - session_id: 会话ID (默认: default)
     - clear_history: 是否清除历史 (默认: false)
     - short_mode: 是否使用简短模式 (默认: false, 减少 token 消耗)
+    - openid: 微信 openid (可选，用于 per-user agent 隔离)
     """
     body = await request.json()
     message = body.get("message", "")
     session_id = body.get("session_id", "default")
     clear_history = body.get("clear_history", False)
     short_mode = body.get("short_mode", False)
+    openid = body.get("openid", None)
 
     if not message:
         return {"success": False, "reply": "消息不能为空"}
@@ -342,7 +344,7 @@ async def ai_judge_chat(request: Request):
     if clear_history:
         ai_judge_service.clear_session(session_id)
 
-    result = ai_judge_service.chat(message, session_id, short_mode=short_mode)
+    result = ai_judge_service.chat(message, session_id, short_mode=short_mode, openid=openid)
     return result
 
 
@@ -378,12 +380,21 @@ async def ai_judge_clear_session(request: Request):
 
 @app.post("/wechat/api/ai-judge/chat")
 async def wechat_ai_judge_chat(request: Request):
-    """与 AI 裁判对话 - 微信HTTP访问"""
+    """与 AI 裁判对话 - 微信HTTP访问
+
+    参数:
+    - message: 用户消息
+    - session_id: 会话ID (默认: default)
+    - clear_history: 是否清除历史 (默认: false)
+    - short_mode: 是否使用简短模式 (默认: false)
+    - openid: 微信 openid (可选，用于 per-user agent 隔离)
+    """
     body = await request.json()
     message = body.get("message", "")
     session_id = body.get("session_id", "default")
     clear_history = body.get("clear_history", False)
     short_mode = body.get("short_mode", False)
+    openid = body.get("openid", None)
 
     if not message:
         return {"success": False, "reply": "消息不能为空"}
@@ -393,7 +404,7 @@ async def wechat_ai_judge_chat(request: Request):
     if clear_history:
         ai_judge_service.clear_session(session_id)
 
-    result = ai_judge_service.chat(message, session_id, short_mode=short_mode)
+    result = ai_judge_service.chat(message, session_id, short_mode=short_mode, openid=openid)
     return result
 
 

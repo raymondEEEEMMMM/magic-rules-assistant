@@ -13,6 +13,7 @@ try:
     from backend.services.mtgch_api import MTGCHAPIClient
     from backend.services.log_service import log_info, log_warning, log_error, log_service
     from backend.services.openclaw_client import OpenCLAWClient
+    from backend.services.agent_pool_manager import AgentPoolManager
 except ImportError:
     # 兼容本地测试环境（直接运行或测试时）
     try:
@@ -34,6 +35,10 @@ except ImportError:
         from services.openclaw_client import OpenCLAWClient
     except ImportError:
         OpenCLAWClient = None
+    try:
+        from services.agent_pool_manager import AgentPoolManager
+    except ImportError:
+        AgentPoolManager = None
 
 
 # 配置 AI 裁判专用日志
@@ -174,6 +179,15 @@ class AIJudgeService:
 
         # Mock 模式
         self.mock_mode = Config.OPENCLAW_MOCK
+
+        # Agent 池管理器（用于 per-user agent）
+        self.agent_pool = None
+        if AgentPoolManager and self.openclaw_enabled:
+            try:
+                self.agent_pool = AgentPoolManager()
+                print(f"AgentPoolManager 初始化成功: {self.agent_pool.get_pool_stats()}")
+            except Exception as e:
+                print(f"AgentPoolManager 初始化失败: {e}")
 
         # 加载规则内容
         self.rules_content = self._load_rules()
@@ -458,12 +472,21 @@ class AIJudgeService:
             print(f"MiniMax API 调用失败: {e}")
             return None
 
-    def _call_openclaw_gateway(self, messages: List[Dict], temperature: float = 0.7) -> Optional[str]:
-        """调用 OpenCLAW Gateway CLI（通过 SSH）"""
+    def _call_openclaw_gateway(self, messages: List[Dict], agent_name: str = None, temperature: float = 0.7) -> Optional[str]:
+        """调用 OpenCLAW Gateway CLI（通过 SSH）
+
+        Args:
+            messages: 对话历史
+            agent_name: 可选，指定使用的 agent 名称（per-user agent）
+            temperature: 温度参数（未使用，保留兼容性）
+        """
+        # 如果没有指定 agent_name，使用默认的
+        effective_agent = agent_name or self.openclaw_agent
+
         print(f"=== OpenCLAW CLI 请求 ===")
         print(f"Enabled: {self.openclaw_enabled}")
         print(f"Host: {self.openclaw_host}:{self.openclaw_port}")
-        print(f"Agent: {self.openclaw_agent}")
+        print(f"Agent: {effective_agent}")
         print(f"Mock Mode: {self.mock_mode}")
 
         if self.mock_mode:
@@ -494,7 +517,7 @@ class AIJudgeService:
                     username=self.openclaw_ssh_user,
                     password=self.openclaw_ssh_password,
                     key_file=self.openclaw_ssh_key,
-                    agent=self.openclaw_agent
+                    agent=effective_agent
                 )
 
                 # 直接调用，返回纯文本
@@ -936,7 +959,7 @@ class AIJudgeService:
 
         return user_message
 
-    def chat(self, user_message: str, session_id: str = "default", short_mode: bool = False) -> Dict:
+    def chat(self, user_message: str, session_id: str = "default", short_mode: bool = False, openid: str = None) -> Dict:
         """
         与 AI 裁判对话
 
@@ -944,14 +967,26 @@ class AIJudgeService:
             user_message: 用户消息
             session_id: 会话ID，用于维护对话历史
             short_mode: 简短模式，减少 token 消耗（限制历史长度）
+            openid: 微信 openid，用于 per-user agent 隔离
 
         Returns:
             {"success": bool, "reply": str}
         """
         logger = _get_ai_logger()
 
+        # 获取 per-user agent（如果提供了 openid）
+        agent_name = None
+        if openid and self.agent_pool:
+            try:
+                agent_name, is_new = self.agent_pool.get_or_create_agent(openid)
+                print(f"[chat] openid={openid}, agent={agent_name}, is_new={is_new}")
+            except Exception as e:
+                print(f"[chat] AgentPoolManager 错误: {e}")
+                # 降级到默认 agent
+                agent_name = None
+
         # 记录用户提问
-        logger.info(f"=== 会话 [{session_id}] 用户提问 (short_mode={short_mode}) ===\n{user_message}")
+        logger.info(f"=== 会话 [{session_id}] 用户提问 (short_mode={short_mode}, openid={openid}) ===\n{user_message}")
 
         # 自动检测并查询卡牌信息
         enhanced_message = self._enhance_message_with_cards(user_message)
@@ -989,14 +1024,16 @@ class AIJudgeService:
             "user_message": user_message,
             "enhanced_message": enhanced_message[:500] + "..." if len(enhanced_message) > 500 else enhanced_message,
             "message_count": len(history),
-            "card_query_performed": enhanced_message != user_message
+            "card_query_performed": enhanced_message != user_message,
+            "agent_name": agent_name,
+            "openid": openid
         }
 
         # 调用 API（优先使用 OpenCLAW Gateway）
         reply = None
         if self.openclaw_enabled:
             print("尝试调用 OpenCLAW Gateway...")
-            reply = self._call_openclaw_gateway(history)
+            reply = self._call_openclaw_gateway(history, agent_name=agent_name)
             if reply:
                 print("OpenCLAW Gateway 调用成功")
 

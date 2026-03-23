@@ -83,7 +83,7 @@ functions/mtgAsk/
 │   │   ├── card_downloader.py # Download card data from MTGJSON
 │   │   ├── scheduler.py       # Scheduled tasks (03:00 daily, 10:00 Monday)
 │   │   ├── mtgch_api.py       # MTGCH API integration
-│   │   ├── ai_judge_service.py # AI Judge (MiniMax API)
+│   │   ├── ai_judge_service.py # AI Judge (OpenCLAW Gateway)
 │   │   └── log_service.py     # Unified logging (local + MySQL)
 │   └── wechat/
 │       └── handlers.py         # WeChat message handling
@@ -132,13 +132,39 @@ Defined in `cloudbaserc.json`:
 - Timeout: 60 seconds
 - Memory: 512 MB
 
+### CloudBase Run (OpenCLAW Gateway)
+
+OpenCLAW Gateway is deployed on CloudBase Run for AI Judge functionality:
+
+| Property | Value |
+|----------|-------|
+| Service Name | openclaw-gateway |
+| URL | https://openclaw-gateway-233331-7-1410769303.sh.run.tcloudbase.com |
+| Port | 18789 |
+| CPU | 1 core |
+| Memory | 2 GB |
+
+Deploy OpenCLAW Gateway:
+```bash
+tcb run:deprecated version create \
+  -e magic-rules-assistant-0a1904c329 \
+  -s openclaw-gateway \
+  -p . \
+  --dockerFile cloudrun/openclaw-gateway/Dockerfile \
+  --port 18789 \
+  -c 1 \
+  --mem 2
+```
+
 ### Environment Variables
 
 Key variables (in `.env.local` for local, `cloudbaserc.json` for cloud):
 - `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`
 - `WECHAT_TOKEN`
 - `TCB_ENV_ID`
-- `MINIMAX_API_KEY` - MiniMax API key for AI Judge
+- `MINIMAX_API_KEY` - MiniMax API key (used by OpenCLAW Gateway)
+- `OPENCLAW_ENABLED` - Enable OpenCLAW Gateway (default: true)
+- `OPENCLAW_GATEWAY_URL` - OpenCLAW Gateway URL
 
 ## Key Design Patterns
 
@@ -173,12 +199,13 @@ Key variables (in `.env.local` for local, `cloudbaserc.json` for cloud):
   ```
 
 ### AI Judge Feature (Phase 2) ✅
-- Integrated MiniMax API for AI-powered rule Q&A
+- Integrated OpenCLAW Gateway for AI-powered rule Q&A
+- Uses ai_judge skill with MiniMax API
 - Chat interface: `裁判:问题` or `POST /api/ai-judge/chat`
 - Game analysis: `POST /api/ai-judge/analyze`
 - Supports conversation history per session
+- Gateway deployed on CloudBase Run: `https://openclaw-gateway-233331-7-1410769303.sh.run.tcloudbase.com`
 
 ### Upcoming Features
-- Switch LLM provider (add support for more LLM backends)
 - Card image lookup integration
 - Multi-language support
