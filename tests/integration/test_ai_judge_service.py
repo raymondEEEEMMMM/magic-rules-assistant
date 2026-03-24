@@ -100,6 +100,54 @@ def test_ai_judge_analyze():
     print(f"\n{'='*60}")
 
 
+def test_ai_judge_network_search():
+    """
+    测试 Agent 的网络检索能力
+
+    测试案例：询问"反对派密探"的异能
+    - 验证 Agent 能正确回答卡牌信息
+    - 验证网络搜索功能正常工作
+    """
+    service = AIJudgeService()
+
+    if not service.api_key:
+        print("⚠️ 警告: 未配置 MINIMAX_API_KEY，跳过测试")
+        return
+
+    question = "反对派密探的异能是什么？请详细说明。"
+
+    print(f"\n{'='*60}")
+    print("测试 Agent 网络检索能力")
+    print(f"测试问题: {question}")
+    print(f"{'='*60}\n")
+
+    result = service.chat(question, session_id="test_network_search")
+
+    print(f"成功: {result['success']}")
+    print(f"\n回答:\n{result['reply']}")
+
+    # 验证回答包含关键信息
+    reply = result['reply']
+    checks = [
+        ("费用", "{2}{B}" in reply or "2点法术力" in reply),
+        ("异能", "进战场" in reply or "搜寻" in reply or "牌库" in reply),
+        ("类型", "生物" in reply or "传奇" in reply),
+    ]
+
+    print(f"\n{'='*60}")
+    print("回答验证:")
+    for name, passed in checks:
+        status = "✅" if passed else "❌"
+        print(f"  {status} {name}")
+
+    if all(passed for _, passed in checks):
+        print("\n✅ 网络检索测试通过!")
+    else:
+        print("\n❌ 网络检索测试失败 - 回答内容不完整")
+
+    print(f"{'='*60}")
+
+
 if __name__ == "__main__":
     # 先测试 analyze 方法
     test_ai_judge_analyze()
@@ -109,3 +157,6 @@ if __name__ == "__main__":
 
     # 额外测试：经典问题
     test_ai_judge_tarmogoyf()
+
+    # 网络检索测试
+    test_ai_judge_network_search()
