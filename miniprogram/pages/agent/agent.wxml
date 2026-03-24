@@ -21,7 +21,7 @@
       <view class="welcome-ai">
         <view class="welcome-avatar">⚖️</view>
         <view class="welcome-bubble">
-          <text class="welcome-greeting">你好！我是 AI 裁判机器人</text>
+          <text class="welcome-greeting">你好！我是裁判 Agent</text>
           <text class="welcome-text">可以问我任何万智牌规则问题，比如：</text>
           <view class="welcome-examples">
             <view class="example-item" bindtap="useExample" data-q="闪电击和塔莫耶夫的敏捷先结算哪个？">
