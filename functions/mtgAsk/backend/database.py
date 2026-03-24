@@ -34,7 +34,7 @@ class RuleDatabase:
             self.mysql_port = int(os.environ.get('MYSQL_PORT', '27987'))
         
         self.mysql_user = os.environ.get('MYSQL_USER', 'mtgask')
-        self.mysql_password = os.environ.get('MYSQL_PASSWORD', 'Ray19940211')
+        self.mysql_password = os.environ.get('MYSQL_PASSWORD', '')
         self.mysql_database = os.environ.get('MYSQL_DATABASE', f"{self.env_id}")
         
         print(f"MySQL config: host={self.mysql_host}, port={self.mysql_port}, user={self.mysql_user}, db={self.mysql_database}")

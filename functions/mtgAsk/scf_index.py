@@ -62,7 +62,7 @@ try:
     print("✓ Loaded WECHAT_TOKEN from backend.config")
 except Exception as e:
     print(f"✗ Config import error: {e}, using environment variable")
-    WECHAT_TOKEN = os.environ.get('WECHAT_TOKEN', 'wx_mtg_rules_2024')
+    WECHAT_TOKEN = os.environ.get('WECHAT_TOKEN', '')
 
 print(f"WECHAT_TOKEN: {WECHAT_TOKEN}")
 
