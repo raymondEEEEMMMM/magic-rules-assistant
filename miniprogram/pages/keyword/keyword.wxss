@@ -6,7 +6,58 @@ page {
 
 .container {
   min-height: 100vh;
+  padding: 0;
   padding-bottom: 40rpx;
+}
+
+/* 导航栏 */
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 30rpx;
+  padding-top: calc(20rpx + env(safe-area-inset-top));
+  background: #1a1a2e;
+  border-bottom: 1rpx solid rgba(255, 215, 0, 0.15);
+}
+
+.nav-left, .nav-right {
+  min-width: 80rpx;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: rgba(255, 215, 0, 0.15);
+  font-size: 32rpx;
+  color: #ffd700;
+}
+
+.nav-title {
+  display: flex;
+  align-items: center;
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #ffd700;
+}
+
+/* 日间主题导航栏 */
+.nav-bar.nav-bar-light {
+  background: #ffffff;
+  border-bottom: 1rpx solid #e0e0e0;
+}
+
+.nav-bar.nav-bar-light .back-btn {
+  background: rgba(102, 126, 234, 0.15);
+  color: #667eea;
+}
+
+.nav-bar.nav-bar-light .nav-title {
+  color: #667eea;
 }
 
 /* 搜索区域 */
@@ -14,7 +65,7 @@ page {
   display: flex;
   align-items: center;
   gap: 16rpx;
-  padding: 30rpx;
+  padding: 60rpx 30rpx 30rpx;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 

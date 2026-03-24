@@ -1,4 +1,5 @@
 // pages/keyword/keyword.js
+const app = getApp()
 
 // 引入 API 工具
 const api = require('../../utils/api')
@@ -18,16 +19,29 @@ Page({
     showDetail: false,
     currentKeyword: '',
     keywordDetail: null,
-    relatedRules: []
+    relatedRules: [],
+    isLightTheme: true
   },
 
   onLoad(options) {
+    this.setData({ isLightTheme: true })
     if (options.keyword) {
       this.setData({
         keyword: decodeURIComponent(options.keyword)
       })
       this.onSearch()
     }
+  },
+
+  onShow() {
+    this.setData({ isLightTheme: true })
+  },
+
+  // 返回
+  goBack() {
+    wx.redirectTo({
+      url: '/pages/index/index'
+    })
   },
 
   onInput(e) {

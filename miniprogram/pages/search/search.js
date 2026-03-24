@@ -7,19 +7,30 @@ const api = require('../../utils/api')
 Page({
   data: {
     keyword: '',
-    currentType: 'all',
-    results: [],
-    ruleResults: [],
-    keywordResults: [],
-    cardResults: [],
+    combinedResults: {
+      keywords: [],
+      cards: [],
+      rules: []
+    },
     history: [],
     loading: false,
     searchDone: false,
-    searchFocused: true
+    searchFocused: true,
+    isLightTheme: true
   },
 
   onLoad() {
     this.loadHistory()
+    this.setData({ isLightTheme: true })
+  },
+
+  onShow() {
+    this.setData({ isLightTheme: app.globalData.isLightTheme })
+  },
+
+  // 返回
+  goBack() {
+    wx.navigateBack()
   },
 
   // 加载搜索历史
@@ -49,39 +60,47 @@ Page({
     // 保存到历史
     this.saveToHistory(keyword)
 
-    // 调用后端API搜索
-    this.performSearch(keyword)
-  },
-
-  // 调用后端API搜索
-  performSearch(keyword) {
-    api.searchRules(keyword).then(res => {
-      const results = res.results || {}
+    // 组合查询：同时查询所有分类
+    Promise.all([
+      this.searchKeywordSync(keyword),
+      this.searchCardSync(keyword),
+      this.searchRulesSync(keyword)
+    ]).then(([keywords, cards, rules]) => {
       this.setData({
         loading: false,
         searchDone: true,
-        ruleResults: results.rules || [],
-        keywordResults: results.keyword_abilities || [],
-        cardResults: results.cards || [],
-        results: res.results
+        combinedResults: {
+          keywords: keywords || [],
+          cards: cards || [],
+          rules: rules || []
+        }
       })
     }).catch(err => {
-      console.error('搜索失败:', err)
-      this.setData({
-        loading: false,
-        searchDone: true
-      })
-      wx.showToast({
-        title: '搜索失败',
-        icon: 'none'
-      })
+      console.error('组合查询失败:', err)
+      this.setData({ loading: false, searchDone: true })
     })
   },
 
-  // 切换搜索类型
-  switchType(e) {
-    const type = e.currentTarget.dataset.type
-    this.setData({ currentType: type })
+  // 同步查询关键词
+  searchKeywordSync(keyword) {
+    const enKeyword = api.getCnKeyword(keyword)
+    return api.getKeyword(enKeyword).then(res => {
+      return res.result ? [res.result] : []
+    }).catch(() => [])
+  },
+
+  // 同步查询卡牌
+  searchCardSync(keyword) {
+    return api.searchCard(keyword, 1, 3).then(res => {
+      return res.results || res.items || []
+    }).catch(() => [])
+  },
+
+  // 同步查询规则
+  searchRulesSync(keyword) {
+    return api.searchRules(keyword).then(res => {
+      return (res.results || []).rules || []
+    }).catch(() => [])
   },
 
   // 保存到历史
@@ -111,9 +130,21 @@ Page({
   clearSearch() {
     this.setData({
       keyword: '',
-      results: [],
+      combinedResults: { keywords: [], cards: [], rules: [] },
       searchDone: false,
       searchFocused: true
+    })
+  },
+
+  // 查看规则详情
+  viewRuleDetail(e) {
+    const ruleNumber = e.currentTarget.dataset.rule
+    if (!ruleNumber) {
+      wx.showToast({ title: '规则编号为空', icon: 'none' })
+      return
+    }
+    wx.navigateTo({
+      url: `/pages/rule/rule?rule=${encodeURIComponent(ruleNumber)}`
     })
   },
 
@@ -123,5 +154,19 @@ Page({
     wx.navigateTo({
       url: `/pages/keyword/keyword?keyword=${encodeURIComponent(keyword)}`
     })
+  },
+
+  // 查看卡牌详情
+  viewCardDetail(e) {
+    const cardId = e.currentTarget.dataset.id
+    if (!cardId) return
+    wx.navigateTo({
+      url: `/pages/card/card?id=${encodeURIComponent(cardId)}`
+    })
+  },
+
+  // 去除 HTML 标签
+  stripHtml(html) {
+    return html.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').trim()
   }
 })

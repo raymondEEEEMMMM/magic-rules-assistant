@@ -12,10 +12,28 @@ Page({
     searchDone: false,
     showDetail: false,
     currentCard: null,
-    useApi: true  // 默认使用API模式
+    useApi: true,  // 默认使用API模式
+    isLightTheme: true
   },
 
   onLoad(options) {
+    this.setData({ isLightTheme: true })
+    // 如果有 id 参数，直接加载卡牌详情
+    if (options.id) {
+      this.setData({ keyword: decodeURIComponent(options.id) })
+      this.fetchCardDetail(options.id)
+    }
+  },
+
+  onShow() {
+    this.setData({ isLightTheme: true })
+  },
+
+  // 返回
+  goBack() {
+    wx.redirectTo({
+      url: '/pages/index/index'
+    })
   },
 
   onInput(e) {
@@ -117,22 +135,42 @@ Page({
       wx.hideLoading()
 
       if (card && card.name) {
+        // 处理关键词异能
+        const keywords = card.keywords || []
+
+        // 处理法力费用显示
+        const manaCost = this.formatManaCost(card.mana_cost || '')
+
+        // 处理规则文本（转换 \\n 为真正换行）
+        const oracleText = this.convertNewlines(card.zhs_text || card.oracle_text || '')
+        const enText = this.convertNewlines(card.oracle_text || '')
+
         this.setData({
           currentCard: {
             id: card.id,
-            name: card.name,
-            manaCost: card.mana_cost || '',
-            type: card.type_line || '',
-            text: card.oracle_text || '',
+            name: card.zhs_name || card.name,
+            enName: card.name,
+            manaCost: manaCost,
+            type: card.zhs_type_line || card.type_line || '',
+            text: oracleText,
+            enText: enText,
             power: card.power || '',
             toughness: card.toughness || '',
-            setName: card.set_name || '',
+            setName: card.zhs_set_name || card.set_name || '',
             collectorNumber: card.collector_number || '',
             rarity: card.rarity || '',
-            imageUrl: card.zhs_image_uris?.normal || card.image_uris?.normal || ''
+            imageUrl: card.zhs_image_uris?.normal || card.image_uris?.normal || '',
+            keywords: keywords,
+            legalities: card.legalities || {},
+            rulings: []
           },
           showDetail: true
         })
+
+        // 获取官方裁定（MTGCH id 就是 Scryfall card ID）
+        if (card.id) {
+          this.fetchCardRulings(card.id)
+        }
       }
     }).catch(err => {
       wx.hideLoading()
@@ -144,10 +182,44 @@ Page({
     })
   },
 
-  closeDetail() {
-    this.setData({
-      showDetail: false
+  // 转换 \\n 为真正换行符
+  convertNewlines(text) {
+    if (!text) return ''
+    return text.replace(/\\n/g, '\n')
+  },
+
+  // 格式化法力费用
+  formatManaCost(manaCost) {
+    if (!manaCost) return ''
+    // 将 {2}{B} 转换为 2B 格式
+    return manaCost.replace(/\{([^}]+)\}/g, '$1')
+  },
+
+  // 获取卡牌官方裁定
+  fetchCardRulings(cardId) {
+    api.getCardRulings(cardId).then(rulings => {
+      this.setData({
+        'currentCard.rulings': rulings
+      })
+    }).catch(err => {
+      console.log('裁定获取失败', err)
     })
+  },
+
+  closeDetail() {
+    wx.redirectTo({
+      url: '/pages/index/index'
+    })
+  },
+
+  // 图片加载失败
+  onImageError(e) {
+    console.log('图片加载失败', e)
+    if (this.data.currentCard) {
+      this.setData({
+        'currentCard.imageUrl': 'https://via.placeholder.com/200x280/1a1a2e/e94560?text=' + (this.data.currentCard.name || 'No Image')
+      })
+    }
   },
 
   // 阻止弹窗关闭

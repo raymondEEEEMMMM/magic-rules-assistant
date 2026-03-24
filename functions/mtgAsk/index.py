@@ -92,7 +92,35 @@ def main(event, context):
                     'result': result
                 }, ensure_ascii=False, default=str)
             }
-        
+
+        elif path in ('/api/rule', '/rule'):
+            # 规则详情查询
+            from backend.database import RuleDatabase
+
+            rule_number = query_params.get('n', '')
+            if not rule_number:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'error': '缺少规则编号参数 n'})
+                }
+
+            db = RuleDatabase()
+            result = db.get_rule_by_number(rule_number)
+
+            if result:
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'result': result}, ensure_ascii=False, default=str)
+                }
+            else:
+                return {
+                    'statusCode': 404,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'error': '未找到规则'})
+                }
+
         elif path in ('/api/card', '/card', '/mtgch/search', '/api/mtgch/search'):
             # 卡牌搜索
             from backend.services.mtgch_api import MTGCHAPIClient
@@ -270,6 +298,7 @@ def main(event, context):
                         '/',
                         '/api/search',
                         '/api/keyword',
+                        '/api/rule',
                         '/api/card',
                         '/api/mtgch/card',
                         '/api/mtgch/random',

@@ -1,14 +1,15 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/search/search",
     "pages/card/card",
     "pages/keyword/keyword",
     "pages/agent/agent",
-    "pages/apitest/apitest"
+    "pages/apitest/apitest",
+    "pages/rule/rule"
   ],
   "window": {
     "backgroundTextStyle": "light",
+    "navigationStyle": "custom",
     "navigationBarBackgroundColor": "#1a1a2e",
     "navigationBarTitleText": "mtgAsk",
     "navigationBarTextStyle": "white",

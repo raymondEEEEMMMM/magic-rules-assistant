@@ -12,12 +12,37 @@ App({
   globalData: {
     // 云函数名称
     functionName: 'mtgAsk',
-    userInfo: null
+    userInfo: null,
+    isLightTheme: false
   },
 
+  // 小程序版本号
+  version: '1.0.0',
+
   onLaunch() {
-    // 检查登录状态
-    this.checkLogin()
+    // 读取主题设置，默认日间主题
+    const theme = wx.getStorageSync('appTheme') || 'light'
+    this.globalData.isLightTheme = theme === 'light'
+    this.updateTheme(theme === 'light')
+  },
+
+  // 切换主题
+  toggleTheme() {
+    const newTheme = !this.globalData.isLightTheme
+    this.globalData.isLightTheme = newTheme
+    wx.setStorageSync('appTheme', newTheme ? 'light' : 'dark')
+    this.updateTheme(newTheme)
+    return newTheme
+  },
+
+  // 更新页面主题
+  updateTheme(isLight) {
+    const pages = getCurrentPages()
+    pages.forEach(page => {
+      if (page.updateTheme) {
+        page.updateTheme(isLight)
+      }
+    })
   },
 
   checkLogin() {

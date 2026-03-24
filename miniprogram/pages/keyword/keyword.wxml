@@ -1,5 +1,16 @@
 <!--pages/keyword/keyword.wxml-->
-<view class="container">
+<view class="container {{isLightTheme ? 'page-light' : ''}}">
+  <!-- 导航栏 -->
+  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
+    <view class="nav-left">
+      <view class="back-btn" bindtap="goBack">←</view>
+    </view>
+    <view class="nav-title">
+      <text>关键词</text>
+    </view>
+    <view class="nav-right"></view>
+  </view>
+
   <!-- 搜索框 -->
   <view class="search-section">
     <view class="search-box">

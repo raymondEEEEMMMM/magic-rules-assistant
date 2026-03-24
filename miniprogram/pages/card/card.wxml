@@ -1,10 +1,14 @@
 <!--pages/card/card.wxml-->
-<view class="container">
-  <!-- 模式切换 -->
-  <view class="mode-switch" wx:if="{{!showDetail}}">
-    <button class="switch-btn {{useApi ? 'api-mode' : 'local-mode'}}" bindtap="toggleApiMode">
-      {{useApi ? '🌐 API模式' : '📱 本地模式'}}
-    </button>
+<view class="container {{isLightTheme ? 'page-light' : ''}}">
+  <!-- 导航栏 -->
+  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
+    <view class="nav-left">
+      <view class="back-btn" bindtap="goBack">←</view>
+    </view>
+    <view class="nav-title">
+      <text>卡牌查询</text>
+    </view>
+    <view class="nav-right"></view>
   </view>
 
   <!-- 搜索框 -->
@@ -25,27 +29,21 @@
 
   <!-- 卡牌搜索结果 -->
   <view class="card-list" wx:if="{{cards.length > 0}}">
-    <view 
-      class="card-item" 
-      wx:for="{{cards}}" 
-      wx:key="name"
-      bindtap="showCardDetail" 
+    <view
+      class="card-item"
+      wx:for="{{cards}}"
+      wx:key="id"
+      bindtap="showCardDetail"
       data-card="{{item}}"
     >
-      <!-- 卡牌图片 -->
       <image
         class="card-image"
         src="{{item.imageUrl || 'https://via.placeholder.com/150x210/1a1a2e/e94560?text=' + item.name}}"
         mode="aspectFill"
       />
-      <!-- 卡牌信息 -->
       <view class="card-info">
         <text class="card-name">{{item.name}}</text>
         <text class="card-type">{{item.type}}</text>
-        <view class="card-meta">
-          <text class="card-mana" wx:if="{{item.manaCost}}">{{item.manaCost}}</text>
-          <text class="card-set" wx:if="{{item.setName}}">{{item.setName}}</text>
-        </view>
       </view>
     </view>
   </view>
@@ -54,14 +52,12 @@
   <view class="no-results" wx:if="{{searchDone && cards.length === 0 && keyword}}">
     <text class="no-results-icon">🃏</text>
     <text class="no-results-text">未找到卡牌「{{keyword}}」</text>
-    <text class="no-results-hint">请检查卡牌名称是否正确</text>
   </view>
 
   <!-- 初始提示 -->
   <view class="init-hint" wx:if="{{!keyword && cards.length === 0 && !showDetail}}">
     <text class="hint-icon">🔍</text>
     <text class="hint-text">输入卡牌名称查询详细信息</text>
-    <text class="hint-examples">例如：闪电击、析米克生长师、心神不安</text>
   </view>
 
   <!-- 加载中 -->
@@ -70,45 +66,89 @@
   </view>
 </view>
 
-<!-- 卡牌详情弹窗 -->
-<view class="card-detail-modal" wx:if="{{showDetail}}" bindtap="closeDetail">
-  <view class="detail-content" catchtap="preventClose">
-    <view class="detail-close" bindtap="closeDetail">✕</view>
-    
-    <!-- 卡牌图片 -->
+<!-- 卡牌详情页 -->
+<view class="card-detail-page {{isLightTheme ? 'page-light' : ''}}" wx:if="{{showDetail && currentCard}}">
+  <!-- 导航栏 -->
+  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
+    <view class="nav-left">
+      <view class="back-btn" bindtap="closeDetail">←</view>
+    </view>
+    <view class="nav-title">
+      <text>卡牌详情</text>
+    </view>
+    <view class="nav-right"></view>
+  </view>
+
+  <!-- 卡牌图片 -->
+  <view class="detail-image-container">
     <image
       class="detail-image"
-      src="{{currentCard.imageUrl || 'https://via.placeholder.com/200x280/1a1a2e/e94560?text=' + currentCard.name}}"
+      src="{{currentCard.imageUrl}}"
       mode="aspectFit"
+      binderror="onImageError"
     />
-    
-    <!-- 卡牌信息 -->
-    <view class="detail-info">
+  </view>
+
+  <!-- 卡牌信息 -->
+  <view class="detail-content">
+    <!-- 名称 -->
+    <view class="detail-name-section">
       <text class="detail-name">{{currentCard.name}}</text>
-      
-      <view class="detail-row">
-        <text class="detail-label">法力费用</text>
-        <text class="detail-value">{{currentCard.manaCost || '-'}}</text>
+      <text class="detail-en-name" wx:if="{{currentCard.enName && currentCard.enName !== currentCard.name}}">{{currentCard.enName}}</text>
+    </view>
+
+    <!-- 基础信息 -->
+    <view class="info-card">
+      <view class="info-row" wx:if="{{currentCard.manaCost}}">
+        <text class="info-label">法力费用</text>
+        <text class="info-value mana">{{currentCard.manaCost}}</text>
       </view>
-      
-      <view class="detail-row">
-        <text class="detail-label">类型</text>
-        <text class="detail-value">{{currentCard.type || '-'}}</text>
+      <view class="info-row">
+        <text class="info-label">类型</text>
+        <text class="info-value">{{currentCard.type}}</text>
       </view>
-      
-      <view class="detail-section" wx:if="{{currentCard.text}}">
-        <text class="detail-section-title">规则文本</text>
-        <text class="detail-oracle">{{currentCard.text}}</text>
+      <view class="info-row" wx:if="{{currentCard.power}}">
+        <text class="info-label">力量/防御</text>
+        <text class="info-value">{{currentCard.power}}/{{currentCard.toughness}}</text>
       </view>
-      
-      <view class="detail-row" wx:if="{{currentCard.power}}">
-        <text class="detail-label">力量/防御</text>
-        <text class="detail-value">{{currentCard.power}}/{{currentCard.toughness}}</text>
+      <view class="info-row" wx:if="{{currentCard.setName}}">
+        <text class="info-label">所属系列</text>
+        <text class="info-value">{{currentCard.setName}}</text>
       </view>
-      
-      <view class="detail-row" wx:if="{{currentCard.setName}}">
-        <text class="detail-label">所属系列</text>
-        <text class="detail-value">{{currentCard.setName}}</text>
+    </view>
+
+    <!-- 关键词异能 -->
+    <view class="section" wx:if="{{currentCard.keywords && currentCard.keywords.length > 0}}">
+      <text class="section-title">关键词异能</text>
+      <view class="keyword-tags">
+        <text class="keyword-tag" wx:for="{{currentCard.keywords}}" wx:key="index">{{item}}</text>
+      </view>
+    </view>
+
+    <!-- Oracle 规则文本 -->
+    <view class="section" wx:if="{{currentCard.text}}">
+      <text class="section-title">规则文本</text>
+      <view class="oracle-card">
+        <text class="oracle-text">{{currentCard.text}}</text>
+      </view>
+    </view>
+
+    <!-- 英文 Oracle -->
+    <view class="section en" wx:if="{{currentCard.enText && currentCard.enText !== currentCard.text}}">
+      <text class="section-title">English Oracle</text>
+      <view class="oracle-card en">
+        <text class="oracle-text">{{currentCard.enText}}</text>
+      </view>
+    </view>
+
+    <!-- 官方裁定 -->
+    <view class="section" wx:if="{{currentCard.rulings && currentCard.rulings.length > 0}}">
+      <text class="section-title">官方裁定</text>
+      <view class="rulings-list">
+        <view class="ruling-item" wx:for="{{currentCard.rulings}}" wx:key="index">
+          <text class="ruling-date">{{item.published_at}}</text>
+          <text class="ruling-text">{{item.comment}}</text>
+        </view>
       </view>
     </view>
   </view>

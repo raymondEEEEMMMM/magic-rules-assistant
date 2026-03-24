@@ -1,55 +1,71 @@
 <!--pages/agent/agent.wxml-->
-<view class="container">
-  <!-- 顶部工具栏 -->
-  <view class="toolbar">
-    <view class="mode-toggle">
-      <view class="toggle-btn {{shortMode ? '' : 'active'}}" bindtap="setShortMode" data-mode="false">
-        标准
-      </view>
-      <view class="toggle-btn {{shortMode ? 'active' : ''}}" bindtap="setShortMode" data-mode="true">
-        简洁
-      </view>
+<view class="container {{isLightTheme ? 'page-light' : ''}}">
+  <!-- 顶部导航栏 -->
+  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
+    <view class="nav-left">
+      <view class="back-btn" bindtap="goBack">←</view>
     </view>
-    <view class="toolbar-btns">
-      <view class="toolbar-btn" bindtap="clearSession">清除</view>
-      <view class="toolbar-btn" bindtap="newSession">新建</view>
+    <view class="nav-title">
+      <view class="ai-badge">⚖️</view>
+      <text>AI 裁判</text>
+    </view>
+    <view class="nav-right">
+      <view class="theme-toggle" bindtap="toggleTheme">{{isLightTheme ? '🌙' : '☀️'}}</view>
+      <view class="nav-btn" bindtap="clearSession">清空</view>
     </view>
   </view>
 
   <!-- 消息列表 -->
   <scroll-view class="message-list" scroll-y="true" scroll-into-view="{{scrollIntoView}}">
     <!-- 欢迎消息 -->
-    <view class="message welcome-message" wx:if="{{messages.length === 0}}">
-      <view class="avatar bot-avatar">{{aiAvatar}}</view>
-      <view class="bubble">
-        <text class="welcome-title">你好！我是 AI 裁判机器人！</text>
-        <text class="welcome-desc">我可以回答任何关于万智牌规则的问题，例如：</text>
-        <text class="welcome-example">• "闪电击和塔莫耶夫敏捷的伤害顺序？"</text>
-        <text class="welcome-example">• "反对派密探在多人游戏中如何运作？"</text>
-        <text class="welcome-example">• "能否响应触发式异能？"</text>
+    <view class="welcome-wrapper" wx:if="{{messages.length === 0}}">
+      <view class="welcome-ai">
+        <view class="welcome-avatar">⚖️</view>
+        <view class="welcome-bubble">
+          <text class="welcome-greeting">你好！我是 AI 裁判机器人</text>
+          <text class="welcome-text">可以问我任何万智牌规则问题，比如：</text>
+          <view class="welcome-examples">
+            <view class="example-item" bindtap="useExample" data-q="闪电击和塔莫耶夫的敏捷先结算哪个？">
+              ⚡ 伤害结算顺序
+            </view>
+            <view class="example-item" bindtap="useExample" data-q="响应触发式异能有什么限制？">
+              ⏱️ 响应时机
+            </view>
+            <view class="example-item" bindtap="useExample" data-q="多人大决斗中反对派如何运作？">
+              👥 多人游戏规则
+            </view>
+            <view class="example-item" bindtap="useExample" data-q="结界和灵气有什么区别？">
+              ✨ 结界与灵气
+            </view>
+          </view>
+        </view>
       </view>
     </view>
 
     <!-- 消息列表 -->
     <view class="message {{item.role}}" wx:for="{{messages}}" wx:key="index" id="msg-{{index}}">
-      <view wx:if="{{item.role === 'assistant'}}" class="avatar bot-avatar">{{aiAvatar}}</view>
-      <view wx:else class="avatar user-avatar">👤</view>
-      <view class="bubble {{item.role}}">
-        <!-- 用户消息 -->
-        <text wx:if="{{item.role === 'user'}}">{{item.content}}</text>
-        <!-- AI 消息 - 使用 rich-text 渲染 Markdown -->
-        <rich-text wx:else nodes="{{item.parsedNodes}}"></rich-text>
+      <view class="message-main">
+        <view wx:if="{{item.role === 'assistant'}}" class="avatar bot-avatar">⚖️</view>
+        <view class="bubble {{item.role}}">
+          <text wx:if="{{item.role === 'user'}}">{{item.content}}</text>
+          <rich-text wx:else nodes="{{item.parsedNodes}}"></rich-text>
+        </view>
+        <view wx:if="{{item.role === 'user'}}" class="avatar user-avatar">👤</view>
       </view>
+      <view class="message-time" wx:if="{{item.time}}">{{item.time}}</view>
     </view>
 
     <!-- Loading -->
     <view class="message bot" wx:if="{{loading}}">
-      <view class="avatar bot-avatar">{{aiAvatar}}</view>
-      <view class="bubble loading-bubble">
-        <view class="loading-dots">
-          <view class="dot"></view>
-          <view class="dot"></view>
-          <view class="dot"></view>
+      <view class="message-main">
+        <view class="avatar bot-avatar">⚖️</view>
+        <view class="bubble loading-bubble">
+          <text class="loading-text">思考中</text>
+          <view class="loading-dots">
+            <view class="dot"></view>
+            <view class="dot"></view>
+            <view class="dot"></view>
+          </view>
         </view>
       </view>
     </view>
@@ -57,19 +73,21 @@
 
   <!-- 输入区域 -->
   <view class="input-area">
-    <input
-      class="input-box"
-      type="text"
-      placeholder="输入你的问题..."
-      placeholder-class="input-placeholder"
-      bindinput="onInput"
-      bindconfirm="sendMessage"
-      value="{{inputValue}}"
-      confirm-type="send"
-      maxlength="500"
-    />
-    <view class="send-btn {{inputValue ? 'active' : ''}}" bindtap="sendMessage">
-      <text>发送</text>
+    <view class="input-wrapper">
+      <input
+        class="input-box"
+        type="text"
+        placeholder="输入万智牌规则问题..."
+        placeholder-class="input-placeholder"
+        bindinput="onInput"
+        bindconfirm="sendMessage"
+        value="{{inputValue}}"
+        confirm-type="send"
+        maxlength="500"
+      />
+      <view class="send-btn {{inputValue && !loading ? 'active' : ''}}" bindtap="sendMessage">
+        <text>发送</text>
+      </view>
     </view>
   </view>
 </view>

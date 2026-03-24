@@ -45,6 +45,18 @@ const api = {
   },
 
   /**
+   * 获取规则详情
+   * @param {string} ruleNumber - 规则编号（如 702.9）
+   * @returns {Promise}
+   */
+  getRule(ruleNumber) {
+    if (!ruleNumber || !ruleNumber.trim()) {
+      return Promise.reject('请输入规则编号')
+    }
+    return this.request('/api/rule', { n: ruleNumber })
+  },
+
+  /**
    * 搜索卡牌
    * @param {string} cardName - 卡牌名称
    * @param {number} page - 页码（默认 1）
@@ -55,7 +67,7 @@ const api = {
     if (!cardName || !cardName.trim()) {
       return Promise.reject('请输入卡牌名称')
     }
-    return this.request('/api/mtgch/search', {
+    return this.request('/api/card', {
       q: cardName,
       page,
       page_size: pageSize
@@ -96,6 +108,24 @@ const api = {
   },
 
   /**
+   * 获取卡牌官方裁定（通过 Scryfall API）
+   * @param {string} cardId - MTGCH 卡牌 UUID（也是 Scryfall card ID）
+   * @returns {Promise}
+   */
+  getCardRulings(cardId) {
+    return new Promise((resolve, reject) => {
+      wx.request({
+        url: `https://api.scryfall.com/cards/${cardId}/rulings`,
+        success: res => {
+          const rulings = res.data?.data || []
+          resolve(rulings)
+        },
+        fail: () => resolve([])
+      })
+    })
+  },
+
+  /**
    * 自动补全
    * @param {string} query - 搜索前缀
    * @param {number} size - 返回数量（默认 10）
@@ -114,37 +144,22 @@ const api = {
    * AI 裁判问答
    * @param {string} message - 用户问题
    * @param {string} sessionId - 会话 ID（可选）
+   * @param {string} openid - 用户 openid（可选，用于 per-user agent 隔离）
    * @returns {Promise}
    */
-  aiJudgeChat(message, sessionId = 'miniprogram') {
+  aiJudgeChat(message, sessionId = 'miniprogram', openid = null) {
     if (!message || !message.trim()) {
       return Promise.reject('请输入问题')
     }
-    return this.request('/api/ai-judge/chat', {
+    const data = {
       message,
       session_id: sessionId
-    }, { method: 'POST', showLoading: false })
-  },
-
-  /**
-   * AI 裁判局势分析
-   * @param {string} gameState - 游戏状态描述
-   * @param {string} question - 具体问题
-   * @param {string} sessionId - 会话 ID（可选）
-   * @returns {Promise}
-   */
-  aiJudgeAnalyze(gameState, question, sessionId = 'miniprogram') {
-    if (!gameState || !gameState.trim()) {
-      return Promise.reject('请输入游戏状态')
     }
-    if (!question || !question.trim()) {
-      return Promise.reject('请输入问题')
+    // 如果提供了 openid，添加到请求中
+    if (openid) {
+      data.openid = openid
     }
-    return this.request('/api/ai-judge/analyze', {
-      game_state: gameState,
-      question,
-      session_id: sessionId
-    }, { method: 'POST' })
+    return this.request('/api/ai-judge/chat', data, { method: 'POST', showLoading: false })
   },
 
   /**
@@ -191,12 +206,12 @@ const api = {
         }
         callData.queryString = queryParts.join('&')
         delete callData.path
-        callData.path = '/' + path
+        callData.path = path.startsWith('/') ? path : '/' + path
       } else {
         // POST 请求
         callData.body = JSON.stringify(data)
         delete callData.path
-        callData.path = '/' + path
+        callData.path = path.startsWith('/') ? path : '/' + path
       }
 
       wx.cloud.callFunction({
@@ -213,14 +228,24 @@ const api = {
             return
           }
 
-          // 云函数返回的是 { statusCode, headers, body }
+          // 云函数返回的是 { statusCode, headers, body } 或直接是数据
           let result = res.result
-          if (result && result.body) {
-            // 解析 body 字符串
-            try {
-              result = typeof result.body === 'string' ? JSON.parse(result.body) : result.body
-            } catch (e) {
-              console.error('解析响应失败:', e)
+          if (result) {
+            // 如果有 body 字段，解析它
+            if (result.body) {
+              try {
+                result = typeof result.body === 'string' ? JSON.parse(result.body) : result.body
+              } catch (e) {
+                console.error('解析响应失败:', e)
+              }
+            }
+            // 如果 result 仍然是字符串，尝试解析
+            if (typeof result === 'string') {
+              try {
+                result = JSON.parse(result)
+              } catch (e) {
+                // 解析失败，保持原值
+              }
             }
           }
 
