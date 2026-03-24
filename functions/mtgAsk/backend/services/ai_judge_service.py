@@ -995,10 +995,10 @@ class AIJudgeService:
         # 简短模式：使用简化版系统提示词
         if short_mode:
             system_prompt = self._get_short_system_prompt()
-            max_history = 2  # 简短模式只保留最近1轮对话
+            max_history = 4  # 简短模式只保留最近2轮对话
         else:
             system_prompt = self.system_prompt
-            max_history = 20  # 普通模式保留最近10轮对话
+            max_history = 10  # 普通模式保留最近5轮对话（控制 token 消耗）
 
         # 获取或初始化会话历史
         if session_id not in self.conversation_history:
@@ -1012,8 +1012,8 @@ class AIJudgeService:
 
         history = self.conversation_history[session_id]
 
-        # 简短模式：只保留 system + 最近 max_history 条消息
-        if short_mode and len(history) > max_history + 1:
+        # 自动截断：只保留 system + 最近 max_history 条消息（控制 token 消耗）
+        if len(history) > max_history + 1:
             history = [history[0]] + history[-(max_history):]
 
         # 添加用户消息（增强版）
@@ -1064,9 +1064,9 @@ class AIJudgeService:
                 "reply_preview": reply[:200]
             })
 
-            # 限制历史长度（保留 system + 最近10轮对话）
-            if len(history) > 21:
-                self.conversation_history[session_id] = [history[0]] + history[-20:]
+            # 限制历史长度（保留 system + 最近 max_history 条消息）
+            if len(history) > max_history + 1:
+                self.conversation_history[session_id] = [history[0]] + history[-(max_history):]
 
             return {
                 "success": True,
@@ -1182,10 +1182,10 @@ class AIJudgeService:
         # 简短模式：使用简化版系统提示词
         if short_mode:
             system_prompt = self._get_short_system_prompt()
-            max_history = 2  # 简短模式只保留最近1轮对话
+            max_history = 4  # 简短模式只保留最近2轮对话
         else:
             system_prompt = self.system_prompt
-            max_history = 20  # 普通模式保留最近10轮对话
+            max_history = 10  # 普通模式保留最近5轮对话（控制 token 消耗）
 
         # 获取或初始化会话历史
         if session_id not in self.conversation_history:
@@ -1199,8 +1199,8 @@ class AIJudgeService:
 
         history = self.conversation_history[session_id]
 
-        # 简短模式：只保留 system + 最近 max_history 条消息
-        if short_mode and len(history) > max_history + 1:
+        # 自动截断：只保留 system + 最近 max_history 条消息（控制 token 消耗）
+        if len(history) > max_history + 1:
             history = [history[0]] + history[-(max_history):]
 
         # 添加用户消息（增强版）
