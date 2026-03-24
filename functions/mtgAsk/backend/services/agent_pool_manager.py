@@ -199,6 +199,10 @@ class AgentPoolManager:
                 # 清理残留目录
                 cleanup_cmd = f'rm -rf /home/openclaw/agents/{agent_name}'
                 ssh.exec_command(cleanup_cmd, timeout=10)
+                # 清理 Docker 容器
+                container_pattern = f'openclaw-sbx-agent-{agent_name}-main-*'
+                docker_rm_cmd = f'docker ps -aq --filter "name={container_pattern}" | xargs -r docker rm -f 2>/dev/null; echo "Container cleanup done"'
+                ssh.exec_command(docker_rm_cmd, timeout=30)
                 return True
         except Exception as e:
             print(f"[AgentPool] 销毁远程 Agent 失败: {e}")
