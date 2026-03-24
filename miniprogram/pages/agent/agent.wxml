@@ -11,8 +11,6 @@
     </view>
     <view class="nav-right">
       <view class="theme-toggle" bindtap="toggleTheme">{{isLightTheme ? '🌙' : '☀️'}}</view>
-      <view class="nav-btn" bindtap="newSession">新建</view>
-      <view class="nav-btn" bindtap="clearSession">清空</view>
     </view>
   </view>
 
@@ -74,6 +72,12 @@
 
   <!-- 输入区域 -->
   <view class="input-area">
+    <!-- 新建会话按钮 -->
+    <view class="new-session-bar">
+      <view class="new-session-btn" bindtap="newSession">
+        <text>新建会话</text>
+      </view>
+    </view>
     <view class="input-wrapper">
       <input
         class="input-box"
