@@ -35,6 +35,8 @@ page {
   font-size: 28rpx;
   color: rgba(255, 255, 255, 0.6);
   text-align: right;
+  position: relative;
+  z-index: 100;
 }
 
 .theme-toggle {
