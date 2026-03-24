@@ -293,33 +293,27 @@ page {
   border-top: 1rpx solid rgba(255, 255, 255, 0.08);
 }
 
-/* 新建会话按钮栏 */
-.new-session-bar {
-  display: flex;
-  justify-content: flex-start;
-  margin-bottom: 16rpx;
+/* 新建会话悬浮按钮 */
+.floating-new-session {
+  position: fixed;
+  right: 30rpx;
+  bottom: 200rpx;
+  padding: 16rpx 28rpx;
+  border-radius: 50rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4rpx 20rpx rgba(102, 126, 234, 0.4);
+  z-index: 50;
 }
 
-.new-session-btn {
-  padding: 12rpx 32rpx;
-  border-radius: 40rpx;
-  background: rgba(255, 215, 0, 0.15);
-  border: 1rpx solid rgba(255, 215, 0, 0.3);
-}
-
-.new-session-btn text {
+.floating-new-session text {
   font-size: 26rpx;
-  color: #ffd700;
+  color: #ffffff;
 }
 
-/* 日间主题新建按钮 */
-.page-light .new-session-btn {
-  background: rgba(102, 126, 234, 0.1);
-  border-color: rgba(102, 126, 234, 0.3);
-}
-
-.page-light .new-session-btn text {
-  color: #667eea;
+/* 日间主题悬浮按钮 */
+.page-light .floating-new-session {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4rpx 20rpx rgba(102, 126, 234, 0.3);
 }
 
 .input-wrapper {
