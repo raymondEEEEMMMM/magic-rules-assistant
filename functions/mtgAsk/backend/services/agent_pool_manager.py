@@ -346,10 +346,46 @@ class AgentPoolManager:
         try:
             with OpenCLAWClient() as client:
                 ssh = client._get_ssh_client()
-                # 重置 agent 会话
-                cmd = f'bash -i -c "openclaw agents delete {agent_name} --force && openclaw agents add {agent_name} --workspace /home/openclaw/agents/{agent_name} --non-interactive --json" 2>&1'
-                ssh.exec_command(cmd, timeout=60)
+
+                # 1. 先清理该 agent 的会话历史
+                cleanup_cmd = f'bash -i -c "openclaw sessions cleanup --enforce --agent {agent_name}" 2>&1'
+                stdin, stdout, stderr = ssh.exec_command(cleanup_cmd, timeout=60)
+                cleanup_output = stdout.read().decode().strip()
+                print(f"[AgentPool] 会话清理结果: {cleanup_output[:200]}")
+
+                # 2. 删除并重建 agent
+                reset_cmd = f'bash -i -c "openclaw agents delete {agent_name} --force && openclaw agents add {agent_name} --workspace /home/openclaw/agents/{agent_name} --non-interactive --json" 2>&1'
+                ssh.exec_command(reset_cmd, timeout=60)
                 return True
         except Exception as e:
             print(f"[AgentPool] 重置 Agent 失败: {e}")
             return False
+
+    def cleanup_all_sessions(self) -> dict:
+        """
+        清理所有过期的会话（可作为定时任务调用）
+
+        Returns:
+            清理结果统计
+        """
+        try:
+            with OpenCLAWClient() as client:
+                ssh = client._get_ssh_client()
+
+                # 清理所有过期会话
+                cleanup_cmd = 'bash -i -c "openclaw sessions cleanup --enforce" 2>&1'
+                stdin, stdout, stderr = ssh.exec_command(cleanup_cmd, timeout=120)
+                cleanup_output = stdout.read().decode().strip()
+
+                print(f"[AgentPool] 全局会话清理结果: {cleanup_output[:200]}")
+
+                return {
+                    "success": True,
+                    "output": cleanup_output[:500]
+                }
+        except Exception as e:
+            print(f"[AgentPool] 全局会话清理失败: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
