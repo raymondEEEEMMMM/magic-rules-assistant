@@ -71,7 +71,7 @@ tcb fn invoke mtgAsk --params '{"httpMethod":"GET","path":"/","queryString":""}'
 
 ```
 functions/mtgAsk/
-├── index.py                    # Cloud function entry point (main_handler)
+├── index.py                    # Cloud function entry point (main)
 ├── backend/
 │   ├── routes.py               # FastAPI routes definition
 │   ├── database.py             # MySQL/SQLite data access layer
@@ -120,15 +120,14 @@ miniprogram/
 | `/api/card` | GET | Card rule lookup |
 | `/api/rules/update` | POST | Update rules from source |
 | `/api/rules/status` | GET | Get rule version status |
-| `/api/ai-judge/chat` | POST | AI Judge chat |
-| `/api/ai-judge/analyze` | POST | AI Judge game analysis |
+| `/api/ai-judge/chat` | POST | AI Judge chat (支持 per-user agent 隔离) |
 | `/api/ai-judge/clear` | POST | Clear AI Judge session |
 
 ### Cloud Function Configuration
 
 Defined in `cloudbaserc.json`:
-- Runtime: Python 3.9
-- Handler: `index.main_handler`
+- Runtime: Python 3.10
+- Handler: `index.main`
 - Timeout: 60 seconds
 - Memory: 512 MB
 
@@ -165,6 +164,8 @@ Key variables (in `.env.local` for local, `cloudbaserc.json` for cloud):
 - `MINIMAX_API_KEY` - MiniMax API key (used by OpenCLAW Gateway)
 - `OPENCLAW_ENABLED` - Enable OpenCLAW Gateway (default: true)
 - `OPENCLAW_GATEWAY_URL` - OpenCLAW Gateway URL
+- `OPENCLAW_SSH_USER`, `OPENCLAW_SSH_KEY_CONTENT` - SSH access to Gateway host
+- `OPENCLAW_PORT` - SSH port (default: 22)
 
 ## Key Design Patterns
 
@@ -201,9 +202,10 @@ Key variables (in `.env.local` for local, `cloudbaserc.json` for cloud):
 ### AI Judge Feature (Phase 2) ✅
 - Integrated OpenCLAW Gateway for AI-powered rule Q&A
 - Uses ai_judge skill with MiniMax API
-- Chat interface: `裁判:问题` or `POST /api/ai-judge/chat`
-- Game analysis: `POST /api/ai-judge/analyze`
-- Supports conversation history per session
+- Chat interface: `POST /api/ai-judge/chat`
+- Per-user agent isolation: each user gets independent OpenCLAW agent
+- Agent workspace: `/home/openclaw/agents/user_{sanitized_openid}`
+- Docker sandbox auto-creates containers per agent
 - Gateway deployed on CloudBase Run: `https://openclaw-gateway-233331-7-1410769303.sh.run.tcloudbase.com`
 
 ### Upcoming Features

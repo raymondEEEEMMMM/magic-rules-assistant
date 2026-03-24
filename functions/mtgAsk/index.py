@@ -6,10 +6,12 @@ import json
 import os
 import sys
 
-# 添加 backend 目录到路径
+# 添加 vendor 依赖和 backend 目录到路径
+vendor_path = os.path.join(os.path.dirname(__file__), 'vendor')
+sys.path.insert(0, vendor_path)
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 
-def main_handler(event, context):
+def main(event, context):
     """
     CloudBase HTTP 函数入口
     """
@@ -177,27 +179,85 @@ def main_handler(event, context):
         elif path in ('/api/mtgch/autocomplete', '/mtgch/autocomplete'):
             # 自动补全
             from backend.services.mtgch_api import MTGCHAPIClient
-            
+
             q = query_params.get('q', '')
             size = int(query_params.get('size', 10))
-            
+
             if not q:
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json'},
                     'body': json.dumps({'error': '缺少查询参数 q'})
                 }
-            
+
             client = MTGCHAPIClient()
             result = client.autocomplete(q, size=size)
             client.close()
-            
+
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json'},
                 'body': json.dumps(result, ensure_ascii=False)
             }
-        
+
+        elif path == '/api/ai-judge/chat' and http_method == 'POST':
+            # AI 裁判对话
+            from backend.services.ai_judge_service import ai_judge_service
+
+            try:
+                body_data = json.loads(body) if body else {}
+            except json.JSONDecodeError:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'error': 'Invalid JSON body'})
+                }
+
+            message = body_data.get('message', '')
+            session_id = body_data.get('session_id', 'default')
+            clear_history = body_data.get('clear_history', False)
+            short_mode = body_data.get('short_mode', False)
+            openid = body_data.get('openid', None)
+
+            if not message:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'reply': '消息不能为空'})
+                }
+
+            # 如果请求清除历史
+            if clear_history:
+                ai_judge_service.clear_session(session_id)
+
+            result = ai_judge_service.chat(message, session_id, short_mode=short_mode, openid=openid)
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps(result, ensure_ascii=False)
+            }
+
+        elif path == '/api/ai-judge/clear' and http_method == 'POST':
+            # 清除 AI 裁判会话
+            from backend.services.ai_judge_service import ai_judge_service
+
+            try:
+                body_data = json.loads(body) if body else {}
+            except json.JSONDecodeError:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'error': 'Invalid JSON body'})
+                }
+
+            session_id = body_data.get('session_id', 'default')
+            ai_judge_service.clear_session(session_id)
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'success': True, 'message': '会话已清除'})
+            }
+
         else:
             # 未知路径
             return {
@@ -213,7 +273,9 @@ def main_handler(event, context):
                         '/api/card',
                         '/api/mtgch/card',
                         '/api/mtgch/random',
-                        '/api/mtgch/autocomplete'
+                        '/api/mtgch/autocomplete',
+                        '/api/ai-judge/chat',
+                        '/api/ai-judge/clear'
                     ]
                 })
             }

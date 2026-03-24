@@ -1,26 +1,16 @@
 {
-  "envId": "magic-rules-assistant-0a1904c329",
-  "version": "2.0",
-  "$schema": "https://framework-1258016615.tcloudbaseapp.com/schema/latest.json",
-  "functionRootPath": "functions/mtgAsk",
+  "envId": "{{env.ENV_ID}}",
+  "cloudrun": {
+    "name": "openclaw-gateway"
+  },
+  "functionRoot": "./functions",
   "functions": [
     {
       "name": "mtgAsk",
-      "description": "mtgAsk - 万智牌规则问答 API",
-      "runtime": "Python3.10",
-      "handler": "scf_index.main_handler",
-      "timeout": 60,
-      "memorySize": 512,
-      "envVariables": {
-        "ENVIRONMENT": "production",
-        "WECHAT_TOKEN": "wx_mtg_rules_2024",
-        "MYSQL_HOST": "sh-cynosdbmysql-grp-5ydpqjru.sql.tencentcdb.com",
-        "MYSQL_PORT": "27987",
-        "MYSQL_USER": "mtgask",
-        "MYSQL_PASSWORD": "Ray19940211",
-        "MYSQL_DATABASE": "magic-rules-assistant-0a1904c329",
-        "MINIMAX_API_KEY": "sk-cp-URGDcJUIBuZU7atnoz9ZCeyMg727_U_3FB-X7s3ajAQhBbhaSr0YEZhpClEclCGDsD6kZ8uIbetXHfvA2NZBMWOZf62jUlizfitxhq-9S_P4q79nfOYFI_4"
-      }
+      "runtime": "Python3.10"
     }
-  ]
+  ],
+  "ai": {
+    "defaultAgent": "{{env.AI_DEFAULT_AGENT}}"
+  }
 }
