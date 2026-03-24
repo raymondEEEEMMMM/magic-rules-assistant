@@ -91,11 +91,7 @@ class AgentPoolManager:
                 # 2. 注入 MTG prompt 到 workspace
                 self._inject_mtg_prompt(ssh, workspace_dir)
 
-                # 3. 链接 skills 目录到 workspace
-                skills_link = f"ln -sf /home/openclaw/.openclaw/workspace/skills {workspace_dir}/skills"
-                ssh.exec_command(skills_link, timeout=10)
-
-                # 4. 在 host 上注册 agent（不是容器内！）
+                # 3. 在 host 上注册 agent（不是容器内！）
                 # 这个命令会修改 openclaw.json，添加 agent 配置
                 register_cmd = f"bash -i -c 'openclaw agents add {agent_name} --workspace {workspace_dir} --non-interactive --json' 2>&1"
                 stdin, stdout, stderr = ssh.exec_command(register_cmd, timeout=60)
