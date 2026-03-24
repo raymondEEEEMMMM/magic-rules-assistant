@@ -11,7 +11,7 @@
     </view>
     <view class="nav-right">
       <view class="theme-toggle" bindtap="toggleTheme">{{isLightTheme ? '🌙' : '☀️'}}</view>
-      <view class="nav-btn" bindtap="cleanupSessions">清理</view>
+      <view class="nav-btn" bindtap="newSession">新建</view>
       <view class="nav-btn" bindtap="clearSession">清空</view>
     </view>
   </view>
