@@ -446,6 +446,34 @@ async def ai_judge_new_session(
     return result
 
 
+# ==================== 管理 API ====================
+
+@app.post("/api/admin/cleanup-sessions")
+async def admin_cleanup_sessions():
+    """
+    清理所有 OpenCLAW 过期会话
+
+    调用 openclaw sessions cleanup --enforce 清理累积的会话历史
+    """
+    from services.agent_pool_manager import AgentPoolManager
+
+    manager = AgentPoolManager()
+    result = manager.cleanup_all_sessions()
+    return result
+
+
+@app.post("/api/admin/agent-pool/stats")
+async def admin_agent_pool_stats():
+    """
+    获取 Agent 池统计信息
+    """
+    from services.agent_pool_manager import AgentPoolManager
+
+    manager = AgentPoolManager()
+    stats = manager.get_pool_stats()
+    return {"success": True, "stats": stats}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host=Config.API_HOST, port=Config.API_PORT)

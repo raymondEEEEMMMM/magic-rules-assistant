@@ -286,6 +286,30 @@ def main(event, context):
                 'body': json.dumps({'success': True, 'message': '会话已清除'})
             }
 
+        elif path == '/api/admin/cleanup-sessions' and http_method == 'POST':
+            # 清理所有 OpenCLAW 过期会话
+            from backend.services.agent_pool_manager import AgentPoolManager
+
+            manager = AgentPoolManager()
+            result = manager.cleanup_all_sessions()
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps(result, ensure_ascii=False)
+            }
+
+        elif path == '/api/admin/agent-pool/stats' and http_method == 'POST':
+            # 获取 Agent 池统计信息
+            from backend.services.agent_pool_manager import AgentPoolManager
+
+            manager = AgentPoolManager()
+            stats = manager.get_pool_stats()
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'success': True, 'stats': stats}, ensure_ascii=False)
+            }
+
         else:
             # 未知路径
             return {
@@ -304,7 +328,9 @@ def main(event, context):
                         '/api/mtgch/random',
                         '/api/mtgch/autocomplete',
                         '/api/ai-judge/chat',
-                        '/api/ai-judge/clear'
+                        '/api/ai-judge/clear',
+                        '/api/admin/cleanup-sessions',
+                        '/api/admin/agent-pool/stats'
                     ]
                 })
             }
