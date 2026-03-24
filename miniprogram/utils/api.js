@@ -174,6 +174,22 @@ const api = {
   },
 
   /**
+   * 清理 OpenCLAW 会话（清理过期会话历史）
+   * @returns {Promise}
+   */
+  cleanupSessions() {
+    return this.request('/api/admin/cleanup-sessions', {}, { method: 'POST' })
+  },
+
+  /**
+   * 获取 Agent 池统计信息
+   * @returns {Promise}
+   */
+  getAgentPoolStats() {
+    return this.request('/api/admin/agent-pool/stats', {}, { method: 'POST' })
+  },
+
+  /**
    * 通用请求方法 - 使用 wx.cloud.callFunction
    * @param {string} path - 请求路径
    * @param {object} data - 请求数据

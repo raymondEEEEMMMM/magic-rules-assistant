@@ -29,6 +29,10 @@
 | `/wechat/api/mtgch/search` | GET | MTGCH 卡牌搜索（支持中文） |
 | `/wechat/api/mtgch/card` | GET | MTGCH 单张卡牌详情 |
 | `/wechat/api/mtgch/autocomplete` | GET | MTGCH 自动补全 |
+| `/api/ai-judge/chat` | POST | AI 裁判对话 |
+| `/api/ai-judge/clear` | POST | 清除 AI 裁判会话 |
+| `/api/admin/cleanup-sessions` | POST | 清理 OpenCLAW 会话 |
+| `/api/admin/agent-pool/stats` | POST | 获取 Agent 池统计 |
 
 ---
 
@@ -791,6 +795,95 @@ function askAIJudge(question) {
 
 // 使用
 askAIJudge('闪电击的伤害何时结算？')
+```
+
+---
+
+## 8. 管理接口 (Admin)
+
+### 8.1 清理 OpenCLAW 会话
+
+```
+POST /api/admin/cleanup-sessions
+```
+
+清理 OpenCLAW Gateway 累积的过期会话历史，解决响应超时问题。
+
+**请求参数**: 无
+
+**请求示例**
+```javascript
+wx.request({
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/api/admin/cleanup-sessions',
+  method: 'POST',
+  header: {
+    'Content-Type': 'application/json'
+  },
+  success(res) {
+    console.log(res.data)
+  }
+})
+```
+
+**响应示例**
+```json
+{
+  "success": true,
+  "output": "Applied maintenance. Current entries: 1"
+}
+```
+
+### 8.2 获取 Agent 池统计
+
+```
+POST /api/admin/agent-pool/stats
+```
+
+获取当前 Agent 池的使用状态。
+
+**请求参数**: 无
+
+**响应示例**
+```json
+{
+  "success": true,
+  "stats": {
+    "max_agents": 100,
+    "active_agents": 21,
+    "idle_agents": 0,
+    "utilization": "21/100 (21.0%)"
+  }
+}
+```
+
+### 小程序使用示例
+```javascript
+// 清理会话
+function cleanupSessions() {
+  wx.showModal({
+    title: '清理会话',
+    content: '确定要清理 OpenCLAW 过期会话吗？这可以解决响应超时问题。',
+    success(res) {
+      if (res.confirm) {
+        wx.showLoading({ title: '清理中...' })
+
+        wx.request({
+          url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/api/admin/cleanup-sessions',
+          method: 'POST',
+          header: { 'Content-Type': 'application/json' },
+          success(res) {
+            wx.hideLoading()
+            wx.showToast({ title: '已清理会话', icon: 'success' })
+          },
+          fail(err) {
+            wx.hideLoading()
+            wx.showToast({ title: '清理失败', icon: 'none' })
+          }
+        })
+      }
+    }
+  })
+}
 ```
 
 ---

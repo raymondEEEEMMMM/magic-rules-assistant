@@ -229,5 +229,36 @@ Page({
         }
       }
     })
+  },
+
+  // 清理 OpenCLAW 会话（清理服务器端过期会话历史）
+  cleanupSessions() {
+    const that = this
+
+    wx.showModal({
+      title: '清理会话',
+      content: '确定要清理 OpenCLAW 过期会话吗？这可以解决响应超时问题。',
+      success(res) {
+        if (res.confirm) {
+          wx.showLoading({ title: '清理中...' })
+
+          api.cleanupSessions().then(result => {
+            wx.hideLoading()
+            console.log('清理会话结果:', result)
+            wx.showToast({
+              title: '已清理会话',
+              icon: 'success'
+            })
+          }).catch(err => {
+            wx.hideLoading()
+            console.error('清理会话失败:', err)
+            wx.showToast({
+              title: '清理失败',
+              icon: 'none'
+            })
+          })
+        }
+      }
+    })
   }
 })
