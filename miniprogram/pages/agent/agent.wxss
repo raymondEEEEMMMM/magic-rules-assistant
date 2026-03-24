@@ -296,7 +296,7 @@ page {
 /* 新建会话按钮栏 */
 .new-session-bar {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   margin-bottom: 16rpx;
 }
 
