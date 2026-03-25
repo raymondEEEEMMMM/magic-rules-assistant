@@ -254,5 +254,12 @@ AI 裁判:
 4. 结论：可以，你需要响应在伤害造成前使用敏捷触发的伤害
 ```
 
+## 🤝 合作伙伴
+
+### MTG 裁判知识库
+- **项目**: [magic-comp-rules-zh-cn-agent](https://github.com/Kuuusoda/magic-comp-rules-zh-cn-agent)
+- **用途**: 提供 AI 裁判的技能（Skill）和裁判知识库
+- **本地路径**: `functions/mtgAsk/backend/data/magic-comp-rules-zh-cn-agent/`
+
 ## 📝 许可证
 MIT License

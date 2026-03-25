@@ -177,6 +177,14 @@ Key variables (in `.env.local` for local, `cloudbaserc.json` for cloud):
 
 4. **Scheduled Updates**: `scheduler.py` runs periodic rule updates using the `schedule` library
 
+## Partner Projects
+
+### MTG 裁判知识库
+- **Repo**: https://github.com/Kuuusoda/magic-comp-rules-zh-cn-agent
+- **用途**: 提供 AI 裁判的技能（Skill）和裁判知识库
+- **本地路径**: `functions/mtgAsk/backend/data/magic-comp-rules-zh-cn-agent/`
+- **说明**: 包含万智牌规则的中英文版本、关键词解释、参考文档等
+
 ## Important Files
 
 - `functions/mtgAsk/index.py` - Cloud function entry point
