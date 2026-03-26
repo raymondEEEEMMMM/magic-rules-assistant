@@ -88,10 +88,14 @@ class AgentPoolManager:
                 create_workspace = f"mkdir -p {workspace_dir} && chown -R openclaw:openclaw {workspace_dir}"
                 ssh.exec_command(create_workspace, timeout=10)
 
-                # 2. 注入 MTG prompt 到 workspace
+                # 2. 创建 skills 软链接（指向共享的 ai_judge skills）
+                skills_link = f"ln -sfn /home/openclaw/.openclaw/workspace/skills {workspace_dir}/skills"
+                ssh.exec_command(skills_link, timeout=10)
+
+                # 3. 注入 MTG prompt 到 workspace
                 self._inject_mtg_prompt(ssh, workspace_dir)
 
-                # 3. 在 host 上注册 agent（不是容器内！）
+                # 4. 在 host 上注册 agent（不是容器内！）
                 # 这个命令会修改 openclaw.json，添加 agent 配置
                 register_cmd = f"bash -i -c 'openclaw agents add {agent_name} --workspace {workspace_dir} --non-interactive --json' 2>&1"
                 stdin, stdout, stderr = ssh.exec_command(register_cmd, timeout=60)
@@ -356,6 +360,12 @@ class AgentPoolManager:
                 # 2. 删除并重建 agent
                 reset_cmd = f'bash -i -c "openclaw agents delete {agent_name} --force && openclaw agents add {agent_name} --workspace /home/openclaw/agents/{agent_name} --non-interactive --json" 2>&1'
                 ssh.exec_command(reset_cmd, timeout=60)
+
+                # 3. 确保 skills 软链接存在
+                workspace_dir = f"/home/openclaw/agents/{agent_name}"
+                skills_link = f'ln -sfn /home/openclaw/.openclaw/workspace/skills {workspace_dir}/skills'
+                ssh.exec_command(skills_link, timeout=10)
+
                 return True
         except Exception as e:
             print(f"[AgentPool] 重置 Agent 失败: {e}")
