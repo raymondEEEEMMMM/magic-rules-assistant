@@ -872,10 +872,9 @@ class AIJudgeService:
         current_time = time.time()
         last_time = self._last_request_time.get(rate_key, 0)
         if current_time - last_time < self._rate_limit_seconds:
-            remaining = int(self._rate_limit_seconds - (current_time - last_time))
             return {
                 "success": False,
-                "reply": f"请求过于频繁，请 {remaining} 秒后再试"
+                "reply": "异步处理中，请稍后刷新会话试试"
             }
         self._last_request_time[rate_key] = current_time
 

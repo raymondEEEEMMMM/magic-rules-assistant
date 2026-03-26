@@ -30,14 +30,13 @@
 
   <!-- 消息列表 -->
   <scroll-view class="message-list" scroll-y="true" scroll-into-view="{{scrollIntoView}}">
-    <!-- 悬浮按钮组 -->
-    <view class="floating-btn-group">
-      <view class="floating-refresh" bindtap="refreshMessages">
-        <text>↻</text>
-      </view>
-      <view class="floating-new-session" bindtap="newSession">
-        <text>+ 新建</text>
-      </view>
+    <!-- 刷新按钮 -->
+    <view class="floating-btn-group" bindtap="refreshMessages">
+      <text>↻</text>
+    </view>
+    <!-- 新建会话按钮 -->
+    <view class="floating-new-session" bindtap="newSession">
+      <text>+ 新建</text>
     </view>
     <!-- 欢迎消息 -->
     <view class="welcome-wrapper" wx:if="{{messages.length === 0}}">
