@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
 AI 裁判知识库同步脚本
-用于定时同步万智牌规则、卡牌数据到云存储，供 AI 裁判使用
+
+同步万智牌规则、卡牌数据到 OpenCLAW Gateway 服务器，
+供 AI 裁判 Agent 使用。
 
 知识库来源: https://github.com/Kuuusoda/magic-comp-rules-zh-cn-agent
 
@@ -9,6 +11,7 @@ AI 裁判知识库同步脚本
     python sync_judge_knowledge.py           # 同步所有知识
     python sync_judge_knowledge.py --rules   # 仅同步规则
     python sync_judge_knowledge.py --cards   # 仅同步卡牌
+    python sync_judge_knowledge.py --skill   # 同步到 OpenCLAW 服务器
     python sync_judge_knowledge.py --force   # 强制同步（忽略版本检查）
     python sync_judge_knowledge.py --schedule # 启动定时任务
 """
@@ -35,9 +38,6 @@ logger = logging.getLogger(__name__)
 
 class KnowledgeSync:
     """知识库同步器"""
-
-    # 云存储路径前缀
-    CLOUD_STORAGE_PATH = "ai-judge/knowledge"
 
     # 知识库来源
     KNOWLEDGE_REPO = "Kuuusoda/magic-comp-rules-zh-cn-agent"
@@ -99,9 +99,7 @@ class KnowledgeSync:
 
     def __init__(self):
         """初始化同步器"""
-        self.cloud_storage = None
         self.ssh_client = None
-        self._init_cloud_storage()
         self._ensure_directories()
 
     def _ensure_directories(self):
@@ -270,17 +268,6 @@ class KnowledgeSync:
                     sftp.close()
 
         return synced_count
-
-    def _init_cloud_storage(self):
-        """初始化云存储客户端"""
-        try:
-            import tcbmcp
-            # 尝试使用 CloudBase SDK
-            self.has_cloud_storage = True
-            logger.info("CloudBase SDK 可用")
-        except ImportError:
-            self.has_cloud_storage = False
-            logger.warning("CloudBase SDK 不可用，将使用本地模式")
 
     async def sync_rules(self, force: bool = False) -> Dict:
         """
@@ -493,15 +480,6 @@ class KnowledgeSync:
         logger.info(f"成功: {success_count}/{len(results['items'])}")
 
         return results
-
-    async def _upload_to_cloud(self, path: str, data: dict):
-        """上传到云存储"""
-        try:
-            # 这里应该使用 CloudBase SDK 上传
-            # 暂时跳过，因为需要在云函数环境中才能使用
-            logger.info(f"  [云存储] 准备上传: {path}")
-        except Exception as e:
-            logger.warning(f"云存储上传失败: {e}")
 
     def get_sync_status(self) -> Dict:
         """

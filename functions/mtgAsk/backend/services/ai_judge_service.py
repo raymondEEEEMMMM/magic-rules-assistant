@@ -44,53 +44,6 @@ except ImportError:
 # 配置 AI 裁判专用日志
 _ai_logger = None
 
-# 云存储日志缓存
-_log_buffer = []
-
-
-def _upload_log_to_cloudStorage(log_content: str):
-    """上传日志到云存储"""
-    try:
-        # 获取环境变量
-        env_id = os.getenv("TCB_ENV_ID") or os.getenv("TENCENTCLOUD_APPID", "")
-        secret_id = os.getenv("TENCENTCLOUD_SECRET_ID")
-        secret_key = os.getenv("TENCENTCLOUD_SECRET_KEY")
-
-        if not env_id or not secret_id or not secret_key:
-            print(f"云存储配置缺失: env_id={env_id}, secret_id={secret_id is not None}, secret_key={secret_key is not None}")
-            return False
-
-        # 生成文件名
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        file_name = f"ai_judge/logs/{timestamp}.log"
-
-        # 使用静态网站托管的上传方式
-        # 先尝试获取上传签名（简单方式：使用临时凭证）
-        # 这里使用简化的方式：直接写入文件到静态托管
-
-        # 由于云函数环境没有直接的云存储写入权限，
-        # 我们使用 CloudBase CLI 的方式或者 HTTP API
-        # 这里使用基础认证方式
-
-        bucket = "6d61-magic-rules-assistant-0a1904c329-1410769303"
-
-        # 使用 CDN 域名上传
-        url = f"https://{bucket}.tcb.qcloud.la/{file_name}"
-
-        # 生成简单的 Authorization（这里使用简化方式）
-        # 实际生产环境应该使用完整的签名算法
-        print(f"日志上传到: https://{bucket}.tcb.qcloud.la/{file_name}")
-        print(f"日志内容长度: {len(log_content)} 字符")
-
-        # 尝试使用云存储 HTTP API 上传
-        # 这里先只打印日志路径，实际使用需要配置完整的上传签名
-        return True
-
-    except Exception as e:
-        print(f"上传日志到云存储失败: {e}")
-        return False
-
-
 def _get_ai_logger():
     """获取或创建 AI 裁判日志记录器"""
     global _ai_logger
@@ -200,35 +153,14 @@ class AIJudgeService:
         """检查是否在云函数环境中"""
         return bool(os.getenv("SCF_FUNCTION_NAME") or os.getenv("TENCENTCLOUD_RUNENV"))
 
-    def _get_cloud_storage_url(self, file_path: str) -> Optional[str]:
-        """
-        获取云存储文件的临时下载链接
-        使用 CloudBase HTTP API
-        """
-        env_id = os.getenv("TCB_ENV_ID")
-        if not env_id:
-            # 尝试从环境变量获取
-            env_id = os.getenv("TENCENTCLOUD_APPID", "")
-
-        if not env_id:
-            # 从 SCF 相关信息中提取
-            return None
-
-        # 使用云存储的基础 URL 格式
-        # 注意：需要在云存储控制台配置安全规则允许访问
-        return f"https://cloudfile-{env_id}.tcb.qcloud.la/{file_path}"
-
     def _load_rules(self) -> str:
         """
-        从云存储或本地加载规则内容
-        """
-        # 优先尝试从云存储加载
-        if self._is_cloud_function():
-            content = self._load_from_cloud_storage()
-            if content:
-                return content
+        从本地加载规则内容
 
-        # 备选：从本地加载（用于开发/测试）
+        规则知识库通过 sync_judge_knowledge.py 同步到 OpenCLAW Gateway 服务器，
+        由 OpenCLAW Agent 通过 ai-judge skill 读取。
+        """
+        # 从本地加载（用于开发/测试或备用）
         local_path = os.getenv("AI_RULES_LOCAL_PATH", "/Users/lianghaoming/cbworkplace/functions/mtgAsk/backend/data/magic-comp-rules-zh-cn-agent")
         content = self._load_from_local(local_path)
         if content:
@@ -236,51 +168,6 @@ class AIJudgeService:
 
         print("未能加载规则内容，使用默认提示词")
         return ""
-
-    def _load_from_cloud_storage(self) -> str:
-        """从云存储加载规则"""
-        print("尝试从云存储加载规则...")
-        loaded_content = []
-
-        # 获取环境ID
-        env_id = os.getenv("TCB_ENV_ID") or os.getenv("TENCENTCLOUD_APPID", "")
-        if not env_id:
-            print("  未找到环境ID，跳过云存储加载")
-            return ""
-
-        # 云存储URL格式: https://{bucket}.tcb.qcloud.la/{path}
-        # Bucket格式: 6d61-magic-rules-assistant-0a1904c329-1410769303
-        bucket = "6d61-magic-rules-assistant-0a1904c329-1410769303"
-        cloud_prefix = "ai_judge/345/"
-
-        for file_path in self.RULE_FILES:
-            try:
-                # 使用 CDN 域名访问
-                full_cloud_path = cloud_prefix + file_path
-                url = f"https://{bucket}.tcb.qcloud.la/{full_cloud_path}"
-
-                response = requests.get(url, timeout=10, headers={
-                    "User-Agent": "mtgAsk/1.0"
-                })
-
-                if response.status_code == 200:
-                    loaded_content.append(f"\n\n=== {file_path} ===\n\n")
-                    loaded_content.append(response.text)
-                    print(f"  ✓ 已加载: {file_path}")
-                else:
-                    print(f"  ✗ 无法获取: {file_path} (HTTP {response.status_code})")
-
-            except Exception as e:
-                print(f"  ✗ 加载失败 {file_path}: {e}")
-                continue
-
-        if loaded_content:
-            content = "".join(loaded_content)
-            print(f"共加载 {len(content)} 字符的规则内容")
-            return content
-        else:
-            print("云存储加载失败")
-            return ""
 
     def _load_from_local(self, local_path: str) -> str:
         """从本地加载规则"""
@@ -1054,7 +941,7 @@ class AIJudgeService:
             # 记录 AI 回复
             logger.info(f"=== 会话 [{session_id}] AI 回复 ===\n{reply}")
 
-            # 使用统一日志服务记录（会同时保存到本地和云存储）
+            # 使用统一日志服务记录
             log_info("ai_judge", f"会话 [{session_id}] 用户提问", {
                 "message": user_message[:200],
                 "session_id": session_id
