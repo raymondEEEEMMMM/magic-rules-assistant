@@ -400,16 +400,40 @@ page {
   border-top: 1rpx solid rgba(255, 255, 255, 0.08);
 }
 
-/* 新建会话悬浮按钮 */
-.floating-new-session {
+/* 悬浮按钮组 */
+.floating-btn-group {
   position: fixed;
-  right: 30rpx;
+  left: 30rpx;
   bottom: 200rpx;
-  padding: 16rpx 28rpx;
-  border-radius: 50rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  z-index: 50;
+}
+
+.floating-refresh {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10rpx);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.2);
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.floating-refresh text {
+  font-size: 36rpx;
+  color: #ffd700;
+}
+
+.floating-new-session {
+  padding: 16rpx 32rpx;
+  border-radius: 40rpx;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   box-shadow: 0 4rpx 20rpx rgba(102, 126, 234, 0.4);
-  z-index: 50;
 }
 
 .floating-new-session text {
@@ -418,6 +442,19 @@ page {
 }
 
 /* 日间主题悬浮按钮 */
+.page-light .floating-btn-group {
+  left: 30rpx;
+}
+
+.page-light .floating-refresh {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.page-light .floating-refresh text {
+  color: #667eea;
+}
+
 .page-light .floating-new-session {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   box-shadow: 0 4rpx 20rpx rgba(102, 126, 234, 0.3);
@@ -545,23 +582,4 @@ page {
 
 .page-light .waiting-tip {
   color: rgba(0, 0, 0, 0.4);
-}
-
-.refresh-btn {
-  padding: 12rpx 32rpx;
-  border-radius: 40rpx;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1rpx solid rgba(255, 255, 255, 0.15);
-  font-size: 26rpx;
-  color: #ffd700;
-}
-
-.page-light .refresh-btn {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.1);
-  color: #667eea;
-}
-
-.refresh-btn:active {
-  opacity: 0.7;
 }

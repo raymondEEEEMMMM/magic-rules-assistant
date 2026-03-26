@@ -30,9 +30,14 @@
 
   <!-- 消息列表 -->
   <scroll-view class="message-list" scroll-y="true" scroll-into-view="{{scrollIntoView}}">
-    <!-- 新建会话悬浮按钮 -->
-    <view class="floating-new-session" bindtap="newSession">
-      <text>+ 新建会话</text>
+    <!-- 悬浮按钮组 -->
+    <view class="floating-btn-group">
+      <view class="floating-refresh" bindtap="refreshMessages">
+        <text>↻</text>
+      </view>
+      <view class="floating-new-session" bindtap="newSession">
+        <text>+ 新建</text>
+      </view>
     </view>
     <!-- 欢迎消息 -->
     <view class="welcome-wrapper" wx:if="{{messages.length === 0}}">
@@ -91,12 +96,9 @@
       </view>
     </view>
 
-    <!-- 等待提示和刷新按钮 -->
+    <!-- 等待提示 -->
     <view class="waiting-area" wx:if="{{loading}}">
-      <view class="waiting-tip">AI 正在思考中，可以稍后点击刷新获取回复</view>
-      <view class="refresh-btn" bindtap="refreshMessages">
-        <text>↻ 刷新</text>
-      </view>
+      <view class="waiting-tip">AI 正在思考中...</view>
     </view>
   </scroll-view>
 
