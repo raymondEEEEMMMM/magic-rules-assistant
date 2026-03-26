@@ -165,12 +165,37 @@ const api = {
   /**
    * 清除 AI 裁判会话
    * @param {string} sessionId - 会话 ID（可选）
+   * @param {string} openid - 用户 openid（必填）
    * @returns {Promise}
    */
-  aiJudgeClear(sessionId = 'miniprogram') {
+  aiJudgeClear(sessionId = 'miniprogram', openid) {
     return this.request('/api/ai-judge/clear', {
-      session_id: sessionId
+      session_id: sessionId,
+      openid: openid
     }, { method: 'POST' })
+  },
+
+  /**
+   * 获取 AI 裁判会话历史
+   * @param {string} openid - 用户 openid（必填）
+   * @param {string} sessionId - 会话 ID（可选，不传则返回会话列表）
+   * @param {number} limit - 返回数量（默认 10）
+   * @param {number} offset - 偏移量（默认 0）
+   * @returns {Promise}
+   */
+  aiJudgeHistory(openid, sessionId = null, limit = 10, offset = 0) {
+    if (!openid) {
+      return Promise.reject('openid 参数必填')
+    }
+    const data = {
+      openid,
+      limit,
+      offset
+    }
+    if (sessionId) {
+      data.session_id = sessionId
+    }
+    return this.request('/api/ai-judge/history', data, { method: 'POST' })
   },
 
   /**

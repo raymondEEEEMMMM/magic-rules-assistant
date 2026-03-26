@@ -345,7 +345,7 @@ Page({
       success(res) {
         if (res.confirm) {
           // 清除云端会话
-          api.aiJudgeClear(that.data.sessionId).then(() => {
+          api.aiJudgeClear(that.data.sessionId, that.data.openid).then(() => {
             // 清除本地会话历史
             that.setData({
               messages: [],

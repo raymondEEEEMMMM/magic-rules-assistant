@@ -372,8 +372,19 @@ async def ai_judge_clear_session(request: Request):
     """清除 AI 裁判会话历史"""
     body = await request.json()
     session_id = body.get("session_id", "default")
+    openid = body.get("openid", None)
+
     from services.ai_judge_service import ai_judge_service
-    ai_judge_service.clear_session(session_id)
+    from database import db
+
+    # 获取 agent_name
+    agent_name = None
+    if openid:
+        agent_info = db.get_agent_by_openid(openid)
+        if agent_info:
+            agent_name = agent_info.get("agent_name")
+
+    ai_judge_service.clear_session(session_id, agent_name=agent_name)
     return {"success": True, "message": "会话已清除"}
 
 # ==================== 微信 HTTP 访问路径 AI 裁判 API ====================
@@ -425,9 +436,19 @@ async def wechat_ai_judge_clear_session(request: Request):
     """清除会话 - 微信HTTP访问"""
     body = await request.json()
     session_id = body.get("session_id", "default")
+    openid = body.get("openid", None)
 
     from services.ai_judge_service import ai_judge_service
-    ai_judge_service.clear_session(session_id)
+    from database import db
+
+    # 获取 agent_name
+    agent_name = None
+    if openid:
+        agent_info = db.get_agent_by_openid(openid)
+        if agent_info:
+            agent_name = agent_info.get("agent_name")
+
+    ai_judge_service.clear_session(session_id, agent_name=agent_name)
     return {"success": True, "message": "会话已清除"}
 
 
