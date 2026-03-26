@@ -196,9 +196,9 @@ tcb run deploy \
 
 ### 功能
 
-- 同步万智牌规则（从 Wizards of the Coast 下载）
+- 同步万智牌规则（从 GitHub 知识库下载）
 - 同步卡牌数据（从 MTGJSON 下载）
-- 上传到云存储供 AI 裁判使用
+- 通过 SSH/rsync 同步到 OpenCLAW Gateway 服务器供 AI 裁判使用
 - 支持定时自动同步
 
 ### 使用方法

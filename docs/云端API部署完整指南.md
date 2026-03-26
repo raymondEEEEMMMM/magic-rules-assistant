@@ -120,14 +120,14 @@ tcb env create magic-rules-assistant
 | `WECHAT_TOKEN` | `wx_mtg_rules_2024` | 微信验证令牌 |
 | `ENVIRONMENT` | `production` | 运行环境 |
 
-### 3. 启用云存储
+### 3. 启用云存储 ~~（已废弃）~~
+
+> ⚠️ **已废弃**: 云存储方案不再用于数据库。请跳过此步骤。
 
 ```bash
-# 初始化云存储
-tcb storage init
-
-# 上传数据库文件
-tcb storage upload data/magic_rules.db
+# 旧版命令（请勿使用）
+# tcb storage init
+# tcb storage upload data/magic_rules.db
 ```
 
 ---
@@ -386,17 +386,22 @@ unable to open database file
 
 | 方案 | 优点 | 缺点 | 推荐度 |
 |-----|------|------|--------|
-| **方案1: 云存储+运行时下载** | 避免脚本过大，文件可更新 | 首次请求延迟 | ⭐⭐⭐⭐⭐ |
-| 方案2: 内嵌初始化代码 | 无外部依赖 | 脚本过大（200MB+） | ⭐⭐ |
-| 方案3: CloudBase MySQL | 正式生产方案 | 迁移成本高 | ⭐⭐⭐⭐ |
+| ~~方案1: 云存储+运行时下载~~ | ~~避免脚本过大~~ | ~~首次请求延迟~~ | ~~❌ 已废弃~~ |
+| ~~方案2: 内嵌初始化代码~~ | ~~无外部依赖~~ | ~~脚本过大~~ | ~~❌ 已废弃~~ |
+| **方案3: CloudBase MySQL** | 正式生产方案 | 迁移成本高 | ⭐⭐⭐⭐⭐ |
 
 ---
 
 ## 数据库方案选择
 
+> ⚠️ **历史说明**: 以下文档描述了旧版 SQLite + 云存储方案，该方案已被废弃。
+> 当前生产环境使用 **CloudBase MySQL** 作为数据库。
+
 ### 方案对比分析
 
-#### 方案1: 云存储 + 运行时下载 ✅ 已采用
+#### ~~方案1: 云存储 + 运行时下载~~ ❌ 已废弃
+
+> 请勿使用此方案
 
 **实现方式**:
 ```python
@@ -406,16 +411,11 @@ def download_database():
     urllib.request.urlretrieve(CLOUD_STORAGE_URL, local_path)
 ```
 
-**优点**:
-- 避免将 200MB 数据库内嵌到代码中
-- 数据库文件可独立更新
-- 利用 `/tmp` 目录的持久性（同一实例多次请求共享）
+**弃用原因**:
+- AI Agent 方案不再使用云存储读取
+- 知识库通过 SSH/rsync 直接同步到 OpenCLAW Gateway
 
-**缺点**:
-- 首次请求需要下载时间（约 5-10 秒）
-- 需要定期更新云存储下载链接的签名
-
-#### 方案2: 内嵌初始化代码
+#### ~~方案2: 内嵌初始化代码~~ ❌ 已废弃
 
 **实现方式**:
 ```python
@@ -462,7 +462,38 @@ DATABASE_URL = f"mysql://user:pass@{MYSQL_HOST}/magic_rules"
 
 ## 最终实现方案
 
-### 架构设计
+> ⚠️ **当前架构**: 本文档描述的云存储方案已废弃。当前使用以下架构：
+
+### 当前架构设计
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  微信小程序     │────▶│  CloudBase      │────▶│   MySQL         │
+│  / 其他客户端   │     │  云函数         │     │   数据库         │
+└─────────────────┘     └────────┬────────┘     └─────────────────┘
+                                 │
+                                 ▼
+                        ┌─────────────────┐     ┌─────────────────┐
+                        │  OpenCLAW       │────▶│  知识库         │
+                        │  Gateway        │     │  (SSH 同步)     │
+                        └─────────────────┘     └─────────────────┘
+```
+
+### 关键配置
+
+| 配置项 | 值 |
+|--------|-----|
+| 数据库类型 | CloudBase MySQL |
+| AI 裁判 | OpenCLAW Gateway |
+| 知识库同步 | SSH/rsync 到 OpenCLAW 服务器 |
+
+---
+
+## ❌ 废弃：旧版云存储方案
+
+> 以下内容为历史文档，仅供参考。请勿使用。
+
+### 架构设计（旧版）
 
 ```
 客户端请求
@@ -477,24 +508,24 @@ CloudBase API 网关
 返回响应
 ```
 
-### 关键代码实现
+### 关键代码实现（旧版）
 
-#### 1. 数据库下载函数
+#### 1. 数据库下载函数（旧版）
 
 ```python
 def download_database():
     """从云存储下载数据库文件"""
     import urllib.request
-    
+
     # 云存储下载链接（1小时有效，需定期更新）
     CLOUD_STORAGE_URL = "https://6d61-magic-rules-assistant-0a1904c329-1410769303.tcb.qcloud.la/magic_rules.db?sign=..."
     local_path = "/tmp/magic_rules.db"
-    
+
     # 检查本地缓存
     if os.path.exists(local_path):
         print(f"✓ Using cached database: {local_path}")
         return local_path
-    
+
     try:
         print(f"Downloading database from cloud storage...")
         urllib.request.urlretrieve(CLOUD_STORAGE_URL, local_path)
@@ -632,14 +663,16 @@ curl -s "https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcl
 
 #### 1. 更新数据库
 
+> ⚠️ **已废弃**: 当前使用 MySQL 数据库，无需手动上传。
+
 ```bash
-# 生成新的数据库文件
-python3 update_rules.py
+# 旧版命令（请勿使用）
+# python3 update_rules.py
+# tcb storage upload data/magic_rules.db
+```
 
-# 上传到云存储
-tcb storage upload data/magic_rules.db
-
-# 获取新的下载链接（在控制台复制）
+**当前方式**: MySQL 数据库由 CloudBase 自动管理，无需手动更新。
+如需更新规则数据，请联系管理员。
 ```
 
 #### 2. 更新云函数代码
@@ -664,11 +697,13 @@ tcb functions:logs magic-rules-api --start "2026-03-13 00:00:00" --end "2026-03-
 
 ### 性能优化
 
-#### 1. 缓存策略
+#### ~~1. 缓存策略~~ ❌ 已废弃
 
-- 利用 `/tmp` 目录的持久性
-- 同一实例的多次请求共享数据库缓存
-- 冷启动时才需要下载
+> 当前使用 MySQL，无需此缓存策略。
+
+- ~~利用 `/tmp` 目录的持久性~~
+- ~~同一实例的多次请求共享数据库缓存~~
+- ~~冷启动时才需要下载~~
 
 #### 2. 并发控制
 
@@ -686,7 +721,9 @@ tcb functions:logs magic-rules-api --start "2026-03-13 00:00:00" --end "2026-03-
 
 ### 故障排除
 
-#### 问题: 数据库下载失败
+#### ~~问题: 数据库下载失败~~ ❌ 已废弃
+
+> 使用 MySQL 后不再有此问题
 
 **症状**:
 ```
@@ -695,10 +732,10 @@ unable to open database file
 ```
 
 **排查步骤**:
-1. 检查云存储链接是否过期
-2. 验证网络连接
-3. 查看函数日志中的详细错误
-4. 检查 `/tmp` 目录权限
+1. ~~检查云存储链接是否过期~~
+2. ~~验证网络连接~~
+3. ~~查看函数日志中的详细错误~~
+4. ~~检查 `/tmp` 目录权限~~
 
 #### 问题: 依赖包未安装
 
@@ -821,8 +858,8 @@ mcp_call_tool(
 | 2026-03-13 | v1.0 | 初始版本，完成基础部署 |
 | 2026-03-13 | v1.1 | 修复路径不匹配问题 |
 | 2026-03-13 | v1.2 | 添加缺失依赖包 |
-| 2026-03-13 | v1.3 | 实现云存储数据库方案 |
-| 2026-03-13 | v1.4 | 优化数据库下载逻辑 |
+| ~~2026-03-13~~ | ~~v1.3~~ | ~~实现云存储数据库方案~~ ❌ 已废弃 |
+| ~~2026-03-13~~ | ~~v1.4~~ | ~~优化数据库下载逻辑~~ ❌ 已废弃 |
 
 ---
 
