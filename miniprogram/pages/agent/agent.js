@@ -239,7 +239,8 @@ Page({
       { time: 0, step: 1, text: '收到你的问题...' },
       { time: 1500, step: 2, text: '正在查询知识库...' },
       { time: 4000, step: 3, text: '正在联网搜索...' },
-      { time: 7000, step: 4, text: '分析问题中...' }
+      { time: 7000, step: 4, text: '分析问题中...' },
+      { time: 35000, step: 5, text: '异步处理中，请稍后刷新试', stop: true }
     ]
 
     const updateThinking = () => {
@@ -248,6 +249,14 @@ Page({
         thinkingStep: currentStep.step,
         thinkingText: currentStep.text
       })
+      // 如果是最后一步，显示后停止动画
+      if (currentStep.stop) {
+        if (thinkingTimer) {
+          clearInterval(thinkingTimer)
+          thinkingTimer = null
+        }
+        that.setData({ thinkingStep: 0, thinkingText: '' })
+      }
     }
 
     // 启动思维链计时器

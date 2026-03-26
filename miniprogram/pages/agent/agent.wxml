@@ -96,8 +96,8 @@
     </view>
 
     <!-- 等待提示 -->
-    <view class="waiting-area" wx:if="{{loading}}">
-      <view class="waiting-tip">AI 正在思考中...</view>
+    <view class="waiting-area" wx:if="{{loading && !thinkingText}}">
+      <view class="waiting-tip">异步处理中，请稍后刷新会话试试</view>
     </view>
   </scroll-view>
 
