@@ -182,6 +182,21 @@ const api = {
   },
 
   /**
+   * 提交反馈
+   * @param {string} content - 反馈内容
+   * @param {string} type - 反馈类型：suggestion/bug/other
+   * @param {string} openid - 用户 openid（必填）
+   * @returns {Promise}
+   */
+  submitFeedback(content, type = 'suggestion', openid = '') {
+    return this.request('/api/feedback', {
+      content,
+      type,
+      openid
+    }, { method: 'POST' })
+  },
+
+  /**
    * 获取 Agent 池统计信息
    * @returns {Promise}
    */
@@ -230,10 +245,13 @@ const api = {
         callData.path = path.startsWith('/') ? path : '/' + path
       }
 
+      console.log('CODEBUDDY_DEBUG api request started path=', path, 'method=', method, 'data=', data)
+
       wx.cloud.callFunction({
         name: FUNCTION_NAME,
         data: callData,
         success: res => {
+          console.log('CODEBUDDY_DEBUG api request success path=', path, 'res=', JSON.stringify(res).substring(0, 200))
           if (showLoading) {
             wx.hideLoading()
           }
@@ -273,6 +291,7 @@ const api = {
           resolve(result)
         },
         fail: err => {
+          console.log('CODEBUDDY_DEBUG api request failed path=', path, 'err=', err)
           if (showLoading) {
             wx.hideLoading()
           }

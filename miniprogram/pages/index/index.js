@@ -19,17 +19,21 @@ Page({
   },
 
   onLoad() {
+    console.log('CODEBUDDY_DEBUG index onLoad started')
     this.setData({
       version: app.version || '1.0.0',
       isLightTheme: app.globalData.isLightTheme
     })
+    console.log('CODEBUDDY_DEBUG index setData version=', this.data.version, 'isLightTheme=', this.data.isLightTheme)
     this.loadHistory()
   },
 
   onShow() {
+    console.log('CODEBUDDY_DEBUG index onShow isLightTheme=', app.globalData.isLightTheme)
     this.setData({
       isLightTheme: app.globalData.isLightTheme
     })
+    console.log('CODEBUDDY_DEBUG index onShow completed')
   },
 
   // 更新主题（由 app.js 调用）
@@ -50,7 +54,9 @@ Page({
   // 加载搜索历史
   loadHistory() {
     const history = wx.getStorageSync('searchHistory') || []
+    console.log('CODEBUDDY_DEBUG index loadHistory historyLength=', history.length, 'history=', history)
     this.setData({ history })
+    console.log('CODEBUDDY_DEBUG index loadHistory setData completed')
   },
 
   // 输入监听
@@ -150,43 +156,84 @@ Page({
   // 查看规则详情
   viewRuleDetail(e) {
     const ruleNumber = e.currentTarget.dataset.rule
+    console.log('CODEBUDDY_DEBUG index viewRuleDetail called ruleNumber=', ruleNumber)
     if (!ruleNumber) {
       wx.showToast({ title: '规则编号为空', icon: 'none' })
       return
     }
+    const url = `/pages/rule/rule?rule=${encodeURIComponent(ruleNumber)}`
+    console.log('CODEBUDDY_DEBUG index viewRuleDetail url=', url)
     wx.navigateTo({
-      url: `/pages/rule/rule?rule=${encodeURIComponent(ruleNumber)}`
+      url,
+      success: () => console.log('CODEBUDDY_DEBUG index viewRuleDetail success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG index viewRuleDetail fail err=', err)
     })
   },
 
   // 查看关键词详情
   viewKeywordDetail(e) {
     const keyword = e.currentTarget.dataset.keyword
+    console.log('CODEBUDDY_DEBUG index viewKeywordDetail called keyword=', keyword)
+    const url = `/pages/keyword/keyword?keyword=${encodeURIComponent(keyword)}`
+    console.log('CODEBUDDY_DEBUG index viewKeywordDetail url=', url)
     wx.navigateTo({
-      url: `/pages/keyword/keyword?keyword=${encodeURIComponent(keyword)}`
+      url,
+      success: () => console.log('CODEBUDDY_DEBUG index viewKeywordDetail success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG index viewKeywordDetail fail err=', err)
     })
   },
 
   // 查看卡牌详情
   viewCardDetail(e) {
     const cardId = e.currentTarget.dataset.id
+    console.log('CODEBUDDY_DEBUG index viewCardDetail called cardId=', cardId)
     if (!cardId) return
+    const url = `/pages/card/card?id=${encodeURIComponent(cardId)}`
+    console.log('CODEBUDDY_DEBUG index viewCardDetail url=', url)
     wx.navigateTo({
-      url: `/pages/card/card?id=${encodeURIComponent(cardId)}`
+      url,
+      success: () => console.log('CODEBUDDY_DEBUG index viewCardDetail success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG index viewCardDetail fail err=', err)
     })
   },
 
   // 跳转 AI 裁判页面
   goToAIJudge() {
+    console.log('CODEBUDDY_DEBUG index goToAIJudge called url=/pages/agent/agent')
     wx.navigateTo({
-      url: '/pages/agent/agent'
+      url: '/pages/agent/agent',
+      success: () => console.log('CODEBUDDY_DEBUG index goToAIJudge success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG index goToAIJudge fail err=', err)
+    })
+  },
+
+  // 跳转生命值计数器页面
+  goToCounter() {
+    console.log('CODEBUDDY_DEBUG index goToCounter called url=/pages/counter/counter')
+    wx.navigateTo({
+      url: '/pages/counter/counter',
+      success: () => console.log('CODEBUDDY_DEBUG index goToCounter success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG index goToCounter fail err=', err)
+    })
+  },
+
+  // 跳转反馈页面
+  goToFeedback() {
+    console.log('CODEBUDDY_DEBUG index goToFeedback called url=/pages/feedback/feedback')
+    wx.navigateTo({
+      url: '/pages/feedback/feedback',
+      success: () => console.log('CODEBUDDY_DEBUG index goToFeedback success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG index goToFeedback fail err=', err)
     })
   },
 
   // 跳转 API 测试页面
   goToAPITest() {
+    console.log('CODEBUDDY_DEBUG index goToAPITest called url=/pages/apitest/apitest')
     wx.navigateTo({
-      url: '/pages/apitest/apitest'
+      url: '/pages/apitest/apitest',
+      success: () => console.log('CODEBUDDY_DEBUG index goToAPITest success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG index goToAPITest fail err=', err)
     })
   }
 })

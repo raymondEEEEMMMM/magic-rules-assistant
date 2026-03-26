@@ -30,7 +30,11 @@ Page({
 
   // 返回
   goBack() {
-    wx.navigateBack()
+    console.log('CODEBUDDY_DEBUG search goBack called')
+    wx.navigateBack({
+      success: () => console.log('CODEBUDDY_DEBUG search goBack success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG search goBack fail err=', err)
+    })
   },
 
   // 加载搜索历史
@@ -139,29 +143,44 @@ Page({
   // 查看规则详情
   viewRuleDetail(e) {
     const ruleNumber = e.currentTarget.dataset.rule
+    console.log('CODEBUDDY_DEBUG search viewRuleDetail called ruleNumber=', ruleNumber)
     if (!ruleNumber) {
       wx.showToast({ title: '规则编号为空', icon: 'none' })
       return
     }
+    const url = `/pages/rule/rule?rule=${encodeURIComponent(ruleNumber)}`
+    console.log('CODEBUDDY_DEBUG search viewRuleDetail url=', url)
     wx.navigateTo({
-      url: `/pages/rule/rule?rule=${encodeURIComponent(ruleNumber)}`
+      url,
+      success: () => console.log('CODEBUDDY_DEBUG search viewRuleDetail success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG search viewRuleDetail fail err=', err)
     })
   },
 
   // 查看关键词详情
   viewKeywordDetail(e) {
     const keyword = e.currentTarget.dataset.keyword
+    console.log('CODEBUDDY_DEBUG search viewKeywordDetail called keyword=', keyword)
+    const url = `/pages/keyword/keyword?keyword=${encodeURIComponent(keyword)}`
+    console.log('CODEBUDDY_DEBUG search viewKeywordDetail url=', url)
     wx.navigateTo({
-      url: `/pages/keyword/keyword?keyword=${encodeURIComponent(keyword)}`
+      url,
+      success: () => console.log('CODEBUDDY_DEBUG search viewKeywordDetail success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG search viewKeywordDetail fail err=', err)
     })
   },
 
   // 查看卡牌详情
   viewCardDetail(e) {
     const cardId = e.currentTarget.dataset.id
+    console.log('CODEBUDDY_DEBUG search viewCardDetail called cardId=', cardId)
     if (!cardId) return
+    const url = `/pages/card/card?id=${encodeURIComponent(cardId)}`
+    console.log('CODEBUDDY_DEBUG search viewCardDetail url=', url)
     wx.navigateTo({
-      url: `/pages/card/card?id=${encodeURIComponent(cardId)}`
+      url,
+      success: () => console.log('CODEBUDDY_DEBUG search viewCardDetail success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG search viewCardDetail fail err=', err)
     })
   },
 

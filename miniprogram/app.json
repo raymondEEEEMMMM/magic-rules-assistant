@@ -1,11 +1,14 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/counter/counter",
     "pages/card/card",
     "pages/keyword/keyword",
     "pages/agent/agent",
     "pages/apitest/apitest",
-    "pages/rule/rule"
+    "pages/rule/rule",
+    "pages/feedback/feedback",
+    "pages/search/search"
   ],
   "window": {
     "backgroundTextStyle": "light",

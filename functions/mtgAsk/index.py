@@ -16,14 +16,29 @@ def main(event, context):
     CloudBase HTTP 函数入口
     """
     print(f"Event: {json.dumps(event)}")
-    
+
+    # 检查是否为定时触发器
+    trigger_name = event.get('TriggerName', '')
+    trigger_type = event.get('Type', '')
+    if trigger_type == 'Timer' and trigger_name == 'session-cleanup-timer':
+        print(f"=== 定时任务触发: {trigger_name} ===")
+        from backend.services.agent_pool_manager import AgentPoolManager
+        manager = AgentPoolManager()
+        result = manager.cleanup_all_sessions()
+        print(f"=== 清理结果: {result} ===")
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({'success': True, 'triggered_by': trigger_name, 'result': result}, ensure_ascii=False)
+        }
+
     # 获取请求信息
     http_method = event.get('httpMethod', 'GET')
     path = event.get('path', '/')
     query_string = event.get('queryString', '')
     headers = event.get('headers', {})
     body = event.get('body', '')
-    
+
     print(f"Method: {http_method}, Path: {path}, Query: {query_string}")
     
     try:
@@ -310,6 +325,54 @@ def main(event, context):
                 'body': json.dumps({'success': True, 'stats': stats}, ensure_ascii=False)
             }
 
+        elif path == '/api/feedback' and http_method == 'POST':
+            # 提交反馈
+            from backend.database import RuleDatabase
+
+            try:
+                body_data = json.loads(body) if body else {}
+            except json.JSONDecodeError:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'message': 'Invalid JSON body'})
+                }
+
+            content = body_data.get('content', '')
+            contact = body_data.get('contact', None)
+            feedback_type = body_data.get('type', 'suggestion')
+            openid = body_data.get('openid', None) or headers.get('x-wx-openid', None)
+
+            if not openid:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'message': '请先登录后再提交反馈'})
+                }
+
+            if not content:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'message': '反馈内容不能为空'})
+                }
+
+            db = RuleDatabase()
+            success = db.submit_feedback(openid, content, contact, feedback_type)
+
+            if success:
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': True, 'message': '反馈已提交'})
+                }
+            else:
+                return {
+                    'statusCode': 500,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'message': '反馈提交失败'})
+                }
+
         else:
             # 未知路径
             return {
@@ -330,7 +393,8 @@ def main(event, context):
                         '/api/ai-judge/chat',
                         '/api/ai-judge/clear',
                         '/api/admin/cleanup-sessions',
-                        '/api/admin/agent-pool/stats'
+                        '/api/admin/agent-pool/stats',
+                        '/api/feedback'
                     ]
                 })
             }

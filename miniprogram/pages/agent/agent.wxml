@@ -28,17 +28,17 @@
           <text class="welcome-greeting">你好！我是裁判 Agent</text>
           <text class="welcome-text">可以问我任何万智牌规则问题，比如：</text>
           <view class="welcome-examples">
-            <view class="example-item" bindtap="useExample" data-q="闪电击和塔莫耶夫的敏捷先结算哪个？">
-              ⚡ 伤害结算顺序
+            <view class="example-item" bindtap="useExample" data-q="场上有多个反对派密探时如何互动？">
+              ⚡ 反对派密探问题
             </view>
-            <view class="example-item" bindtap="useExample" data-q="响应触发式异能有什么限制？">
-              ⏱️ 响应时机
+            <view class="example-item" bindtap="useExample" data-q="静止式异能、触发式异能和启动式异能的区别？">
+              ⏱️ 不同类型异能间的区别
             </view>
-            <view class="example-item" bindtap="useExample" data-q="多人大决斗中反对派如何运作？">
-              👥 多人游戏规则
+            <view class="example-item" bindtap="useExample" data-q="行旅（companion）在指挥官赛制中如何运作？">
+              👥 多人游戏中的行旅规则
             </view>
-            <view class="example-item" bindtap="useExample" data-q="结界和灵气有什么区别？">
-              ✨ 结界与灵气
+            <view class="example-item" bindtap="useExample" data-q="帮我查下Doomsday的效果？">
+              ✨ 帮我查下Doomsday的效果？
             </view>
           </view>
         </view>
@@ -54,6 +54,10 @@
           <rich-text wx:else nodes="{{item.parsedNodes}}"></rich-text>
         </view>
         <view wx:if="{{item.role === 'user'}}" class="avatar user-avatar">👤</view>
+      </view>
+      <!-- 再问一次按钮（仅最新AI回复显示） -->
+      <view class="retry-btn-wrapper" wx:if="{{item.role === 'assistant' && index === messages.length - 1}}">
+        <view class="retry-btn" bindtap="retryLast">↻ 再问一次</view>
       </view>
       <view class="message-time" wx:if="{{item.time}}">{{item.time}}</view>
     </view>

@@ -446,6 +446,42 @@ async def ai_judge_new_session(
     return result
 
 
+# ==================== 反馈 API ====================
+
+@app.post("/api/feedback")
+async def submit_feedback(request: Request):
+    """
+    提交用户反馈
+
+    请求体:
+    {
+        "content": "反馈内容",
+        "contact": "联系方式(可选)",
+        "type": "suggestion" | "bug" | "other"
+    }
+    """
+    body = await request.json()
+    content = body.get("content", "")
+    contact = body.get("contact")
+    feedback_type = body.get("type", "suggestion")
+
+    if not content:
+        return {"success": False, "message": "反馈内容不能为空"}
+
+    # 获取用户 openid
+    openid = body.get("openid") or request.headers.get("X-WX-Openid")
+
+    if not openid:
+        return {"success": False, "message": "无法获取用户身份"}
+
+    success = db.submit_feedback(openid, content, contact, feedback_type)
+
+    if success:
+        return {"success": True, "message": "反馈已提交"}
+    else:
+        return {"success": False, "message": "反馈提交失败"}
+
+
 # ==================== 管理 API ====================
 
 @app.post("/api/admin/cleanup-sessions")

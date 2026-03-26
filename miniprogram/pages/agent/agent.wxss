@@ -284,6 +284,37 @@ page {
   40% { transform: scale(1); opacity: 1; }
 }
 
+/* 再问一次按钮 */
+.retry-btn-wrapper {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 12rpx;
+  padding-left: 80rpx;
+}
+
+.retry-btn {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 8rpx 24rpx;
+  border-radius: 30rpx;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1rpx solid rgba(255, 255, 255, 0.12);
+}
+
+.retry-btn:active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.page-light .retry-btn {
+  color: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.page-light .retry-btn:active {
+  background: rgba(0, 0, 0, 0.1);
+}
+
 /* 输入区域 */
 .input-area {
   flex-shrink: 0;

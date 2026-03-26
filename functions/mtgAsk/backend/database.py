@@ -383,6 +383,29 @@ class RuleDatabase:
         sql = "DELETE FROM ai_agent_pool WHERE openid = %s"
         return self._execute_write_sql_with_params(sql, (openid,))
 
+    def create_feedbacks_table(self) -> bool:
+        """创建反馈表"""
+        sql = """CREATE TABLE IF NOT EXISTS feedbacks (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            openid VARCHAR(128) NOT NULL,
+            content TEXT NOT NULL,
+            contact VARCHAR(128),
+            type VARCHAR(20) DEFAULT 'suggestion',
+            status VARCHAR(20) DEFAULT 'pending',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_openid (openid),
+            INDEX idx_status (status)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"""
+        return self._execute_write_sql(sql)
+
+    def submit_feedback(self, openid: str, content: str, contact: str = None, feedback_type: str = 'suggestion') -> bool:
+        """提交用户反馈"""
+        # 确保表存在
+        self.create_feedbacks_table()
+
+        sql = """INSERT INTO feedbacks (openid, content, contact, type) VALUES (%s, %s, %s, %s)"""
+        return self._execute_write_sql_with_params(sql, (openid, content, contact, feedback_type))
+
     def get_lru_agent(self, exclude_openids: List[str] = None) -> Optional[Dict]:
         """获取最久未使用的 Agent（用于 LRU 回收）"""
         if exclude_openids:

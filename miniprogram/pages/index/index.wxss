@@ -395,16 +395,76 @@ page {
   font-weight: 300;
 }
 
+/* 生命值计数器入口 */
+.counter-entry {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #1f4e3d 0%, #1a1a2e 100%);
+  border-radius: 24rpx;
+  padding: 28rpx 32rpx;
+  margin: 0 30rpx 30rpx;
+  border: 2rpx solid rgba(74, 222, 128, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(74, 222, 128, 0.15);
+}
+
+.counter-entry:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.counter-icon {
+  font-size: 52rpx;
+  margin-right: 24rpx;
+}
+
+.counter-info {
+  flex: 1;
+}
+
+.counter-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 6rpx;
+}
+
+.counter-desc {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.counter-arrow {
+  font-size: 48rpx;
+  color: rgba(74, 222, 128, 0.6);
+  font-weight: 300;
+}
+
 /* 版本信息 */
 .version-info {
   margin-top: auto;
   padding: 30rpx;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
 }
 
 .version-text {
   font-size: 24rpx;
   color: rgba(255, 255, 255, 0.4);
+}
+
+.version-divider {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.feedback-link {
+  font-size: 24rpx;
+  color: rgba(102, 126, 234, 0.8);
 }
 
 /* ==================== */
@@ -522,6 +582,32 @@ page {
   color: #667eea;
 }
 
+.container.page-light .counter-entry {
+  background: #ffffff;
+  border-color: rgba(74, 222, 128, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.container.page-light .counter-title {
+  color: #333333;
+}
+
+.container.page-light .counter-desc {
+  color: #666666;
+}
+
+.container.page-light .counter-arrow {
+  color: #22c55e;
+}
+
 .container.page-light .version-text {
   color: rgba(0, 0, 0, 0.4);
+}
+
+.container.page-light .version-divider {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.container.page-light .feedback-link {
+  color: #667eea;
 }

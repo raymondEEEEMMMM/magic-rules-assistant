@@ -1,0 +1,47 @@
+<!--pages/feedback/feedback.wxml-->
+<view class="container {{isLightTheme ? 'page-light' : ''}}">
+  <!-- 顶部导航栏 -->
+  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
+    <view class="nav-left">
+      <view class="back-btn" bindtap="goBack">←</view>
+    </view>
+    <view class="nav-title">
+      <text>反馈建议</text>
+    </view>
+    <view class="nav-right"></view>
+  </view>
+
+  <!-- 反馈类型选择 -->
+  <view class="section">
+    <view class="section-title">反馈类型</view>
+    <view class="type-list">
+      <view
+        wx:for="{{feedbackTypes}}"
+        wx:key="key"
+        class="type-item {{selectedType === item.key ? 'active' : ''}}"
+        bindtap="selectType"
+        data-index="{{index}}"
+      >
+        {{item.name}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 反馈内容 -->
+  <view class="section">
+    <view class="section-title">反馈内容</view>
+    <textarea
+      class="content-input"
+      placeholder="请详细描述您的问题或建议..."
+      value="{{content}}"
+      bindinput="onContentInput"
+      maxlength="500"
+    ></textarea>
+    <view class="char-count">{{content.length}}/500</view>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="submit-btn" bindtap="submitFeedback">
+    <text>提交反馈</text>
+  </view>
+</view>

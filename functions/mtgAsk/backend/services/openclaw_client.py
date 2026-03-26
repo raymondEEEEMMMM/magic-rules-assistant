@@ -186,7 +186,7 @@ class OpenCLAWClient:
             完整的命令字符串
         """
         escaped_message = message.replace('"', '\\"')
-        return f'bash -i -c "openclaw agent --agent {self.agent} -m \\"{escaped_message}\\""'
+        return f'bash -c "openclaw agent --agent {self.agent} -m \\"{escaped_message}\\""'
 
     def call_agent(self, message: str, timeout: Optional[int] = None) -> str:
         """
@@ -201,8 +201,42 @@ class OpenCLAWClient:
         """
         result = self.call_agent_json(message, timeout=timeout)
         if result and "text" in result:
-            return result["text"]
+            text = result["text"]
+            # 过滤流式标记
+            text = self._filter_stream_markers(text)
+            if text:
+                return text
+            # 如果过滤后为空，重新调用一次
+            print("流式标记过滤后为空，重新调用...")
+            return self._call_agent_with_retry(message, timeout)
         return ""
+
+    def _call_agent_with_retry(self, message: str, timeout: Optional[int] = None, max_retries: int = 2) -> str:
+        """带重试的 Agent 调用"""
+        for attempt in range(max_retries):
+            result = self.call_agent_json(message, timeout=timeout)
+            if result and "text" in result:
+                text = result["text"]
+                text = self._filter_stream_markers(text)
+                if text:
+                    return text
+                if attempt < max_retries - 1:
+                    print(f"重试第 {attempt + 1} 次...")
+            else:
+                break
+        # 多次重试后仍失败，返回空字符串
+        return ""
+
+    def _filter_stream_markers(self, text: str) -> str:
+        """过滤 OpenCLAW 流式响应标记"""
+        if not text:
+            return text
+        # 已知的流式标记
+        markers = ["completed", "thinking...", "processing...", "done"]
+        for marker in markers:
+            if text.strip() == marker:
+                return ""
+        return text
 
     def call_agent_json(self, message: str, timeout: Optional[int] = None) -> Dict:
         """

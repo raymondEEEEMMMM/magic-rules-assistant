@@ -17,12 +17,17 @@ Page({
   },
 
   onLoad(options) {
+    console.log('CODEBUDDY_DEBUG card onLoad options=', options)
     this.setData({ isLightTheme: true })
     // 如果有 id 参数，直接加载卡牌详情
     if (options.id) {
+      console.log('CODEBUDDY_DEBUG card onLoad id found, loading detail')
       this.setData({ keyword: decodeURIComponent(options.id) })
       this.fetchCardDetail(options.id)
+    } else {
+      console.log('CODEBUDDY_DEBUG card onLoad no id parameter')
     }
+    console.log('CODEBUDDY_DEBUG card onLoad completed')
   },
 
   onShow() {

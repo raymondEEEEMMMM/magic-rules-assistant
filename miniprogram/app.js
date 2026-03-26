@@ -20,10 +20,17 @@ App({
   version: '1.0.0',
 
   onLaunch() {
+    console.log('CODEBUDDY_DEBUG app onLaunch started')
     // 读取主题设置，默认日间主题
     const theme = wx.getStorageSync('appTheme') || 'light'
     this.globalData.isLightTheme = theme === 'light'
+    console.log('CODEBUDDY_DEBUG app theme loaded theme=', theme, 'isLightTheme=', this.globalData.isLightTheme)
     this.updateTheme(theme === 'light')
+    console.log('CODEBUDDY_DEBUG app onLaunch completed')
+  },
+
+  onShow() {
+    console.log('CODEBUDDY_DEBUG app onShow')
   },
 
   // 切换主题

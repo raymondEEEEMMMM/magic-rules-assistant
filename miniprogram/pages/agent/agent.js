@@ -229,5 +229,30 @@ Page({
         }
       }
     })
+  },
+
+  // 再问一次（重新发送上一条用户消息）
+  retryLast() {
+    const messages = this.data.messages
+    if (messages.length === 0) return
+
+    // 找到最后一条用户消息
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') {
+        const userMessage = messages[i].content
+        // 删除最后一条 AI 回复（如果存在）
+        const newMessages = messages.slice(0, i + 1)
+
+        this.setData({
+          messages: newMessages,
+          loading: true,
+          scrollIntoView: `msg-${i}`
+        })
+
+        // 重新发送
+        this.chat(userMessage)
+        break
+      }
+    }
   }
 })
