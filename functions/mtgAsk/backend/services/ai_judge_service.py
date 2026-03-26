@@ -1136,10 +1136,19 @@ class AIJudgeService:
         logger.info(f"=== 会话 [{session_id}] 流式回复完成 ===")
         yield {"done": True}
 
-    def clear_session(self, session_id: str = "default"):
+    def clear_session(self, session_id: str = "default", agent_name: str = None):
         """清除会话历史"""
         if session_id in self.conversation_history:
             del self.conversation_history[session_id]
+
+        # 同时删除 OpenCLAW 服务器上的 session 文件
+        try:
+            from backend.services.openclaw_client import OpenCLAWClient
+            client = OpenCLAWClient()
+            client.delete_session(agent_name=agent_name, session_id=session_id)
+            client.close()
+        except Exception as e:
+            print(f"删除远程 session 文件失败: {e}")
 
     def new_session(self, session_id: str = "default", reset_agent: bool = True) -> Dict:
         """

@@ -298,6 +298,221 @@ class OpenCLAWClient:
         except Exception:
             return False
 
+    def get_sessions(self, agent_name: str = None, limit: int = 10, offset: int = 0) -> Dict:
+        """
+        获取 agent 的会话列表
+
+        Args:
+            agent_name: Agent 名称（默认使用 self.agent）
+            limit: 返回数量限制
+            offset: 偏移量
+
+        Returns:
+            包含 sessions 列表和总数的信息
+        """
+        effective_agent = agent_name or self.agent
+
+        try:
+            client = self._get_ssh_client()
+            # 使用 openclaw sessions 命令获取会话列表
+            cmd = f'bash -i -c "openclaw sessions --agent {effective_agent} --json"'
+            stdin, stdout, stderr = client.exec_command(cmd, timeout=30)
+            output = stdout.read().decode().strip()
+
+            if not output:
+                return {"sessions": [], "pagination": {"total": 0, "limit": limit, "offset": offset, "hasMore": False}}
+
+            result = json.loads(output)
+            sessions = result.get("sessions", [])
+
+            # 统计消息数量
+            for session in sessions:
+                session["messageCount"] = self._count_session_messages(effective_agent, session.get("sessionId"))
+
+            # 处理分页
+            total = len(sessions)
+            paginated_sessions = sessions[offset:offset + limit]
+
+            # 格式化输出
+            formatted = []
+            for s in paginated_sessions:
+                ts = s.get("updatedAt", 0)
+                from datetime import datetime
+                formatted.append({
+                    "sessionId": s.get("sessionId"),
+                    "key": s.get("key"),
+                    "updatedAt": ts,
+                    "updatedAtReadable": datetime.fromtimestamp(ts/1000).strftime("%Y-%m-%d %H:%M:%S") if ts else None,
+                    "ageMs": s.get("ageMs", 0),
+                    "inputTokens": s.get("inputTokens", 0),
+                    "outputTokens": s.get("outputTokens", 0),
+                    "totalTokens": s.get("totalTokens", 0),
+                    "model": s.get("model"),
+                    "agentId": s.get("agentId"),
+                    "kind": s.get("kind"),
+                    "messageCount": s.get("messageCount", 0)
+                })
+
+            return {
+                "sessions": formatted,
+                "pagination": {
+                    "total": total,
+                    "limit": limit,
+                    "offset": offset,
+                    "hasMore": offset + limit < total
+                }
+            }
+        except Exception as e:
+            print(f"获取会话列表失败: {e}")
+            return {"sessions": [], "error": str(e), "pagination": {"total": 0, "limit": limit, "offset": offset, "hasMore": False}}
+
+    def _count_session_messages(self, agent_name: str, session_id: str) -> int:
+        """统计会话的消息数量"""
+        if not session_id:
+            return 0
+        try:
+            session_file = f"/home/openclaw/.openclaw/agents/{agent_name}/sessions/{session_id}.jsonl"
+            client = self._get_ssh_client()
+            sftp = client.open_sftp()
+            count = 0
+            with sftp.file(session_file, 'r') as f:
+                for line in f:
+                    if line.strip():
+                        event = json.loads(line)
+                        if event.get("type") == "message":
+                            count += 1
+            sftp.close()
+            return count
+        except Exception:
+            return 0
+
+    def get_session_messages(self, agent_name: str, session_id: str, limit: int = 100) -> List[Dict]:
+        """
+        读取指定会话的消息历史
+
+        Args:
+            agent_name: Agent 名称
+            session_id: 会话 ID
+            limit: 返回消息数量限制
+
+        Returns:
+            消息列表
+        """
+        if not session_id:
+            return []
+
+        session_file = f"/home/openclaw/.openclaw/agents/{agent_name}/sessions/{session_id}.jsonl"
+
+        try:
+            client = self._get_ssh_client()
+            sftp = client.open_sftp()
+
+            messages = []
+            seen_ids = set()  # 用于去重
+            with sftp.file(session_file, 'r') as f:
+                for line in f:
+                    if line.strip():
+                        event = json.loads(line)
+                        if event.get("type") == "message":
+                            msg = event.get("message", {})
+                            role = msg.get("role")
+                            # 只添加 user 和 assistant 消息，排除 toolResult
+                            if role not in ("user", "assistant"):
+                                continue
+                            content = self._extract_message_content(msg.get("content", []))
+                            if not content:
+                                continue
+                            msg_id = event.get("id")
+                            # 去重：同一 id 的消息只添加一次
+                            if msg_id in seen_ids:
+                                continue
+                            seen_ids.add(msg_id)
+                            messages.append({
+                                "id": msg_id,
+                                "type": event.get("type"),
+                                "role": role,
+                                "content": content,
+                                "timestamp": event.get("timestamp")
+                            })
+
+            sftp.close()
+
+            # 限制返回数量
+            return messages[-limit:] if len(messages) > limit else messages
+
+        except Exception as e:
+            print(f"读取会话消息失败: {e}")
+            return []
+
+    def _extract_message_content(self, content: List[Dict]) -> str:
+        """
+        从消息 content 列表中提取纯文本
+
+        Args:
+            content: 消息的 content 列表，通常是 [{"type": "text", "text": "..."}] 格式
+
+        Returns:
+            提取的纯文本内容
+        """
+        if not content:
+            return ""
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            parts = []
+            for item in content:
+                if isinstance(item, dict):
+                    if item.get("type") == "text":
+                        parts.append(item.get("text", ""))
+                    elif item.get("type") == "thinking":
+                        # 跳过 thinking 内容
+                        pass
+            return "".join(parts)
+        return str(content)
+
+    def delete_session(self, agent_name: str = None, session_id: str = None) -> bool:
+        """
+        删除指定会话
+
+        Args:
+            agent_name: Agent 名称（默认使用 self.agent）
+            session_id: 会话 ID
+
+        Returns:
+            是否删除成功
+        """
+        if not session_id:
+            return False
+
+        effective_agent = agent_name or self.agent
+
+        try:
+            client = self._get_ssh_client()
+            # 使用 openclaw sessions --delete 命令删除会话
+            cmd = f'bash -c "openclaw sessions --agent {effective_agent} --delete {session_id}"'
+            stdin, stdout, stderr = client.exec_command(cmd, timeout=30)
+            output = stdout.read().decode().strip()
+            error = stderr.read().decode().strip()
+            print(f"删除会话命令输出: {output}, 错误: {error}")
+
+            # 如果命令没有错误，尝试直接删除文件作为备用
+            if error:
+                session_file = f"/home/openclaw/.openclaw/agents/{effective_agent}/sessions/{session_id}.jsonl"
+                sftp = client.open_sftp()
+                try:
+                    sftp.remove(session_file)
+                    print(f"已通过 SFTP 删除会话文件: {session_file}")
+                except FileNotFoundError:
+                    print(f"会话文件不存在: {session_file}")
+                except Exception as e:
+                    print(f"SFTP 删除失败: {e}")
+                finally:
+                    sftp.close()
+            return True
+        except Exception as e:
+            print(f"删除会话失败: {e}")
+            return False
+
 
 # ========== 便捷函数 ==========
 

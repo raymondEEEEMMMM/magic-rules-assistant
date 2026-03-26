@@ -1,5 +1,19 @@
 <!--pages/agent/agent.wxml-->
 <view class="container {{isLightTheme ? 'page-light' : ''}}">
+  <!-- 加载遮罩 -->
+  <view class="loading-overlay" wx:if="{{isLoading}}">
+    <view class="loading-content">
+      <view class="loading-icon">⚖️</view>
+      <view class="loading-text-main">{{loadingText}}</view>
+      <view class="loading-progress">
+        <view class="progress-dot {{loadingStep >= 1 ? 'active' : ''}}"></view>
+        <view class="progress-dot {{loadingStep >= 2 ? 'active' : ''}}"></view>
+        <view class="progress-dot {{loadingStep >= 3 ? 'active' : ''}}"></view>
+        <view class="progress-dot {{loadingStep >= 4 ? 'active' : ''}}"></view>
+      </view>
+    </view>
+  </view>
+
   <!-- 顶部导航栏 -->
   <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
     <view class="nav-left">
@@ -67,7 +81,7 @@
       <view class="message-main">
         <view class="avatar bot-avatar">⚖️</view>
         <view class="bubble loading-bubble">
-          <text class="loading-text">思考中</text>
+          <text class="loading-text">{{thinkingText || '思考中'}}</text>
           <view class="loading-dots">
             <view class="dot"></view>
             <view class="dot"></view>

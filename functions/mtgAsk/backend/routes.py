@@ -431,6 +431,22 @@ async def wechat_ai_judge_clear_session(request: Request):
     return {"success": True, "message": "会话已清除"}
 
 
+@app.get("/wechat/api/ai-judge/history")
+async def wechat_get_ai_judge_history(
+    request: Request,
+    openid: str = None,
+    limit: int = 10,
+    offset: int = 0,
+    session_id: str = None
+):
+    """
+    获取 AI 裁判会话历史 - 微信HTTP访问
+
+    参数和使用方式与 /api/ai-judge/history 相同
+    """
+    return await get_ai_judge_history(request, openid, limit, offset, session_id)
+
+
 @app.post("/api/ai-judge/new-session")
 async def ai_judge_new_session(
     session_id: str = "default",
@@ -446,7 +462,81 @@ async def ai_judge_new_session(
     return result
 
 
-# ==================== 反馈 API ====================
+@app.get("/api/ai-judge/history")
+async def get_ai_judge_history(
+    request: Request,
+    openid: str = None,
+    limit: int = 10,
+    offset: int = 0,
+    session_id: str = None
+):
+    """
+    获取 AI 裁判会话历史
+
+    - 不传 session_id: 返回会话列表
+    - 传 session_id: 返回该会话的消息历史
+
+    请求参数:
+    - openid (必填): 用户 openid
+    - limit (可选, 默认10): 会话数量上限
+    - offset (可选, 默认0): 分页偏移
+    - session_id (可选): 指定会话 ID
+    """
+    if not openid:
+        return {"success": False, "error": {"code": "MISSING_OPENID", "message": "openid 参数必填"}}
+
+    try:
+        from services.agent_pool_manager import AgentPoolManager
+        from services.openclaw_client import OpenCLAWClient
+
+        # 获取用户的 agent 名称
+        agent_manager = AgentPoolManager()
+        agent_info = agent_manager.db.get_agent_by_openid(openid)
+
+        if not agent_info:
+            return {"success": False, "error": {"code": "AGENT_NOT_FOUND", "message": "未找到该用户的会话记录"}}
+
+        agent_name = agent_info["agent_name"]
+
+    except Exception as e:
+        return {"success": False, "error": {"code": "DB_ERROR", "message": str(e)}}
+
+    try:
+        client = OpenCLAWClient()
+
+        if session_id:
+            # 返回指定会话的消息
+            messages = client.get_session_messages(agent_name, session_id, limit=limit)
+
+            # 统计
+            user_count = sum(1 for m in messages if m.get("role") == "user")
+            assistant_count = sum(1 for m in messages if m.get("role") == "assistant")
+
+            return {
+                "success": True,
+                "data": {
+                    "sessionId": session_id,
+                    "messages": messages,
+                    "summary": {
+                        "totalMessages": len(messages),
+                        "userMessages": user_count,
+                        "assistantMessages": assistant_count
+                    }
+                }
+            }
+        else:
+            # 返回会话列表
+            result = client.get_sessions(agent_name, limit=limit, offset=offset)
+            return {
+                "success": True,
+                "data": result
+            }
+
+    except Exception as e:
+        return {"success": False, "error": {"code": "SSH_ERROR", "message": str(e)}}
+
+
+# ==================== 微信 HTTP 访问路径 AI 裁判 API ====================
 
 @app.post("/api/feedback")
 async def submit_feedback(request: Request):
