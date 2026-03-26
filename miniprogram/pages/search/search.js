@@ -16,7 +16,11 @@ Page({
     loading: false,
     searchDone: false,
     searchFocused: true,
-    isLightTheme: true
+    isLightTheme: true,
+    // 各个分类的加载状态
+    keywordsLoading: false,
+    cardsLoading: false,
+    rulesLoading: false
   },
 
   onLoad() {
@@ -58,31 +62,55 @@ Page({
 
     this.setData({
       loading: true,
-      searchDone: false
+      searchDone: false,
+      keywordsLoading: true,
+      cardsLoading: true,
+      rulesLoading: true,
+      combinedResults: {
+        keywords: [],
+        cards: [],
+        rules: []
+      }
     })
 
     // 保存到历史
     this.saveToHistory(keyword)
 
-    // 组合查询：同时查询所有分类
-    Promise.all([
-      this.searchKeywordSync(keyword),
-      this.searchCardSync(keyword),
-      this.searchRulesSync(keyword)
-    ]).then(([keywords, cards, rules]) => {
+    // 分别查询，不等待全部完成
+    this.searchKeywordSync(keyword).then(res => {
+      this.setData({
+        'combinedResults.keywords': res || [],
+        keywordsLoading: false
+      })
+      this.checkAllLoaded()
+    })
+
+    this.searchCardSync(keyword).then(res => {
+      this.setData({
+        'combinedResults.cards': res || [],
+        cardsLoading: false
+      })
+      this.checkAllLoaded()
+    })
+
+    this.searchRulesSync(keyword).then(res => {
+      this.setData({
+        'combinedResults.rules': res || [],
+        rulesLoading: false
+      })
+      this.checkAllLoaded()
+    })
+  },
+
+  // 检查是否所有分类都已加载完成
+  checkAllLoaded() {
+    const { keywordsLoading, cardsLoading, rulesLoading } = this.data
+    if (!keywordsLoading && !cardsLoading && !rulesLoading) {
       this.setData({
         loading: false,
-        searchDone: true,
-        combinedResults: {
-          keywords: keywords || [],
-          cards: cards || [],
-          rules: rules || []
-        }
+        searchDone: true
       })
-    }).catch(err => {
-      console.error('组合查询失败:', err)
-      this.setData({ loading: false, searchDone: true })
-    })
+    }
   },
 
   // 同步查询关键词

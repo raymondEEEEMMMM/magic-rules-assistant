@@ -368,6 +368,28 @@ page {
   color: rgba(255, 255, 255, 0.6);
 }
 
+/* 分类加载状态 */
+.section-loading {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.loading-dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: #667eea;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
 /* ==================== */
 /* 日间主题 (Light Mode) */
 /* ==================== */
@@ -452,6 +474,14 @@ page {
 .container.page-light .loading-spinner {
   border-color: rgba(102, 126, 234, 0.2);
   border-top-color: #667eea;
+}
+
+.container.page-light .section-loading {
+  color: #666666;
+}
+
+.container.page-light .loading-dot {
+  background: #667eea;
 }
 
 .container.page-light .keyword-bar {

@@ -53,16 +53,20 @@
   </view>
 
   <!-- 组合搜索结果 -->
-  <view class="combined-results" wx:if="{{keyword && searchDone}}">
+  <view class="combined-results" wx:if="{{keyword && (searchDone || combinedResults.keywords.length > 0 || combinedResults.cards.length > 0 || combinedResults.rules.length > 0)}}">
     <!-- 关键词结果 -->
-    <view class="result-section" wx:if="{{combinedResults.keywords.length > 0}}">
+    <view class="result-section">
       <view class="section-header">
         <view class="section-bar keyword-bar">
           <text class="section-title">关键词异能</text>
         </view>
-        <text class="section-count">{{combinedResults.keywords.length}}</text>
+        <view class="section-loading" wx:if="{{keywordsLoading}}">
+          <text class="loading-dot"></text>
+          <text>搜索中...</text>
+        </view>
+        <text class="section-count" wx:elif="{{combinedResults.keywords.length > 0}}">{{combinedResults.keywords.length}}</text>
       </view>
-      <view class="result-list">
+      <view class="result-list" wx:if="{{!keywordsLoading || combinedResults.keywords.length > 0}}">
         <view class="result-card keyword-card" wx:for="{{combinedResults.keywords}}" wx:key="index" bindtap="viewKeywordDetail" data-keyword="{{item.keyword_name}}">
           <view class="result-header">
             <text class="result-number">{{item.keyword_en}}</text>
@@ -74,14 +78,18 @@
     </view>
 
     <!-- 卡牌结果 -->
-    <view class="result-section" wx:if="{{combinedResults.cards.length > 0}}">
+    <view class="result-section">
       <view class="section-header">
         <view class="section-bar card-bar">
           <text class="section-title">卡牌</text>
         </view>
-        <text class="section-count">{{combinedResults.cards.length}}</text>
+        <view class="section-loading" wx:if="{{cardsLoading}}">
+          <text class="loading-dot"></text>
+          <text>搜索中...</text>
+        </view>
+        <text class="section-count" wx:elif="{{combinedResults.cards.length > 0}}">{{combinedResults.cards.length}}</text>
       </view>
-      <view class="result-list card-list">
+      <view class="result-list card-list" wx:if="{{!cardsLoading || combinedResults.cards.length > 0}}">
         <view class="card-item" wx:for="{{combinedResults.cards}}" wx:key="index" bindtap="viewCardDetail" data-id="{{item.id}}">
           <view class="card-name">{{item.zhs_name || item.name}}</view>
           <view class="card-type">{{item.type_line}}</view>
@@ -90,14 +98,18 @@
     </view>
 
     <!-- 规则结果 -->
-    <view class="result-section" wx:if="{{combinedResults.rules.length > 0}}">
+    <view class="result-section">
       <view class="section-header">
         <view class="section-bar rule-bar">
           <text class="section-title">规则</text>
         </view>
-        <text class="section-count">{{combinedResults.rules.length}}</text>
+        <view class="section-loading" wx:if="{{rulesLoading}}">
+          <text class="loading-dot"></text>
+          <text>搜索中...</text>
+        </view>
+        <text class="section-count" wx:elif="{{combinedResults.rules.length > 0}}">{{combinedResults.rules.length}}</text>
       </view>
-      <view class="result-list">
+      <view class="result-list" wx:if="{{!rulesLoading || combinedResults.rules.length > 0}}">
         <view class="result-card" wx:for="{{combinedResults.rules}}" wx:key="index" bindtap="viewRuleDetail" data-rule="{{item.rule_number}}">
           <view class="result-header">
             <text class="result-number">{{item.rule_number}}</text>
@@ -109,7 +121,7 @@
     </view>
 
     <!-- 无结果 -->
-    <view class="no-results" wx:if="{{combinedResults.keywords.length === 0 && combinedResults.cards.length === 0 && combinedResults.rules.length === 0}}">
+    <view class="no-results" wx:if="{{searchDone && combinedResults.keywords.length === 0 && combinedResults.cards.length === 0 && combinedResults.rules.length === 0}}">
       <text class="no-results-icon">🔎</text>
       <text class="no-results-text">未找到与「{{keyword}}」相关的内容</text>
     </view>

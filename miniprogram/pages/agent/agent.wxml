@@ -90,6 +90,14 @@
         </view>
       </view>
     </view>
+
+    <!-- 等待提示和刷新按钮 -->
+    <view class="waiting-area" wx:if="{{loading}}">
+      <view class="waiting-tip">AI 正在思考中，可以稍后点击刷新获取回复</view>
+      <view class="refresh-btn" bindtap="refreshMessages">
+        <text>↻ 刷新</text>
+      </view>
+    </view>
   </scroll-view>
 
   <!-- 输入区域 -->

@@ -392,6 +392,16 @@ Page({
 
   // 再问一次（重新发送上一条用户消息）
   retryLast() {
+    // 如果 AI 正在思考中，提示用户
+    if (this.data.loading) {
+      wx.showToast({
+        title: 'AI 正在思考中，请稍候...',
+        icon: 'none',
+        duration: 2000
+      })
+      return
+    }
+
     const messages = this.data.messages
     if (messages.length === 0) return
 
@@ -413,5 +423,41 @@ Page({
         break
       }
     }
+  },
+
+  // 刷新消息（调用历史会话接口获取最新回复）
+  refreshMessages() {
+    const openid = this.data.openid
+    const sessionId = this.data.sessionId
+    if (!openid || !sessionId) return
+
+    api.aiJudgeHistory(openid, sessionId).then(res => {
+      if (res && res.success && res.data) {
+        const messages = res.data.messages || []
+        // 比较消息数量
+        if (messages.length > this.data.messages.length) {
+          // 有新消息，更新
+          const formattedMessages = messages.map(msg => {
+            return {
+              role: msg.role,
+              content: msg.content,
+              parsedNodes: parseMarkdown(msg.content),
+              time: this.formatTime(msg.timestamp)
+            }
+          })
+          this.setData({
+            messages: formattedMessages,
+            loading: false,
+            scrollIntoView: `msg-${formattedMessages.length - 1}`
+          })
+          wx.showToast({ title: '已获取新回复', icon: 'success' })
+        } else {
+          wx.showToast({ title: '暂无新回复', icon: 'none' })
+        }
+      }
+    }).catch(err => {
+      console.error('refreshMessages error:', err)
+      wx.showToast({ title: '刷新失败', icon: 'none' })
+    })
   }
 })

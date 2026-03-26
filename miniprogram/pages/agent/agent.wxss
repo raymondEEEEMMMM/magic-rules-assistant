@@ -11,6 +11,82 @@ page {
   height: 100vh;
 }
 
+/* 加载遮罩 */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(22, 33, 62, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32rpx;
+  transform: translateY(-70%);
+}
+
+.loading-icon {
+  font-size: 80rpx;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.loading-text-main {
+  font-size: 32rpx;
+  color: #ffd700;
+  min-height: 48rpx;
+  text-align: center;
+}
+
+.loading-progress {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
+.progress-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.progress-dot.active {
+  background: #ffd700;
+  box-shadow: 0 0 10rpx rgba(255, 215, 0, 0.5);
+}
+
+/* 日间主题加载遮罩 */
+.page-light .loading-overlay {
+  background: rgba(245, 245, 245, 0.98);
+}
+
+.page-light .loading-text-main {
+  color: #667eea;
+}
+
+.page-light .progress-dot {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.page-light .progress-dot.active {
+  background: #667eea;
+  box-shadow: 0 0 10rpx rgba(102, 126, 234, 0.5);
+}
+
 /* 导航栏 */
 .nav-bar {
   display: flex;
@@ -449,4 +525,43 @@ page {
 .page-light .loading-bubble {
   background: #ffffff;
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 等待提示和刷新按钮 */
+.waiting-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+}
+
+.waiting-tip {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+}
+
+.page-light .waiting-tip {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.refresh-btn {
+  padding: 12rpx 32rpx;
+  border-radius: 40rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1rpx solid rgba(255, 255, 255, 0.15);
+  font-size: 26rpx;
+  color: #ffd700;
+}
+
+.page-light .refresh-btn {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #667eea;
+}
+
+.refresh-btn:active {
+  opacity: 0.7;
 }
