@@ -121,6 +121,10 @@ class AIJudgeService:
         self.base_url = Config.MINIMAX_BASE_URL
         self.conversation_history: Dict[str, List[Dict]] = {}  # 按用户会话维护历史
 
+        # 请求限流：记录每个用户的最后请求时间（秒）
+        self._last_request_time: Dict[str, float] = {}
+        self._rate_limit_seconds = 60  # 同一用户60秒内只能请求一次
+
         # OpenCLAW Gateway 配置
         self.openclaw_enabled = Config.OPENCLAW_ENABLED
         self.openclaw_host = Config.OPENCLAW_HOST
@@ -860,7 +864,20 @@ class AIJudgeService:
         Returns:
             {"success": bool, "reply": str}
         """
+        import time
         logger = _get_ai_logger()
+
+        # 请求限流检查
+        rate_key = openid or session_id
+        current_time = time.time()
+        last_time = self._last_request_time.get(rate_key, 0)
+        if current_time - last_time < self._rate_limit_seconds:
+            remaining = int(self._rate_limit_seconds - (current_time - last_time))
+            return {
+                "success": False,
+                "reply": f"请求过于频繁，请 {remaining} 秒后再试"
+            }
+        self._last_request_time[rate_key] = current_time
 
         # 获取 per-user agent（如果提供了 openid）
         agent_name = None
