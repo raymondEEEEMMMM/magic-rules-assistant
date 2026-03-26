@@ -157,6 +157,43 @@ class AIJudgeService:
         """检查是否在云函数环境中"""
         return bool(os.getenv("SCF_FUNCTION_NAME") or os.getenv("TENCENTCLOUD_RUNENV"))
 
+    def _sanitize_reply(self, reply: str) -> str:
+        """
+        清理回复中的错误信息和敏感路径
+
+        防止 OpenCLAW 返回的错误信息暴露服务器内部路径、文件结构等敏感信息
+        """
+        if not reply:
+            return reply
+
+        import re
+
+        # 检测是否为错误回复的特征模式
+        error_patterns = [
+            r'⚠️.*Read:.*failed',
+            r'⚠️.*Read:.*sklearn.*failed',
+            r'📖.*Read.*failed',
+            r'error.*Read',
+            r'Error.*file.*not found',
+            r'Permission denied',
+            r'/root/\.',
+            r'/home/\w+/\.',
+            r'/var/',
+            r'\.pnpm/',
+            r'node_modules/',
+            r'openclaw@[\d.]+',
+        ]
+
+        for pattern in error_patterns:
+            if re.search(pattern, reply, re.IGNORECASE):
+                return "抱歉，AI 裁判暂时无法回答此问题，请稍后再试。"
+
+        # 如果回复包含 "Read:" 且包含 "failed"，返回友好提示
+        if 'Read:' in reply and 'failed' in reply.lower():
+            return "抱歉，AI 裁判暂时无法回答此问题，请稍后再试。"
+
+        return reply
+
     def _load_rules(self) -> str:
         """
         从本地加载规则内容
@@ -417,9 +454,11 @@ class AIJudgeService:
                 client.close()
 
                 if content:
-                    print(f"回复内容长度: {len(content)} 字符")
-                    print(f"回复内容前200字: {content[:200]}...")
-                    return content
+                    # 清理回复中的错误信息和敏感路径
+                    sanitized = self._sanitize_reply(content)
+                    print(f"回复内容长度: {len(sanitized)} 字符")
+                    print(f"回复内容前200字: {sanitized[:200]}...")
+                    return sanitized
                 else:
                     print("未获取到回复内容，fallback 到 mock 模式")
                     return self._get_mock_response(messages)
@@ -491,9 +530,10 @@ class AIJudgeService:
                     payloads = result.get("result", {}).get("payloads", [])
                     if payloads:
                         content = payloads[0].get("text", "")
-                        print(f"回复内容长度: {len(content)} 字符")
-                        print(f"回复内容前200字: {content[:200]}...")
-                        return content
+                        sanitized = self._sanitize_reply(content)
+                        print(f"回复内容长度: {len(sanitized)} 字符")
+                        print(f"回复内容前200字: {sanitized[:200]}...")
+                        return sanitized
 
                 print(f"API 返回错误: {result}，fallback 到 mock 模式")
                 return self._get_mock_response(messages)
