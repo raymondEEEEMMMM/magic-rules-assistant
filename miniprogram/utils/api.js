@@ -147,6 +147,19 @@ const api = {
    * @param {string} openid - 用户 openid（可选，用于 per-user agent 隔离）
    * @returns {Promise}
    */
+
+  /**
+   * 预热 AI Agent
+   * @param {string} openid - 用户 openid（必填）
+   * @returns {Promise}
+   */
+  aiJudgeInit(openid) {
+    if (!openid) {
+      return Promise.reject('openid 参数必填')
+    }
+    return this.request('/api/ai-judge/init', { openid }, { method: 'POST' })
+  },
+
   aiJudgeChat(message, sessionId = 'miniprogram', openid = null) {
     if (!message || !message.trim()) {
       return Promise.reject('请输入问题')

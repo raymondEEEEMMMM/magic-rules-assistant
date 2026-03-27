@@ -243,6 +243,35 @@ def main(event, context):
                 'body': json.dumps(result, ensure_ascii=False)
             }
 
+        elif path == '/api/ai-judge/init' and http_method == 'POST':
+            # 预热 AI Agent
+            from backend.services.ai_judge_service import ai_judge_service
+
+            try:
+                body_data = json.loads(body) if body else {}
+            except json.JSONDecodeError:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': 'Invalid JSON body'})
+                }
+
+            openid = body_data.get('openid', None)
+
+            if not openid:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': 'openid is required'})
+                }
+
+            result = ai_judge_service.init_agent(openid=openid)
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps(result, ensure_ascii=False)
+            }
+
         elif path == '/api/ai-judge/chat' and http_method == 'POST':
             # AI 裁判对话
             from backend.services.ai_judge_service import ai_judge_service

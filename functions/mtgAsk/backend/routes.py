@@ -317,6 +317,27 @@ async def get_rules_status():
 
 # ==================== AI 裁判 API ====================
 
+@app.post("/api/ai-judge/init")
+async def ai_judge_init(request: Request):
+    """预热 AI Agent
+
+    参数:
+    - openid: 微信 openid (必填，用于 per-user agent 隔离)
+
+    作用:
+    - 提前创建/获取用户的 Agent
+    - 减少用户首次发送消息时的等待时间
+    """
+    body = await request.json()
+    openid = body.get("openid", None)
+
+    if not openid:
+        return {"success": False, "error": "openid is required"}
+
+    from services.ai_judge_service import ai_judge_service
+    result = ai_judge_service.init_agent(openid=openid)
+    return result
+
 @app.post("/api/ai-judge/chat")
 async def ai_judge_chat(request: Request):
     """与 AI 裁判对话

@@ -14,7 +14,12 @@
         "ENVIRONMENT": "production",
         "WECHAT_TOKEN": "wx_mtg_rules_2024",
         "OPENCLAW_MAX_AGENTS": "100",
-        "OPENCLAW_IDLE_TIMEOUT": "30"
+        "OPENCLAW_IDLE_TIMEOUT": "30",
+        "MYSQL_HOST": "sh-cynosdbmysql-grp-5ydpqjru.sql.tencentcdb.com",
+        "MYSQL_PORT": "27987",
+        "MYSQL_USER": "mtgask",
+        "MYSQL_PASSWORD": "Ray19940211",
+        "MYSQL_DATABASE": "magic-rules-assistant-0a1904c329"
       },
       "http": {
         "path": "wechat"

@@ -81,8 +81,15 @@ Page({
       loadingText: 'agent 知识库加载中...'
     })
 
+    // 并行：获取会话列表 + 预热 Agent
+    const historyPromise = api.aiJudgeHistory(openid)
+    // 预热 Agent（不等待，只管发送）
+    api.aiJudgeInit(openid).catch(err => {
+      console.log('initAgent failed:', err)
+    })
+
     // 先获取会话列表
-    api.aiJudgeHistory(openid).then(res => {
+    historyPromise.then(res => {
       // 步骤2: 知识库列表已加载
       that.setData({
         loadingStep: 2,
@@ -125,10 +132,11 @@ Page({
                 console.log('loadHistory: 加载了', messages.length, '条消息')
                 const formattedMessages = messages.map(msg => {
                   const time = msg.timestamp ? that.formatTime(msg.timestamp) : ''
+                  const cleanContent = that.cleanMessageContent(msg.content)
                   return {
                     role: msg.role,
-                    content: msg.content,
-                    parsedNodes: parseMarkdown(msg.content),
+                    content: cleanContent,
+                    parsedNodes: parseMarkdown(cleanContent),
                     time: time
                   }
                 })
@@ -167,6 +175,13 @@ Page({
         isLoading: false
       })
     })
+  },
+
+  // 清洗消息内容（移除 OpenCLAW 加的 [Thu 2026-03-26 21:17 GMT+8] 前缀）
+  cleanMessageContent(content) {
+    if (!content) return ''
+    // 匹配 [星期 YYYY-MM-DD HH:MM GMT+8] 格式的前缀
+    return content.replace(/^\[([A-Za-z]{3}\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+GMT[+-]\d+)\]\s*/, '')
   },
 
   // 格式化时间戳
@@ -447,10 +462,11 @@ Page({
         if (messages.length > this.data.messages.length) {
           // 有新消息，更新
           const formattedMessages = messages.map(msg => {
+            const cleanContent = this.cleanMessageContent(msg.content)
             return {
               role: msg.role,
-              content: msg.content,
-              parsedNodes: parseMarkdown(msg.content),
+              content: cleanContent,
+              parsedNodes: parseMarkdown(cleanContent),
               time: this.formatTime(msg.timestamp)
             }
           })

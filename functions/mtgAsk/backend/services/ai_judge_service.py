@@ -1027,6 +1027,45 @@ class AIJudgeService:
                 "debug": debug_info
             }
 
+    def init_agent(self, openid: str = None) -> Dict:
+        """
+        预热 Agent（创建或获取用户的 Agent）
+
+        用于在小程序 onLoad 时调用，提前完成 Agent 的创建/获取，
+        减少用户首次发送消息时的等待时间。
+
+        Args:
+            openid: 微信 openid，用于 per-user agent 隔离
+
+        Returns:
+            {"success": bool, "agent_name": str, "is_new": bool}
+        """
+        logger = _get_ai_logger()
+
+        if not self.openclaw_enabled:
+            return {"success": True, "agent_name": None, "is_new": False}
+
+        if not openid:
+            return {"success": False, "error": "openid is required for init_agent"}
+
+        agent_name = None
+        is_new = False
+
+        if self.agent_pool:
+            try:
+                agent_name, is_new = self.agent_pool.get_or_create_agent(openid)
+                logger.info(f"[init_agent] openid={openid}, agent={agent_name}, is_new={is_new}")
+                return {
+                    "success": True,
+                    "agent_name": agent_name,
+                    "is_new": is_new
+                }
+            except Exception as e:
+                logger.error(f"[init_agent] AgentPoolManager 错误: {e}")
+                return {"success": False, "error": str(e)}
+
+        return {"success": True, "agent_name": None, "is_new": False}
+
     def analyze(self, request_data: Dict) -> Dict:
         """
         分析对局状态
