@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**IMPORTANT**: You MUST read the cloudbase skill FIRST when working with CloudBase projects.
+
 ## Project Overview
 
 mtgAsk is a WeChat-based Magic: The Gathering rule Q&A system that provides card lookups, keyword ability searches, and rule queries. It consists of a Python cloud function backend and a WeChat mini-program frontend.
@@ -105,9 +107,9 @@ miniprogram/
 
 ### Database
 
-- **Production**: MySQL on CloudBase (host: 172.17.0.5, port: 3306)
-- **Development**: SQLite local file or external MySQL (config in `.env.local`)
-- Auto-detects environment via `_is_cloud_function()` in `database.py`
+- **CloudBase MySQL**: sh-cynosdbmysql-grp-5ydpqjru.sql.tencentcdb.com:27987 (外网地址)
+- **Local Development**: SQLite or external MySQL (config in `.env.local`)
+- 云函数必须使用外网地址，无法访问内网 VPC
 
 ### API Endpoints
 

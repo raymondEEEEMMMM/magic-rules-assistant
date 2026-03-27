@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c//**)",
+      "Bash(\"C:/Users/Raymond/AppData/Local/Programs/Python/Python310/python.exe\" -m venv venv)",
+      "Bash(./venv/Scripts/pip.exe install:*)",
+      "Bash(./venv/Scripts/python.exe -c \"import requests; r = requests.get\\(''https://magic-rules-assistant-0a1904c329.service.tcloudbaseapp.com/mtgAsk/api/search?q=flying'', verify=False\\); print\\(r.text\\)\")",
+      "Bash(./venv/Scripts/python.exe -c \"import requests; r = requests.get\\(''https://magic-rules-assistant-0a1904c329.service.tcloudbaseapp.com/magic-rules-api/api/search?q=flying'', verify=False\\); print\\(r.text\\)\")",
+      "Bash(./venv/Scripts/python.exe -c \"import requests; r = requests.get\\(''https://magic-rules-assistant-0a1904c329.service.tcloudbaseapp.com/?q=flying'', verify=False\\); print\\(r.text\\)\")",
+      "Bash(./venv/Scripts/python.exe -c \":*)",
+      "mcp__cloudbase__getFunctionLogs",
+      "Bash(netstat -ano)",
+      "Bash(findstr :8000)",
+      "Bash(taskkill /F /PID 10588)"
+    ]
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "skills": {
+    "ai-model-wechat": {
+      "source": "tencentcloudbase/skills",
+      "sourceType": "github",
+      "computedHash": "a46bb9c72b4935947ba0d655356ced9aba010412957349a326d11786d412cdaf"
+    },
+    "auth-nodejs-cloudbase": {
+      "source": "tencentcloudbase/skills",
+      "sourceType": "github",
+      "computedHash": "c8cbb61743392291965df62d8d70968f1d44f18568fe20b58db7773dd3187b91"
+    },
+    "auth-tool-cloudbase": {
+      "source": "tencentcloudbase/skills",
+      "sourceType": "github",
+      "computedHash": "9b000ac337893060fc004fe91ca4555d1100b8220397ea703a991658a7784a5c"
+    },
+    "auth-web-cloudbase": {
+      "source": "tencentcloudbase/skills",
+      "sourceType": "github",
+      "computedHash": "b8c07dd5015cbc169a1c0db5676c6431b1a71a9fe54dc34b75c1c03996c3f489"
+    },
+    "auth-wechat-miniprogram": {
+      "source": "tencentcloudbase/skills",
+      "sourceType": "github",
+      "computedHash": "ac46387ad7f0c9c148df61a3f1329afc25147ab36faf481b8de8fee96f3f5dce"
+    },
+    "cloud-functions": {
+      "source": "tencentcloudbase/skills",
+      "sourceType": "github",
+      "computedHash": "72dc724012cb34dd89b6b5e2d831bb9a81a3626dd44cb415895c271b72764c51"
+    },
+    "cloud-storage-web": {
+      "source": "tencentcloudbase/skills",
+      "sourceType": "github",
+      "computedHash": "3b14f14eeecce24fd87dc588edac73de95c8c2e878c2775d96e44195aceaaef1"
+    },
+    "cloudbase": {
+      "source": "tencentcloudbase/skills",
+      "sourceType": "github",
+      "computedHash": "c535e53584c0dd1dce506149e44b6ccd72bac7130530ca29e47b62d33198c570"
+    },
+    "cloudbase-document-database-in-wechat-miniprogram": {
+      "source": "tencentcloudbase/skills",
+      "sourceType": "github",
+      "computedHash": "fdc75332263769a742477dc366af79a53f0e3634c7c45dc79718cf71eb785522"
+    },
+    "cloudbase-document-database-web-sdk": {
+      "source": "tencentcloudbase/skills",
+      "sourceType": "github",
+      "computedHash": "d94aa374cebf44bb7ea26b7a115640b4d17d65e08e8a8c32d78a0c916e0fa32e"
+    },
+    "cloudbase-platform": {
+      "source": "tencentcloudbase/skills",
+      "sourceType": "github",
+      "computedHash": "5d1cf07f9a6d3241952b6b024ea05164e3b32e3900ee9376d79555a67798147d"
+    },
+    "cloudrun-development": {
+      "source": "tencentcloudbase/skills",
+      "sourceType": "github",
+      "computedHash": "3350756dc6bb5a8f2c93e91aa242e21498038c9d552b505f41a77d5d352034f9"
+    },
+    "data-model-creation": {
+      "source": "tencentcloudbase/skills",
+      "sourceType": "github",
+      "computedHash": "502303aa7bbbfa35be823f05920a1262fbba81be98227d0ebaa5870824a3eceb"
+    },
+    "http-api-cloudbase": {
+      "source": "tencentcloudbase/skills",
+      "sourceType": "github",
+      "computedHash": "5037fcbb3f71fd552662326540c1255d0814741412c86676bb5edf7b99654c69"
+    },
+    "miniprogram-development": {
+      "source": "tencentcloudbase/skills",
+      "sourceType": "github",
+      "computedHash": "2585425b433a3fdf14381590137888ef02483890dbdc2eda73d200caf956adb2"
+    },
+    "ui-design": {
+      "source": "tencentcloudbase/skills",
+      "sourceType": "github",
+      "computedHash": "289616bfd46459c9f5fac0a3eabcccc3b1b8039d31adabb49139262361b08aed"
+    }
+  }
+}
