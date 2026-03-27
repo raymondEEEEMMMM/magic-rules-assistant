@@ -335,9 +335,10 @@ const api = {
           }
 
           console.error('云函数调用失败:', err)
+          console.log('CODEBUDDY_DEBUG fail callback err=', JSON.stringify(err).substring(0, 300))
 
           // 判断错误类型
-          if (err.errMsg && err.errMsg.includes('timeout')) {
+          if (err.errMsg && (err.errMsg.includes('timeout') || err.errMsg.includes('timed out') || err.errMsg.includes('TIME_LIMIT'))) {
             // chat 接口超时说明是 AI 处理中，让用户刷新
             if (path === '/api/ai-judge/chat') {
               reject('async_timeout')

@@ -332,6 +332,7 @@ Page({
       }
     }).catch(err => {
       console.error('API error:', err)
+      console.log('CODEBUDDY_DEBUG chat catch err=', err, 'typeof err=', typeof err)
       if (thinkingTimer) {
         clearInterval(thinkingTimer)
       }
