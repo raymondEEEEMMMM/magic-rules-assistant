@@ -99,6 +99,11 @@
     <view class="waiting-area" wx:if="{{loading && !thinkingText}}">
       <view class="waiting-tip">异步处理中，请稍后刷新会话试试</view>
     </view>
+
+    <!-- AI 内容免责声明 -->
+    <view class="ai-disclaimer">
+      <text>⚠️ 内容由 AI 生成，仅供参考</text>
+    </view>
   </scroll-view>
 
   <!-- 输入区域 -->

@@ -578,3 +578,16 @@ page {
 .page-light .waiting-tip {
   color: rgba(0, 0, 0, 0.4);
 }
+
+/* AI 内容免责声明 */
+.ai-disclaimer {
+  text-align: center;
+  padding: 20rpx 30rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.page-light .ai-disclaimer {
+  color: rgba(0, 0, 0, 0.4);
+}
