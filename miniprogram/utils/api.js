@@ -285,9 +285,13 @@ const api = {
 
       console.log('CODEBUDDY_DEBUG api request started path=', path, 'method=', method, 'data=', data)
 
+      // chat 接口需要较长超时（AI 处理可能需要 60+ 秒）
+      const requestTimeout = path === '/api/ai-judge/chat' ? 120000 : 60000
+
       wx.cloud.callFunction({
         name: FUNCTION_NAME,
         data: callData,
+        timeout: requestTimeout,
         success: res => {
           console.log('CODEBUDDY_DEBUG api request success path=', path, 'res=', JSON.stringify(res).substring(0, 200))
           if (showLoading) {
