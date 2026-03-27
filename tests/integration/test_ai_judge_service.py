@@ -1,0 +1,162 @@
+"""
+AI 裁判服务测试
+"""
+import os
+import sys
+
+# 添加项目路径
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../functions/mtgAsk/backend"))
+
+# 配置 OpenCLAW Gateway（自建服务器）
+os.environ["OPENCLAW_ENABLED"] = "true"
+os.environ["OPENCLAW_HOST"] = "101.43.48.45"
+os.environ["OPENCLAW_PORT"] = "22"
+os.environ["OPENCLAW_SSH_USER"] = "root"
+# 使用密码登录（测试时通过环境变量设置，不要硬编码）
+os.environ["OPENCLAW_SSH_PASSWORD"] = os.environ.get("OPENCLAW_SSH_PASSWORD", "")
+# 或使用密钥登录（需要绝对路径）
+# os.environ["OPENCLAW_SSH_KEY"] = "/Users/lianghaoming/cbworkplace/ai_judge/cc.pem"
+os.environ["OPENCLAW_AGENT"] = "main"
+
+# 优先使用 MINIMAX_API_KEY，否则尝试使用 ANTHROPIC_AUTH_TOKEN
+api_key = os.environ.get("MINIMAX_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN", "")
+if api_key:
+    os.environ["MINIMAX_API_KEY"] = api_key
+
+from services.ai_judge_service import AIJudgeService
+
+
+def test_ai_judge_opposition_agent():
+    """测试案例：EDH 局有2个反对派密探时的搜寻"""
+    service = AIJudgeService()
+
+    # 打印 OpenCLAW 配置
+    print(f"\n[配置] openclaw_enabled: {service.openclaw_enabled}")
+    print(f"[配置] openclaw_host: {service.openclaw_host}")
+    print(f"[配置] openclaw_port: {service.openclaw_port}")
+    print(f"[配置] openclaw_ssh_user: {service.openclaw_ssh_user}")
+    print(f"[配置] openclaw_agent: {service.openclaw_agent}")
+
+    # 检查是否配置了 API Key
+    if not service.api_key:
+        print("⚠️ 警告: 未配置 MINIMAX_API_KEY，跳过实际 API 调用测试")
+        print("请设置环境变量 MINIMAX_API_KEY 后运行此测试")
+        return
+
+    # 测试问题
+    question = "EDH 局，场上有 2 个反对派密探（Opposition Agent），某牌手（没有反对派密探）搜寻牌库。"
+
+    print(f"\n{'='*60}")
+    print(f"测试问题: {question}")
+    print(f"{'='*60}\n")
+
+    result = service.chat(question, session_id="test_opposition_agent")
+
+    print(f"成功: {result['success']}")
+    print(f"\n回答:\n{result['reply']}")
+    print(f"\n{'='*60}")
+
+
+def test_ai_judge_tarmogoyf():
+    """测试案例：塔莫耶夫 vs 闪电击"""
+    service = AIJudgeService()
+
+    if not service.api_key:
+        print("⚠️ 警告: 未配置 MINIMAX_API_KEY，跳过测试")
+        return
+
+    question = "我场上有塔莫耶夫，对手施放闪电击指定我的塔莫耶夫，能否响应触发敏捷异能在闪电击造成伤害前造成1点伤害？"
+
+    print(f"\n{'='*60}")
+    print(f"测试问题: {question}")
+    print(f"{'='*60}\n")
+
+    result = service.chat(question, session_id="test_tarmogoyf")
+
+    print(f"成功: {result['success']}")
+    print(f"\n回答:\n{result['reply']}")
+    print(f"\n{'='*60}")
+
+
+def test_ai_judge_analyze():
+    """测试 analyze 方法"""
+    service = AIJudgeService()
+
+    if not service.api_key:
+        print("⚠️ 警告: 未配置 MINIMAX_API_KEY，跳过测试")
+        return
+
+    result = service.analyze({
+        "game_state": "EDH 局，场上有 2 个反对派密探（Opposition Agent）",
+        "cards": ["Opposition Agent", "Opposition Agent"],
+        "question": "某牌手（没有反对派密探）搜寻牌库会发生什么？"
+    })
+
+    print(f"\n{'='*60}")
+    print("测试 analyze 方法")
+    print(f"{'='*60}\n")
+    print(f"成功: {result['success']}")
+    print(f"\n分析:\n{result['analysis']}")
+    print(f"\n{'='*60}")
+
+
+def test_ai_judge_network_search():
+    """
+    测试 Agent 的网络检索能力
+
+    测试案例：询问"反对派密探"的异能
+    - 验证 Agent 能正确回答卡牌信息
+    - 验证网络搜索功能正常工作
+    """
+    service = AIJudgeService()
+
+    if not service.api_key:
+        print("⚠️ 警告: 未配置 MINIMAX_API_KEY，跳过测试")
+        return
+
+    question = "反对派密探的异能是什么？请详细说明。"
+
+    print(f"\n{'='*60}")
+    print("测试 Agent 网络检索能力")
+    print(f"测试问题: {question}")
+    print(f"{'='*60}\n")
+
+    result = service.chat(question, session_id="test_network_search")
+
+    print(f"成功: {result['success']}")
+    print(f"\n回答:\n{result['reply']}")
+
+    # 验证回答包含关键信息
+    reply = result['reply']
+    checks = [
+        ("费用", "{2}{B}" in reply or "2点法术力" in reply),
+        ("异能", "进战场" in reply or "搜寻" in reply or "牌库" in reply),
+        ("类型", "生物" in reply or "传奇" in reply),
+    ]
+
+    print(f"\n{'='*60}")
+    print("回答验证:")
+    for name, passed in checks:
+        status = "✅" if passed else "❌"
+        print(f"  {status} {name}")
+
+    if all(passed for _, passed in checks):
+        print("\n✅ 网络检索测试通过!")
+    else:
+        print("\n❌ 网络检索测试失败 - 回答内容不完整")
+
+    print(f"{'='*60}")
+
+
+if __name__ == "__main__":
+    # 先测试 analyze 方法
+    test_ai_judge_analyze()
+
+    # 然后测试对话
+    test_ai_judge_opposition_agent()
+
+    # 额外测试：经典问题
+    test_ai_judge_tarmogoyf()
+
+    # 网络检索测试
+    test_ai_judge_network_search()

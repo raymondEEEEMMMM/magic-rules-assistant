@@ -1,4 +1,5 @@
 from typing import List, Dict, Optional
+import re
 from database import RuleDatabase
 
 class RuleService:
@@ -20,31 +21,67 @@ class RuleService:
             "qa_templates": []
         }
 
-        # 搜索规则
-        rules = self.db.search_by_keywords(keywords)
-        if rules:
-            results["rules"] = rules[:3]  # 限制返回数量
-
-        # 搜索关键词异能
+        # 1. 先搜索关键词异能，获取规则引用
         for keyword in keywords:
             keyword_ability = self.db.get_keyword_ability(keyword)
             if keyword_ability:
                 results["keyword_abilities"].append(keyword_ability)
-                break  # 只返回最匹配的一个
 
-        # 搜索卡牌
+                # 从关键词异能获取规则引用
+                rule_ref = keyword_ability.get('rule_ref_en') or keyword_ability.get('rule_ref_cn', '')
+                if rule_ref:
+                    rule_number = self._extract_rule_number(rule_ref)
+                    if rule_number:
+                        rule = self.db.get_rule_by_number(rule_number)
+                        if rule:
+                            # 标准化规则格式，与 search_by_keywords 保持一致
+                            # 去除 HTML 标签
+                            content_cn = rule.get('rule_content_cn', '') or ''
+                            content_cn = re.sub(r'<[^>]+>', '', content_cn)
+                            content_cn = re.sub(r'\s+', ' ', content_cn).strip()
+
+                            normalized_rule = {
+                                'rule_number': rule.get('rule_number'),
+                                'rule_title': rule.get('rule_title_cn') or rule.get('rule_title_en', ''),
+                                'rule_content': content_cn,
+                                'category': rule.get('category'),
+                            }
+                            # 如果有英文内容也带上
+                            if rule.get('rule_title_en'):
+                                normalized_rule['rule_title_en'] = rule.get('rule_title_en')
+                            if rule.get('rule_content_en'):
+                                normalized_rule['rule_content_en'] = rule.get('rule_content_en')
+                            results["rules"].append(normalized_rule)
+
+        # 2. 如果没有通过关键词找到规则，再用文本搜索
+        if not results["rules"]:
+            rules = self.db.search_by_keywords(keywords)
+            if rules:
+                results["rules"] = rules[:3]
+
+        # 3. 搜索卡牌
         for keyword in keywords:
             card_rule = self.db.get_card_rule(keyword)
             if card_rule:
                 results["cards"].append(card_rule)
                 break  # 只返回最匹配的一个
 
-        # 搜索问答模板
+        # 4. 限制规则返回数量
+        if results["rules"]:
+            results["rules"] = results["rules"][:3]
+
+        # 5. 搜索问答模板
         qa_templates = self.db.search_qa_templates(keywords)
         if qa_templates:
             results["qa_templates"] = qa_templates[:2]
 
         return results
+
+    def _extract_rule_number(self, rule_ref: str) -> Optional[str]:
+        """从规则引用中提取规则编号，如 'Rule 702.9' -> '702.9' 或 '规则702.9' -> '702.9'"""
+        # 匹配 702.9, 101.1a 等格式
+        match = re.search(r'(\d+\.\d+[a-z]?)', rule_ref)
+        return match.group(1) if match else None
 
     def get_keyword_ability(self, keyword: str) -> Optional[Dict]:
         """获取关键词异能"""

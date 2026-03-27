@@ -1,98 +1,85 @@
 <!--pages/apitest/apitest.wxml-->
 <view class="container">
   <view class="header">
-    <text class="title">🧪 后端API测试工具</text>
-    <text class="subtitle">测试所有后端接口功能</text>
+    <text class="title">API 连通性测试</text>
   </view>
 
-  <!-- API配置 -->
-  <view class="section">
-    <view class="section-title">API配置</view>
-    <input class="api-input" value="{{apiBase}}" placeholder="API基础地址" bindinput="onApiInput" />
-  </view>
-
-  <!-- 测试按钮组 -->
-  <view class="section">
-    <view class="section-title">接口测试</view>
-    <view class="test-buttons">
-      <button class="test-btn primary" bindtap="testHealth" disabled="{{loading}}">
-        {{loading ? '测试中...' : '1. 健康检查'}}
-      </button>
-      <button class="test-btn" bindtap="testSearch" disabled="{{loading}}">
-        {{loading ? '测试中...' : '2. 规则搜索'}}
-      </button>
-      <button class="test-btn" bindtap="testKeyword" disabled="{{loading}}">
-        {{loading ? '测试中...' : '3. 关键词查询'}}
-      </button>
-      <button class="test-btn" bindtap="testCard" disabled="{{loading}}">
-        {{loading ? '测试中...' : '4. 卡牌搜索'}}
-      </button>
-      <button class="test-btn" bindtap="testCardDetail" disabled="{{loading}}">
-        {{loading ? '测试中...' : '5. 卡牌详情'}}
-      </button>
-      <button class="test-btn" bindtap="testRandomCard" disabled="{{loading}}">
-        {{loading ? '测试中...' : '6. 随机卡牌'}}
-      </button>
-      <button class="test-btn" bindtap="testAutocomplete" disabled="{{loading}}">
-        {{loading ? '测试中...' : '7. 自动补全'}}
-      </button>
-      <button class="test-btn danger" bindtap="testAll" disabled="{{loading}}">
-        {{loading ? '测试中...' : '8. 全部测试'}}
-      </button>
-    </view>
-  </view>
-
-  <!-- 测试结果 -->
-  <view class="section">
-    <view class="section-title">测试结果</view>
-    <view class="result-summary">
-      <view class="summary-item">
-        <text class="summary-label">已测试:</text>
-        <text class="summary-value {{passedCount > 0 ? 'success' : ''}}">{{passedCount}}</text>
+  <!-- 测试列表 -->
+  <view class="test-list">
+    <!-- AI 裁判测试 -->
+    <view class="test-item">
+      <view class="test-header">
+        <text class="test-name">AI 裁判 API</text>
+        <view class="test-status {{aiJudgeStatus}}">{{aiJudgeStatusText}}</view>
       </view>
-      <view class="summary-item">
-        <text class="summary-label">失败:</text>
-        <text class="summary-value {{failedCount > 0 ? 'error' : ''}}">{{failedCount}}</text>
-      </view>
-      <view class="summary-item">
-        <text class="summary-label">耗时:</text>
-        <text class="summary-value">{{totalTime}}ms</text>
-      </view>
-    </view>
-  </view>
-
-  <!-- 详细结果列表 -->
-  <view class="section results-section">
-    <view class="section-title">详细结果</view>
-    <view class="result-list">
-      <view 
-        class="result-item {{item.status}}" 
-        wx:for="{{testResults}}" 
-        wx:key="id"
-      >
+      <view class="test-desc">测试与AI裁判服务的连接</view>
+      <button class="test-btn" bindtap="testAiJudge" loading="{{aiJudgeLoading}}">
+        {{aiJudgeLoading ? '测试中...' : '开始测试'}}
+      </button>
+      <view class="test-result" wx:if="{{aiJudgeResult}}">
         <view class="result-header">
-          <text class="result-icon">{{item.status === 'success' ? '✅' : item.status === 'fail' ? '❌' : '⏳'}}</text>
-          <text class="result-name">{{item.name}}</text>
-          <text class="result-time">{{item.time}}ms</text>
+          <text class="result-label">返回结果：</text>
+          <button class="copy-btn" bindtap="copyResult" data-result="{{aiJudgeResult}}">复制</button>
         </view>
-        <view class="result-content" wx:if="{{item.status !== 'pending'}}">
-          <view class="result-path">请求: {{item.requestPath}}</view>
-          <view class="result-code" wx:if="{{item.statusCode}}">状态码: {{item.statusCode}}</view>
-          <view class="result-data">
-            <text class="result-data-label">响应:</text>
-            <text class="result-data-value">{{item.response}}</text>
-          </view>
-          <view class="result-error" wx:if="{{item.error}}">
-            <text class="result-error-label">错误:</text>
-            <text class="result-error-value">{{item.error}}</text>
-          </view>
-        </view>
+        <text class="result-content">{{aiJudgeResult}}</text>
       </view>
     </view>
-  </view>
 
-  <!-- 清除按钮 -->
-  <view class="section">
-    <button class="clear-btn" bindtap="clearResults">清除结果</button>
+    <!-- 规则搜索测试 -->
+    <view class="test-item">
+      <view class="test-header">
+        <text class="test-name">规则搜索 API</text>
+        <view class="test-status {{ruleSearchStatus}}">{{ruleSearchStatusText}}</view>
+      </view>
+      <view class="test-desc">测试规则搜索功能（关键词：战斗）</view>
+      <button class="test-btn" bindtap="testRuleSearch" loading="{{ruleSearchLoading}}">
+        {{ruleSearchLoading ? '测试中...' : '开始测试'}}
+      </button>
+      <view class="test-result" wx:if="{{ruleSearchResult}}">
+        <view class="result-header">
+          <text class="result-label">返回结果：</text>
+          <button class="copy-btn" bindtap="copyResult" data-result="{{ruleSearchResult}}">复制</button>
+        </view>
+        <text class="result-content">{{ruleSearchResult}}</text>
+      </view>
+    </view>
+
+    <!-- 卡牌查询测试 -->
+    <view class="test-item">
+      <view class="test-header">
+        <text class="test-name">卡牌查询 API</text>
+        <view class="test-status {{cardSearchStatus}}">{{cardSearchStatusText}}</view>
+      </view>
+      <view class="test-desc">测试卡牌查询功能（卡牌：黑莲花）</view>
+      <button class="test-btn" bindtap="testCardSearch" loading="{{cardSearchLoading}}">
+        {{cardSearchLoading ? '测试中...' : '开始测试'}}
+      </button>
+      <view class="test-result" wx:if="{{cardSearchResult}}">
+        <view class="result-header">
+          <text class="result-label">返回结果：</text>
+          <button class="copy-btn" bindtap="copyResult" data-result="{{cardSearchResult}}">复制</button>
+        </view>
+        <text class="result-content">{{cardSearchResult}}</text>
+      </view>
+    </view>
+
+    <!-- 关键词查询测试 -->
+    <view class="test-item">
+      <view class="test-header">
+        <text class="test-name">关键词查询 API</text>
+        <view class="test-status {{keywordStatus}}">{{keywordStatusText}}</view>
+      </view>
+      <view class="test-desc">测试关键词查询功能（关键词：飞行）</view>
+      <button class="test-btn" bindtap="testKeyword" loading="{{keywordLoading}}">
+        {{keywordLoading ? '测试中...' : '开始测试'}}
+      </button>
+      <view class="test-result" wx:if="{{keywordResult}}">
+        <view class="result-header">
+          <text class="result-label">返回结果：</text>
+          <button class="copy-btn" bindtap="copyResult" data-result="{{keywordResult}}">复制</button>
+        </view>
+        <text class="result-content">{{keywordResult}}</text>
+      </view>
+    </view>
   </view>
 </view>

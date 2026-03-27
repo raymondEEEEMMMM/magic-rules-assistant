@@ -4,22 +4,35 @@
 
 ## 基础信息
 
-- **API 基础地址**: `https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/`
+- **API 基础地址**: `https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/`
 - **请求方式**: `GET` / `POST`
 - **响应格式**: `JSON`
 - **字符编码**: `UTF-8`
+
+## ⚠️ 数据限制说明
+
+> **重要**: 后端当前**只支持英文规则查询**，**支持中文卡牌查询**（通过 MTGCH API）。
+
+| 功能 | 当前支持语言 | 说明 |
+|------|-------------|------|
+| 关键词查询 | 英文 | 如 `Flying`, `Trample` |
+| 规则搜索 | 英文 | 规则数据库为英文 |
+| 卡牌搜索 | 中文/英文 | 通过 MTGCH API |
 
 ## API 端点列表
 
 | 端点 | 方法 | 说明 |
 |------|------|------|
 | `/` | GET | 服务状态 |
-| `/api/search` | GET | 规则搜索 |
-| `/api/keyword` | GET | 关键词查询 |
-| `/api/card` | GET | MTGCH 卡牌搜索 |
-| `/api/mtgch/card` | GET | MTGCH 单张卡牌详情 |
-| `/api/mtgch/random` | GET | MTGCH 随机卡牌 |
-| `/api/mtgch/autocomplete` | GET | MTGCH 自动补全 |
+| `/wechat/api/search` | GET | 规则搜索（仅英文） |
+| `/wechat/api/keyword` | GET | 关键词查询（仅英文） |
+| `/wechat/api/mtgch/search` | GET | MTGCH 卡牌搜索（支持中文） |
+| `/wechat/api/mtgch/card` | GET | MTGCH 单张卡牌详情 |
+| `/wechat/api/mtgch/autocomplete` | GET | MTGCH 自动补全 |
+| `/api/ai-judge/chat` | POST | AI 裁判对话 |
+| `/api/ai-judge/clear` | POST | 清除 AI 裁判会话 |
+| `/api/admin/cleanup-sessions` | POST | 清理 OpenCLAW 会话 |
+| `/api/admin/agent-pool/stats` | POST | 获取 Agent 池统计 |
 
 ---
 
@@ -33,7 +46,7 @@ GET /
 ### 请求示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/',
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/',
   method: 'GET'
 })
 ```
@@ -55,7 +68,7 @@ wx.request({
 
 ### 接口
 ```
-GET /api/search?q={keyword}
+GET /wechat/api/search?q={keyword}
 ```
 
 ### 请求参数
@@ -67,7 +80,7 @@ GET /api/search?q={keyword}
 ### 请求示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/search',
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/search',
   data: {
     q: 'combat'
   },
@@ -119,7 +132,7 @@ function searchRules(keyword) {
   wx.showLoading({ title: '搜索中...' })
   
   wx.request({
-    url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/search',
+    url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/search',
     data: { q: keyword },
     method: 'GET',
     success(res) {
@@ -151,7 +164,7 @@ searchRules('combat')
 
 ### 接口
 ```
-GET /api/keyword?k={keyword}
+GET /wechat/api/keyword?k={keyword}
 ```
 
 ### 请求参数
@@ -163,7 +176,7 @@ GET /api/keyword?k={keyword}
 ### 请求示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/keyword',
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/keyword',
   data: {
     k: 'Flying'
   },
@@ -193,7 +206,7 @@ function getKeyword(keyword) {
   wx.showLoading({ title: '查询中...' })
   
   wx.request({
-    url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/keyword',
+    url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/keyword',
     data: { k: keyword },
     method: 'GET',
     success(res) {
@@ -236,7 +249,7 @@ getKeyword('Flying')
 
 ### 接口
 ```
-GET /api/card?q={card_name}&page={page}&page_size={page_size}
+GET /wechat/api/mtgch/search?q={card_name}&page={page}&page_size={page_size}
 ```
 
 ### 请求参数
@@ -250,7 +263,7 @@ GET /api/card?q={card_name}&page={page}&page_size={page_size}
 ### 请求示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/card',
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/mtgch/search',
   data: {
     q: 'Lightning Bolt',
     page: 1,
@@ -290,7 +303,7 @@ function searchCard(cardName, page = 1) {
   wx.showLoading({ title: '搜索中...' })
   
   wx.request({
-    url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/card',
+    url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/mtgch/search',
     data: { 
       q: cardName,
       page,
@@ -342,7 +355,7 @@ searchCard('Lightning Bolt')
 ### 小程序错误处理示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/search',
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/search',
   data: { q: keyword },
   method: 'GET',
   success(res) {
@@ -402,7 +415,7 @@ function searchWithCache(keyword) {
   
   return new Promise((resolve) => {
     wx.request({
-      url: API_URL + '/api/search',
+      url: API_URL + '/wechat/api/search',
       data: { q: keyword },
       success(res) {
         wx.setStorageSync(cacheKey, {
@@ -440,7 +453,7 @@ function apiRequest(options) {
 
 // 使用
 apiRequest({
-  url: API_URL + '/api/search',
+  url: API_URL + '/wechat/api/search',
   data: { q: 'combat' }
 }).then(data => {
   console.log(data)
@@ -454,7 +467,7 @@ apiRequest({
 ### Page 完整代码
 ```javascript
 // pages/index/index.js
-const API_BASE = 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la'
+const API_BASE = 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com'
 
 Page({
   data: {
@@ -474,7 +487,7 @@ Page({
     this.setData({ loading: true })
     
     wx.request({
-      url: `${API_BASE}/api/search`,
+      url: `${API_BASE}/wechat/api/search`,
       data: { q: keyword },
       method: 'GET',
       success: (res) => {
@@ -498,7 +511,7 @@ Page({
     if (!keyword) return
     
     wx.request({
-      url: `${API_BASE}/api/keyword`,
+      url: `${API_BASE}/wechat/api/keyword`,
       data: { k: keyword },
       method: 'GET',
       success: (res) => {
@@ -521,7 +534,7 @@ Page({
     if (!keyword) return
     
     wx.request({
-      url: `${API_BASE}/api/card`,
+      url: `${API_BASE}/wechat/api/mtgch/search`,
       data: { q: keyword },
       method: 'GET',
       success: (res) => {
@@ -547,8 +560,8 @@ Page({
 
 ### 接口
 ```
-GET /api/mtgch/card?id={card_id}
-GET /api/mtgch/card?set={set_code}&number={collector_number}
+GET /wechat/api/mtgch/card?id={card_id}
+GET /wechat/api/mtgch/card?set={set_code}&number={collector_number}
 ```
 
 ### 请求参数
@@ -563,14 +576,14 @@ GET /api/mtgch/card?set={set_code}&number={collector_number}
 ```javascript
 // 通过 UUID 查询
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/mtgch/card',
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/mtgch/card',
   data: { id: 'card-uuid' },
   method: 'GET'
 })
 
 // 通过系列代码+编号查询
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/mtgch/card',
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/mtgch/card',
   data: { set: 'M19', number: '149' },
   method: 'GET'
 })
@@ -595,71 +608,11 @@ wx.request({
 
 ---
 
-## 6. 随机卡牌
+## 6. 自动补全
 
 ### 接口
 ```
-GET /api/mtgch/random
-```
-
-### 请求示例
-```javascript
-wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/mtgch/random',
-  method: 'GET',
-  success(res) {
-    console.log(res.data)
-  }
-})
-```
-
-### 响应示例
-```json
-{
-  "id": "uuid",
-  "name": "Random Card",
-  "type": "Creature",
-  "mana_cost": "{2}{R}",
-  "oracle_text": "...",
-  "set_name": "...",
-  "image_uris": {
-    "normal": "https://..."
-  }
-}
-```
-
-### 小程序使用示例
-```javascript
-// 获取随机卡牌
-function getRandomCard() {
-  wx.showLoading({ title: '获取中...' })
-
-  wx.request({
-    url: `${API_BASE}/api/mtgch/random`,
-    method: 'GET',
-    success(res) {
-      wx.hideLoading()
-      const card = res.data
-      if (card) {
-        console.log('随机卡牌:', card)
-        // 显示卡牌
-      }
-    },
-    fail(err) {
-      wx.hideLoading()
-      wx.showToast({ title: '获取失败', icon: 'none' })
-    }
-  })
-}
-```
-
----
-
-## 7. 自动补全
-
-### 接口
-```
-GET /api/mtgch/autocomplete?q={query}&size={size}
+GET /wechat/api/mtgch/autocomplete?q={query}&size={size}
 ```
 
 ### 请求参数
@@ -673,7 +626,7 @@ GET /api/mtgch/autocomplete?q={query}&size={size}
 ### 请求示例
 ```javascript
 wx.request({
-  url: 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la/api/mtgch/autocomplete',
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/wechat/api/mtgch/autocomplete',
   data: { q: 'light', size: 5 },
   method: 'GET',
   success(res) {
@@ -701,7 +654,7 @@ wx.request({
 function autocomplete(query) {
   return new Promise((resolve) => {
     wx.request({
-      url: `${API_BASE}/api/mtgch/autocomplete`,
+      url: `${API_BASE}/wechat/api/mtgch/autocomplete`,
       data: { q: query, size: 10 },
       method: 'GET',
       success(res) {
@@ -730,6 +683,211 @@ function onInput(e) {
 
 ---
 
+## 7. AI 裁判 (OpenCLAW)
+
+### 接口
+```
+POST /api/ai-judge/chat
+```
+
+### 请求参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| message | string | 是 | 用户问题 |
+| session_id | string | 否 | 会话 ID（默认: miniprogram） |
+
+### 请求示例
+```javascript
+wx.request({
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/api/ai-judge/chat',
+  method: 'POST',
+  header: {
+    'Content-Type': 'application/json'
+  },
+  data: {
+    message: '闪电击的伤害何时结算？',
+    session_id: 'miniprogram'
+  },
+  success(res) {
+    console.log(res.data)
+  }
+})
+```
+
+### 响应示例
+```json
+{
+  "success": true,
+  "reply": "闪电击的伤害会在其结算时立即造成...",
+  "debug": {
+    "session_id": "miniprogram",
+    "user_message": "闪电击的伤害何时结算？",
+    "message_count": 2
+  }
+}
+```
+
+### 流式响应
+
+```
+POST /api/ai-judge/chat/stream
+```
+
+支持 SSE 流式响应，返回格式：
+```
+data: {"content": "首"}
+data: {"content": "部分"}
+data: {"content": "内容"}
+data: {"done": true}
+```
+
+### 局势分析
+
+```
+POST /api/ai-judge/analyze
+```
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| game_state | string | 是 | 游戏状态描述 |
+| question | string | 是 | 具体问题 |
+| session_id | string | 否 | 会话 ID |
+
+### 清除会话
+
+```
+POST /api/ai-judge/clear
+```
+
+清除指定会话的历史记录。
+
+### 小程序使用示例
+```javascript
+// AI 裁判问答
+function askAIJudge(question) {
+  wx.showLoading({ title: '思考中...' })
+
+  wx.request({
+    url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/api/ai-judge/chat',
+    method: 'POST',
+    header: {
+      'Content-Type': 'application/json'
+    },
+    data: {
+      message: question,
+      session_id: 'miniprogram'
+    },
+    success(res) {
+      wx.hideLoading()
+      if (res.data.success) {
+        console.log('AI 回答:', res.data.reply)
+      } else {
+        wx.showToast({ title: '回答失败', icon: 'none' })
+      }
+    },
+    fail(err) {
+      wx.hideLoading()
+      wx.showToast({ title: '网络错误', icon: 'none' })
+    }
+  })
+}
+
+// 使用
+askAIJudge('闪电击的伤害何时结算？')
+```
+
+---
+
+## 8. 管理接口 (Admin)
+
+### 8.1 清理 OpenCLAW 会话
+
+```
+POST /api/admin/cleanup-sessions
+```
+
+清理 OpenCLAW Gateway 累积的过期会话历史，解决响应超时问题。
+
+**请求参数**: 无
+
+**请求示例**
+```javascript
+wx.request({
+  url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/api/admin/cleanup-sessions',
+  method: 'POST',
+  header: {
+    'Content-Type': 'application/json'
+  },
+  success(res) {
+    console.log(res.data)
+  }
+})
+```
+
+**响应示例**
+```json
+{
+  "success": true,
+  "output": "Applied maintenance. Current entries: 1"
+}
+```
+
+### 8.2 获取 Agent 池统计
+
+```
+POST /api/admin/agent-pool/stats
+```
+
+获取当前 Agent 池的使用状态。
+
+**请求参数**: 无
+
+**响应示例**
+```json
+{
+  "success": true,
+  "stats": {
+    "max_agents": 100,
+    "active_agents": 21,
+    "idle_agents": 0,
+    "utilization": "21/100 (21.0%)"
+  }
+}
+```
+
+### 小程序使用示例
+```javascript
+// 清理会话
+function cleanupSessions() {
+  wx.showModal({
+    title: '清理会话',
+    content: '确定要清理 OpenCLAW 过期会话吗？这可以解决响应超时问题。',
+    success(res) {
+      if (res.confirm) {
+        wx.showLoading({ title: '清理中...' })
+
+        wx.request({
+          url: 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com/api/admin/cleanup-sessions',
+          method: 'POST',
+          header: { 'Content-Type': 'application/json' },
+          success(res) {
+            wx.hideLoading()
+            wx.showToast({ title: '已清理会话', icon: 'success' })
+          },
+          fail(err) {
+            wx.hideLoading()
+            wx.showToast({ title: '清理失败', icon: 'none' })
+          }
+        })
+      }
+    }
+  })
+}
+```
+
+---
+
 ## 技术支持
 
 如有问题，请联系开发团队或查看项目文档：
@@ -744,4 +902,4 @@ function onInput(e) {
 | 日期 | 版本 | 更新内容 |
 |------|------|----------|
 | 2026-03-14 | 1.0 | 初始版本，提供规则搜索、关键词查询、卡牌搜索 API |
-| 2026-03-14 | 1.1 | 补充 MTGCH 单张卡牌详情、随机卡牌、自动补全接口 |
+| 2026-03-14 | 1.1 | 补充 MTGCH 单张卡牌详情、自动补全接口 |

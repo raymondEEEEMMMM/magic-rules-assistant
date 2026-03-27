@@ -1,2 +1,7 @@
 #!/bin/bash
-python3 -u scf_index.py
+
+# 添加本地依赖到 Python 路径
+export PYTHONPATH=/var/user/vendor:$PYTHONPATH
+
+# 运行云函数入口
+exec python3 -u scf_index.py

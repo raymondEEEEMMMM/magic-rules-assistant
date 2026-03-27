@@ -3,241 +3,230 @@ const app = getApp()
 
 Page({
   data: {
-    useCloudCall: true,  // 使用云调用
-    loading: false,
-    passedCount: 0,
-    failedCount: 0,
-    totalTime: 0,
-    testResults: [],
-    testId: 0
+    // AI 裁判测试
+    aiJudgeStatus: 'pending',
+    aiJudgeStatusText: '待测试',
+    aiJudgeLoading: false,
+    aiJudgeResult: '',
+
+    // 规则搜索测试
+    ruleSearchStatus: 'pending',
+    ruleSearchStatusText: '待测试',
+    ruleSearchLoading: false,
+    ruleSearchResult: '',
+
+    // 卡牌查询测试
+    cardSearchStatus: 'pending',
+    cardSearchStatusText: '待测试',
+    cardSearchLoading: false,
+    cardSearchResult: '',
+
+    // 关键词查询测试
+    keywordStatus: 'pending',
+    keywordStatusText: '待测试',
+    keywordLoading: false,
+    keywordResult: ''
   },
 
-  // 生成唯一ID
-  generateId() {
-    this.setData({ testId: this.data.testId + 1 })
-    return this.data.testId
+  onLoad() {
+    // 页面加载
   },
 
-  // 添加测试结果
-  addTestResult(name, status, time, requestPath, response, statusCode, error) {
-    const testResults = [...this.data.testResults, {
-      id: this.generateId(),
-      name,
-      status,
-      time,
-      requestPath,
-      response: response ? JSON.stringify(response).substring(0, 500) : '',
-      statusCode,
-      error
-    }]
-
-    const passedCount = status === 'success' ? this.data.passedCount + 1 : this.data.passedCount
-    const failedCount = status === 'fail' ? this.data.failedCount + 1 : this.data.failedCount
-    const totalTime = this.data.totalTime + time
-
+  // 测试 AI 裁判 API
+  testAiJudge() {
     this.setData({
-      testResults,
-      passedCount,
-      failedCount,
-      totalTime
+      aiJudgeLoading: true,
+      aiJudgeStatus: 'pending',
+      aiJudgeStatusText: '测试中',
+      aiJudgeResult: ''
     })
-  },
 
-  // 调用云函数
-  callCloudFunction(path, query = {}) {
-    return new Promise((resolve, reject) => {
-      const startTime = Date.now()
-
-      wx.cloud.callFunction({
-        name: 'mtgAsk',
-        data: {
-          httpMethod: 'GET',
-          path: path,
-          queryString: Object.entries(query).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&')
-        },
-        success: (res) => {
-          const time = Date.now() - startTime
-          let data = null
-          let statusCode = 0
-
-          if (res.result) {
-            if (res.result.body) {
-              try {
-                data = typeof res.result.body === 'string' ? JSON.parse(res.result.body) : res.result.body
-              } catch (e) {
-                data = res.result.body
-              }
-            } else {
-              data = res.result
-            }
-            statusCode = res.result.statusCode || 200
-          }
-
-          resolve({
-            statusCode,
-            data,
-            time
+    wx.request({
+      url: `${app.globalData.apiBase}/api/ai-judge/chat`,
+      method: 'POST',
+      header: {
+        'Content-Type': 'application/json'
+      },
+      data: {
+        message: '你好，请回复"测试成功"',
+        session_id: 'apitest'
+      },
+      success: (res) => {
+        if (res.data && res.data.success) {
+          this.setData({
+            aiJudgeStatus: 'success',
+            aiJudgeStatusText: '通过',
+            aiJudgeResult: JSON.stringify(res.data, null, 2)
           })
-        },
-        fail: (err) => {
-          const time = Date.now() - startTime
-          reject({
-            error: err.errMsg || '调用失败',
-            time
+        } else {
+          this.setData({
+            aiJudgeStatus: 'error',
+            aiJudgeStatusText: '失败',
+            aiJudgeResult: JSON.stringify(res.data, null, 2)
           })
         }
-      })
+      },
+      fail: (err) => {
+        this.setData({
+          aiJudgeStatus: 'error',
+          aiJudgeStatusText: '失败',
+          aiJudgeResult: `网络错误: ${err.errMsg}`
+        })
+      },
+      complete: () => {
+        this.setData({
+          aiJudgeLoading: false
+        })
+      }
     })
   },
 
-  // 测试1: 健康检查
-  async testHealth() {
-    if (this.data.loading) return
-    this.setData({ loading: true })
-
-    try {
-      const result = await this.callCloudFunction('/')
-      console.log('健康检查响应:', result)
-      const success = result.statusCode === 200 && result.data
-
-      this.addTestResult(
-        '健康检查',
-        success ? 'success' : 'fail',
-        result.time,
-        '/',
-        result.data,
-        result.statusCode,
-        success ? null : '响应异常'
-      )
-    } catch (error) {
-      console.error('健康检查错误:', error)
-      this.addTestResult(
-        '健康检查',
-        'fail',
-        error.time,
-        '/',
-        null,
-        null,
-        error.error
-      )
-    }
-
-    this.setData({ loading: false })
-  },
-
-  // 测试2: 规则搜索
-  async testSearch() {
-    if (this.data.loading) return
-    this.setData({ loading: true })
-
-    try {
-      const result = await this.callCloudFunction('/api/search', { q: 'flying' })
-      console.log('规则搜索响应:', result)
-      const success = result.statusCode === 200 && result.data
-
-      this.addTestResult(
-        '规则搜索',
-        success ? 'success' : 'fail',
-        result.time,
-        '/api/search?q=flying',
-        result.data,
-        result.statusCode,
-        success ? null : '响应数据异常'
-      )
-    } catch (error) {
-      console.error('规则搜索错误:', error)
-      this.addTestResult(
-        '规则搜索',
-        'fail',
-        error.time,
-        '/api/search?q=flying',
-        null,
-        null,
-        error.error
-      )
-    }
-
-    this.setData({ loading: false })
-  },
-
-  // 测试3: 关键词查询
-  async testKeyword() {
-    if (this.data.loading) return
-    this.setData({ loading: true })
-
-    try {
-      const result = await this.callCloudFunction('/api/keyword', { k: 'Trample' })
-      console.log('关键词查询响应:', result)
-      const success = result.statusCode === 200 && result.data
-
-      this.addTestResult(
-        '关键词查询',
-        success ? 'success' : 'fail',
-        result.time,
-        '/api/keyword?k=Trample',
-        result.data,
-        result.statusCode,
-        success ? null : '响应数据异常'
-      )
-    } catch (error) {
-      console.error('关键词查询错误:', error)
-      this.addTestResult(
-        '关键词查询',
-        'fail',
-        error.time,
-        '/api/keyword?k=Trample',
-        null,
-        null,
-        error.error
-      )
-    }
-
-    this.setData({ loading: false })
-  },
-
-  // 测试4: 全部测试
-  async testAll() {
-    if (this.data.loading) return
+  // 测试 规则搜索 API
+  testRuleSearch() {
     this.setData({
-      loading: true,
-      passedCount: 0,
-      failedCount: 0,
-      totalTime: 0,
-      testResults: []
+      ruleSearchLoading: true,
+      ruleSearchStatus: 'pending',
+      ruleSearchStatusText: '测试中',
+      ruleSearchResult: ''
     })
 
-    const tests = [
-      () => this.testHealth(),
-      () => this.testSearch(),
-      () => this.testKeyword()
-    ]
-
-    for (const test of tests) {
-      await test()
-      await new Promise(resolve => setTimeout(resolve, 500))
-    }
-
-    this.setData({ loading: false })
-
-    wx.showModal({
-      title: '测试完成',
-      content: `成功: ${this.data.passedCount}\n失败: ${this.data.failedCount}\n总耗时: ${this.data.totalTime}ms`,
-      showCancel: false
+    wx.request({
+      url: `${app.globalData.apiBase}/api/search`,
+      method: 'GET',
+      data: {
+        q: '战斗'
+      },
+      success: (res) => {
+        if (res.data && res.data.results) {
+          this.setData({
+            ruleSearchStatus: 'success',
+            ruleSearchStatusText: '通过',
+            ruleSearchResult: JSON.stringify(res.data, null, 2)
+          })
+        } else {
+          this.setData({
+            ruleSearchStatus: 'error',
+            ruleSearchStatusText: '失败',
+            ruleSearchResult: JSON.stringify(res.data, null, 2)
+          })
+        }
+      },
+      fail: (err) => {
+        this.setData({
+          ruleSearchStatus: 'error',
+          ruleSearchStatusText: '失败',
+          ruleSearchResult: `网络错误: ${err.errMsg}`
+        })
+      },
+      complete: () => {
+        this.setData({
+          ruleSearchLoading: false
+        })
+      }
     })
   },
 
-  // 清除结果
-  clearResults() {
+  // 测试卡牌查询 API
+  testCardSearch() {
     this.setData({
-      passedCount: 0,
-      failedCount: 0,
-      totalTime: 0,
-      testResults: [],
-      testId: 0
+      cardSearchLoading: true,
+      cardSearchStatus: 'pending',
+      cardSearchStatusText: '测试中',
+      cardSearchResult: ''
     })
-    wx.showToast({
-      title: '已清除',
-      icon: 'success'
+
+    wx.request({
+      url: `${app.globalData.apiBase}/api/card`,
+      method: 'GET',
+      data: {
+        n: '黑莲花'
+      },
+      success: (res) => {
+        if (res.data && res.data.success) {
+          this.setData({
+            cardSearchStatus: 'success',
+            cardSearchStatusText: '通过',
+            cardSearchResult: JSON.stringify(res.data, null, 2)
+          })
+        } else {
+          this.setData({
+            cardSearchStatus: 'error',
+            cardSearchStatusText: '失败',
+            cardSearchResult: JSON.stringify(res.data, null, 2)
+          })
+        }
+      },
+      fail: (err) => {
+        this.setData({
+          cardSearchStatus: 'error',
+          cardSearchStatusText: '失败',
+          cardSearchResult: `网络错误: ${err.errMsg}`
+        })
+      },
+      complete: () => {
+        this.setData({
+          cardSearchLoading: false
+        })
+      }
+    })
+  },
+
+  // 测试关键词查询 API
+  testKeyword() {
+    this.setData({
+      keywordLoading: true,
+      keywordStatus: 'pending',
+      keywordStatusText: '测试中',
+      keywordResult: ''
+    })
+
+    wx.request({
+      url: `${app.globalData.apiBase}/api/keyword`,
+      method: 'GET',
+      data: {
+        k: '飞行'
+      },
+      success: (res) => {
+        if (res.data && res.data.success) {
+          this.setData({
+            keywordStatus: 'success',
+            keywordStatusText: '通过',
+            keywordResult: JSON.stringify(res.data, null, 2)
+          })
+        } else {
+          this.setData({
+            keywordStatus: 'error',
+            keywordStatusText: '失败',
+            keywordResult: JSON.stringify(res.data, null, 2)
+          })
+        }
+      },
+      fail: (err) => {
+        this.setData({
+          keywordStatus: 'error',
+          keywordStatusText: '失败',
+          keywordResult: `网络错误: ${err.errMsg}`
+        })
+      },
+      complete: () => {
+        this.setData({
+          keywordLoading: false
+        })
+      }
+    })
+  },
+
+  // 复制响应结果
+  copyResult(e) {
+    const result = e.currentTarget.dataset.result
+    wx.setClipboardData({
+      data: result,
+      success: () => {
+        wx.showToast({
+          title: '已复制',
+          icon: 'success'
+        })
+      }
     })
   }
 })

@@ -49,9 +49,17 @@ curl 'http://localhost:8000/api/keyword?k=践踏'
 
 ### Deployment
 ```bash
-# Deploy to CloudBase
+# 1. 复制虚拟环境到 vendor 目录（Event 类型云函数需要）
+mkdir -p functions/mtgAsk/vendor
+pip install --target functions/mtgAsk/vendor -r requirements.txt -q
+
+# 2. 部署到 CloudBase
 bash deploy.sh
+
+# 3. 测试云函数
+tcb fn invoke mtgAsk --params '{"httpMethod":"GET","path":"/","queryString":""}'
 ```
+**注意**: Event 类型云函数需要将虚拟环境一起上传到 vendor 目录，并在 scf_bootstrap 中设置 PYTHONPATH。
 
 ## Architecture
 
@@ -65,7 +73,7 @@ bash deploy.sh
 
 ```
 functions/mtgAsk/
-├── index.py                    # Cloud function entry point (main_handler)
+├── index.py                    # Cloud function entry point (main)
 ├── backend/
 │   ├── routes.py               # FastAPI routes definition
 │   ├── database.py             # MySQL/SQLite data access layer
@@ -76,7 +84,9 @@ functions/mtgAsk/
 │   │   ├── rule_downloader.py # Download rules from Wizards of Coast
 │   │   ├── card_downloader.py # Download card data from MTGJSON
 │   │   ├── scheduler.py       # Scheduled tasks (03:00 daily, 10:00 Monday)
-│   │   └── mtgch_api.py       # MTGCH API integration
+│   │   ├── mtgch_api.py       # MTGCH API integration
+│   │   ├── ai_judge_service.py # AI Judge (OpenCLAW Gateway)
+│   │   └── log_service.py     # Unified logging (local + MySQL)
 │   └── wechat/
 │       └── handlers.py         # WeChat message handling
 ```
@@ -112,14 +122,40 @@ miniprogram/
 | `/api/card` | GET | Card rule lookup |
 | `/api/rules/update` | POST | Update rules from source |
 | `/api/rules/status` | GET | Get rule version status |
+| `/api/ai-judge/chat` | POST | AI Judge chat (支持 per-user agent 隔离) |
+| `/api/ai-judge/clear` | POST | Clear AI Judge session |
 
 ### Cloud Function Configuration
 
 Defined in `cloudbaserc.json`:
-- Runtime: Python 3.9
-- Handler: `index.main_handler`
+- Runtime: Python 3.10
+- Handler: `index.main`
 - Timeout: 60 seconds
 - Memory: 512 MB
+
+### CloudBase Run (OpenCLAW Gateway)
+
+OpenCLAW Gateway is deployed on CloudBase Run for AI Judge functionality:
+
+| Property | Value |
+|----------|-------|
+| Service Name | openclaw-gateway |
+| URL | https://openclaw-gateway-233331-7-1410769303.sh.run.tcloudbase.com |
+| Port | 18789 |
+| CPU | 1 core |
+| Memory | 2 GB |
+
+Deploy OpenCLAW Gateway:
+```bash
+tcb run:deprecated version create \
+  -e magic-rules-assistant-0a1904c329 \
+  -s openclaw-gateway \
+  -p . \
+  --dockerFile cloudrun/openclaw-gateway/Dockerfile \
+  --port 18789 \
+  -c 1 \
+  --mem 2
+```
 
 ### Environment Variables
 
@@ -127,6 +163,11 @@ Key variables (in `.env.local` for local, `cloudbaserc.json` for cloud):
 - `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`
 - `WECHAT_TOKEN`
 - `TCB_ENV_ID`
+- `MINIMAX_API_KEY` - MiniMax API key (used by OpenCLAW Gateway)
+- `OPENCLAW_ENABLED` - Enable OpenCLAW Gateway (default: true)
+- `OPENCLAW_GATEWAY_URL` - OpenCLAW Gateway URL
+- `OPENCLAW_SSH_USER`, `OPENCLAW_SSH_KEY_CONTENT` - SSH access to Gateway host
+- `OPENCLAW_PORT` - SSH port (default: 22)
 
 ## Key Design Patterns
 
@@ -138,6 +179,14 @@ Key variables (in `.env.local` for local, `cloudbaserc.json` for cloud):
 
 4. **Scheduled Updates**: `scheduler.py` runs periodic rule updates using the `schedule` library
 
+## Partner Projects
+
+### MTG 裁判知识库
+- **Repo**: https://github.com/Kuuusoda/magic-comp-rules-zh-cn-agent
+- **用途**: 提供 AI 裁判的技能（Skill）和裁判知识库
+- **本地路径**: `functions/mtgAsk/backend/data/magic-comp-rules-zh-cn-agent/`
+- **说明**: 包含万智牌规则的中英文版本、关键词解释、参考文档等
+
 ## Important Files
 
 - `functions/mtgAsk/index.py` - Cloud function entry point
@@ -145,3 +194,30 @@ Key variables (in `.env.local` for local, `cloudbaserc.json` for cloud):
 - `functions/mtgAsk/backend/database.py` - Database connection management
 - `miniprogram/app.js` - Mini-program config with API base URL
 - `cloudbaserc.json` - CloudBase deployment configuration
+
+## Future Plans
+
+### Completed Features
+
+### Unified Logging Service ✅
+- Log service: `backend/services/log_service.py`
+- Supports local file logs (`/tmp/logs/` in cloud, `logs/` locally)
+- Supports MySQL database logs (`ai_judge_logs` table)
+- Usage:
+  ```python
+  from backend.services.log_service import log_info, log_warning, log_error
+  log_info("service_name", "message", {"data": "optional"})
+  ```
+
+### AI Judge Feature (Phase 2) ✅
+- Integrated OpenCLAW Gateway for AI-powered rule Q&A
+- Uses ai_judge skill with MiniMax API
+- Chat interface: `POST /api/ai-judge/chat`
+- Per-user agent isolation: each user gets independent OpenCLAW agent
+- Agent workspace: `/home/openclaw/agents/user_{sanitized_openid}`
+- Docker sandbox auto-creates containers per agent
+- Gateway deployed on CloudBase Run: `https://openclaw-gateway-233331-7-1410769303.sh.run.tcloudbase.com`
+
+### Upcoming Features
+- Card image lookup integration
+- Multi-language support

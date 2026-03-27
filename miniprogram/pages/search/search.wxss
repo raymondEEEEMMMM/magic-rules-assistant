@@ -5,26 +5,64 @@ page {
 }
 
 .container {
-  padding: 30rpx;
   min-height: 100vh;
+  padding: 0;
+}
+
+/* 导航栏 */
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 30rpx;
+  padding-top: calc(20rpx + env(safe-area-inset-top));
+  background: #1a1a2e;
+  border-bottom: 1rpx solid rgba(255, 215, 0, 0.15);
+}
+
+.nav-left, .nav-right {
+  min-width: 80rpx;
+}
+
+.back-btn {
+  font-size: 40rpx;
+  color: #ffd700;
+}
+
+.nav-title {
+  display: flex;
+  align-items: center;
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #ffd700;
+}
+
+/* 日间主题导航栏 */
+.nav-bar.nav-bar-light {
+  background: #ffffff;
+  border-bottom: 1rpx solid #e0e0e0;
+}
+
+.nav-bar.nav-bar-light .back-btn,
+.nav-bar.nav-bar-light .nav-title {
+  color: #667eea;
 }
 
 /* 搜索框 */
 .search-box {
   display: flex;
-  align-items: center;
   gap: 20rpx;
-  margin-bottom: 30rpx;
+  margin: 30rpx;
+  margin-top: 20rpx;
 }
 
 .search-input-wrapper {
   flex: 1;
   display: flex;
   align-items: center;
-  background: #1f2b4d;
-  border-radius: 50rpx;
-  padding: 20rpx 28rpx;
-  border: 2rpx solid rgba(233, 69, 96, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 40rpx;
+  padding: 20rpx 30rpx;
 }
 
 .search-icon {
@@ -39,48 +77,51 @@ page {
 }
 
 .search-placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .search-clear {
-  padding: 8rpx 16rpx;
+  padding: 10rpx;
   color: rgba(255, 255, 255, 0.5);
 }
 
 .search-btn {
-  padding: 20rpx 36rpx;
-  background: linear-gradient(135deg, #e94560 0%, #c73e54 100%);
-  border-radius: 50rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 40rpx;
+  padding: 20rpx 40rpx;
   font-size: 28rpx;
-  font-weight: bold;
   color: #fff;
+  display: flex;
+  align-items: center;
 }
 
 /* 搜索类型 */
 .search-types {
   display: flex;
   gap: 20rpx;
-  margin-bottom: 30rpx;
+  margin: 0 30rpx 30rpx;
 }
 
 .type-item {
-  padding: 16rpx 32rpx;
-  background: rgba(31, 43, 77, 0.8);
-  border-radius: 40rpx;
-  font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.7);
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.6);
   transition: all 0.3s ease;
 }
 
 .type-item.active {
-  background: linear-gradient(135deg, #e94560 0%, #c73e54 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
   font-weight: bold;
 }
 
 /* 搜索历史 */
 .search-history {
-  margin-top: 20rpx;
+  padding: 20rpx 0;
 }
 
 .history-header {
@@ -96,38 +137,38 @@ page {
 }
 
 .history-clear {
-  font-size: 26rpx;
-  color: #e94560;
+  font-size: 24rpx;
+  color: #667eea;
 }
 
 .history-list {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 16rpx;
 }
 
 .history-item {
   display: flex;
   align-items: center;
-  padding: 20rpx;
-  background: rgba(31, 43, 77, 0.5);
-  border-radius: 16rpx;
+  padding: 12rpx 24rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 30rpx;
+  gap: 12rpx;
 }
 
 .history-icon {
-  font-size: 28rpx;
-  margin-right: 16rpx;
-  opacity: 0.6;
+  font-size: 24rpx;
+  opacity: 0.5;
 }
 
 .history-text {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: rgba(255, 255, 255, 0.8);
 }
 
 /* 搜索结果 */
 .search-results {
-  margin-top: 20rpx;
+  padding: 20rpx 0;
 }
 
 .results-header {
@@ -139,67 +180,95 @@ page {
   color: rgba(255, 255, 255, 0.6);
 }
 
-.result-card {
-  background: rgba(31, 43, 77, 0.6);
-  border-radius: 20rpx;
-  padding: 24rpx;
-  margin-bottom: 20rpx;
-  border-left: 6rpx solid #e94560;
+.result-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
 }
 
-.result-type {
-  font-size: 22rpx;
-  color: #e94560;
+.result-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 20rpx;
+  padding: 24rpx;
+  border-left: 6rpx solid #667eea;
+}
+
+.result-card.keyword-card {
+  border-left-color: #e94560;
+}
+
+.result-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16rpx;
   margin-bottom: 12rpx;
+}
+
+.result-number {
+  font-size: 24rpx;
+  color: #667eea;
+  font-weight: bold;
 }
 
 .result-title {
   font-size: 30rpx;
-  font-weight: bold;
   color: #fff;
-  display: block;
-  margin-bottom: 8rpx;
+  font-weight: bold;
 }
 
-.result-text {
+.result-content {
+  display: block;
   font-size: 26rpx;
   color: rgba(255, 255, 255, 0.7);
-  display: block;
   line-height: 1.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .result-action {
   margin-top: 16rpx;
   font-size: 26rpx;
-  color: #e94560;
+  color: #667eea;
   text-align: right;
 }
 
-/* 卡牌结果 */
-.card-result {
-  border-left-color: #ffd700;
+/* 卡牌列表 */
+.card-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
 }
 
-.card-info {
-  display: flex;
-  flex-direction: column;
+.card-item {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 16rpx;
+  padding: 20rpx;
 }
 
 .card-name {
-  font-size: 32rpx;
+  font-size: 28rpx;
   font-weight: bold;
-  color: #ffd700;
+  color: #fff;
+  margin-bottom: 8rpx;
 }
 
 .card-type {
   font-size: 24rpx;
   color: rgba(255, 255, 255, 0.6);
-  margin: 8rpx 0;
+  margin-bottom: 8rpx;
 }
 
 .card-text {
-  font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 /* 无结果 */
@@ -207,24 +276,68 @@ page {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   padding: 100rpx 0;
 }
 
 .no-results-icon {
-  font-size: 100rpx;
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
   opacity: 0.5;
-  margin-bottom: 30rpx;
 }
 
 .no-results-text {
-  font-size: 30rpx;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.6);
 }
 
-.no-results-hint {
-  font-size: 26rpx;
+/* 组合结果 */
+.combined-results {
+  padding: 20rpx 0;
+}
+
+.result-section {
+  margin-bottom: 40rpx;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+  padding: 0 4rpx;
+}
+
+.section-bar {
+  padding: 12rpx 0;
+  padding-left: 20rpx;
+  border-left: 6rpx solid;
+}
+
+.keyword-bar {
+  border-left-color: #e94560;
+}
+
+.card-bar {
+  border-left-color: #667eea;
+}
+
+.rule-bar {
+  border-left-color: #ffd700;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #fff;
+}
+
+.section-count {
+  font-size: 24rpx;
   color: rgba(255, 255, 255, 0.5);
-  margin-top: 16rpx;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 6rpx 20rpx;
+  border-radius: 20rpx;
 }
 
 /* 加载中 */
@@ -232,16 +345,18 @@ page {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 60rpx 0;
+  justify-content: center;
+  padding: 100rpx 0;
 }
 
 .loading-spinner {
   width: 60rpx;
   height: 60rpx;
-  border: 4rpx solid rgba(233, 69, 96, 0.2);
-  border-top-color: #e94560;
+  border: 4rpx solid rgba(255, 255, 255, 0.2);
+  border-top-color: #667eea;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  margin-bottom: 20rpx;
 }
 
 @keyframes spin {
@@ -249,7 +364,157 @@ page {
 }
 
 .loading-text {
-  margin-top: 20rpx;
-  font-size: 26rpx;
+  font-size: 28rpx;
   color: rgba(255, 255, 255, 0.6);
+}
+
+/* 分类加载状态 */
+.section-loading {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.section-loading-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  padding: 40rpx 20rpx;
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.loading-dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: #667eea;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+/* ==================== */
+/* 日间主题 (Light Mode) */
+/* ==================== */
+.container.page-light {
+  background-color: #f5f5f5;
+  color: #333333;
+}
+
+.container.page-light .search-input-wrapper {
+  background: #ffffff;
+  border-color: #e0e0e0;
+}
+
+.container.page-light .search-input {
+  color: #333333;
+}
+
+.container.page-light .search-placeholder {
+  color: #999999;
+}
+
+.container.page-light .search-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+}
+
+.container.page-light .type-item {
+  background: rgba(0, 0, 0, 0.05);
+  color: #666666;
+}
+
+.container.page-light .type-item.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+}
+
+.container.page-light .history-item {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.container.page-light .history-text {
+  color: #333333;
+}
+
+.container.page-light .result-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-left-color: #667eea;
+}
+
+.container.page-light .result-title {
+  color: #333333;
+}
+
+.container.page-light .result-content {
+  color: #666666;
+}
+
+.container.page-light .card-item {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.container.page-light .card-name {
+  color: #333333;
+}
+
+.container.page-light .card-type {
+  color: #666666;
+}
+
+.container.page-light .card-text {
+  color: #999999;
+}
+
+.container.page-light .no-results-text {
+  color: #666666;
+}
+
+.container.page-light .loading-text {
+  color: #666666;
+}
+
+.container.page-light .loading-spinner {
+  border-color: rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+}
+
+.container.page-light .section-loading {
+  color: #666666;
+}
+
+.container.page-light .section-loading-placeholder {
+  color: #999999;
+}
+
+.container.page-light .loading-dot {
+  background: #667eea;
+}
+
+.container.page-light .keyword-bar {
+  border-left-color: #e94560;
+}
+
+.container.page-light .card-bar {
+  border-left-color: #667eea;
+}
+
+.container.page-light .rule-bar {
+  border-left-color: #ffd700;
+}
+
+.container.page-light .section-title {
+  color: #333;
+}
+
+.container.page-light .section-count {
+  background: rgba(0, 0, 0, 0.05);
+  color: #999;
 }

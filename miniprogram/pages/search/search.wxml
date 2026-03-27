@@ -1,55 +1,35 @@
 <!--pages/search/search.wxml-->
-<view class="container">
+<view class="container {{isLightTheme ? 'page-light' : ''}}">
+  <!-- 导航栏 -->
+  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
+    <view class="nav-left">
+      <view class="back-btn" bindtap="goBack">←</view>
+    </view>
+    <view class="nav-title">
+      <text>搜索</text>
+    </view>
+    <view class="nav-right"></view>
+  </view>
+
   <!-- 搜索框 -->
   <view class="search-box">
     <view class="search-input-wrapper">
       <text class="search-icon">🔍</text>
-      <input 
-        class="search-input" 
-        placeholder="搜索规则、关键词或卡牌..." 
+      <input
+        class="search-input"
+        placeholder="搜索..."
         placeholder-class="search-placeholder"
         bindinput="onInput"
         bindconfirm="onSearch"
         confirm-type="search"
         focus="{{searchFocused}}"
+        value="{{keyword}}"
       />
       <view class="search-clear" wx:if="{{keyword}}" bindtap="clearSearch">
         <text>✕</text>
       </view>
     </view>
     <view class="search-btn" bindtap="onSearch">搜索</view>
-  </view>
-
-  <!-- 搜索类型选择 -->
-  <view class="search-types">
-    <view 
-      class="type-item {{currentType === 'all' ? 'active' : ''}}" 
-      bindtap="switchType" 
-      data-type="all"
-    >
-      全部
-    </view>
-    <view 
-      class="type-item {{currentType === 'rule' ? 'active' : ''}}" 
-      bindtap="switchType" 
-      data-type="rule"
-    >
-      规则
-    </view>
-    <view 
-      class="type-item {{currentType === 'keyword' ? 'active' : ''}}" 
-      bindtap="switchType" 
-      data-type="keyword"
-    >
-      关键词
-    </view>
-    <view 
-      class="type-item {{currentType === 'card' ? 'active' : ''}}" 
-      bindtap="switchType" 
-      data-type="card"
-    >
-      卡牌
-    </view>
   </view>
 
   <!-- 搜索历史 -->
@@ -59,11 +39,11 @@
       <text class="history-clear" bindtap="clearHistory">清空</text>
     </view>
     <view class="history-list">
-      <view 
-        class="history-item" 
-        wx:for="{{history}}" 
+      <view
+        class="history-item"
+        wx:for="{{history}}"
         wx:key="index"
-        bindtap="useHistory" 
+        bindtap="useHistory"
         data-keyword="{{item}}"
       >
         <text class="history-icon">🕐</text>
@@ -72,54 +52,91 @@
     </view>
   </view>
 
-  <!-- 搜索结果 -->
-  <view class="search-results" wx:if="{{keyword && results.length > 0}}">
-    <view class="results-header">
-      <text class="results-count">找到 {{results.length}} 条结果</text>
-    </view>
-    
-    <!-- 规则结果 -->
-    <block wx:if="{{currentType === 'all' || currentType === 'rule'}}">
-      <view class="result-card" wx:for="{{ruleResults}}" wx:key="index" wx:if="{{index < 5}}">
-        <view class="result-type">规则</view>
-        <view class="result-content">
-          <text class="result-title">{{item.rule_number}}. {{item.title}}</text>
-          <text class="result-text">{{item.content}}</text>
-        </view>
-      </view>
-    </block>
-
+  <!-- 组合搜索结果 -->
+  <view class="combined-results" wx:if="{{keyword && (loading || searchDone || combinedResults.keywords.length > 0 || combinedResults.cards.length > 0 || combinedResults.rules.length > 0)}}">
     <!-- 关键词结果 -->
-    <block wx:if="{{currentType === 'all' || currentType === 'keyword'}}">
-      <view class="result-card keyword-card" wx:for="{{keywordResults}}" wx:key="index" wx:if="{{index < 3}}">
-        <view class="result-type">关键词</view>
-        <view class="result-content">
-          <text class="result-title">{{item.keyword_name}}</text>
-          <text class="result-text">{{item.description}}</text>
+    <view class="result-section">
+      <view class="section-header">
+        <view class="section-bar keyword-bar">
+          <text class="section-title">关键词异能</text>
         </view>
-        <view class="result-action" bindtap="viewKeywordDetail" data-keyword="{{item.keyword_name}}">
-          查看详情 →
+        <view class="section-loading" wx:if="{{keywordsLoading}}">
+          <text class="loading-dot"></text>
+          <text>搜索中...</text>
+        </view>
+        <text class="section-count" wx:elif="{{combinedResults.keywords.length > 0}}">{{combinedResults.keywords.length}}</text>
+      </view>
+      <view class="result-list" wx:if="{{!keywordsLoading || combinedResults.keywords.length > 0}}">
+        <view class="section-loading-placeholder" wx:if="{{keywordsLoading && combinedResults.keywords.length === 0}}">
+          <text class="loading-dot"></text>
+          <text>搜索中...</text>
+        </view>
+        <view class="result-card keyword-card" wx:for="{{combinedResults.keywords}}" wx:key="index" bindtap="viewKeywordDetail" data-keyword="{{item.keyword_name}}">
+          <view class="result-header">
+            <text class="result-number">{{item.keyword_en}}</text>
+            <text class="result-title">{{item.keyword_name}}</text>
+          </view>
+          <text class="result-content">{{item.description}}</text>
         </view>
       </view>
-    </block>
+    </view>
 
     <!-- 卡牌结果 -->
-    <block wx:if="{{currentType === 'all' || currentType === 'card'}}">
-      <view class="result-card card-result" wx:for="{{cardResults}}" wx:key="index" wx:if="{{index < 4}}">
-        <view class="card-info">
-          <text class="card-name">{{item.name}}</text>
-          <text class="card-type">{{item.type_line}}</text>
-          <text class="card-text" wx:if="{{item.oracle_text}}">{{item.oracle_text}}</text>
+    <view class="result-section">
+      <view class="section-header">
+        <view class="section-bar card-bar">
+          <text class="section-title">卡牌</text>
+        </view>
+        <view class="section-loading" wx:if="{{cardsLoading}}">
+          <text class="loading-dot"></text>
+          <text>搜索中...</text>
+        </view>
+        <text class="section-count" wx:elif="{{combinedResults.cards.length > 0}}">{{combinedResults.cards.length}}</text>
+      </view>
+      <view class="result-list card-list" wx:if="{{!cardsLoading || combinedResults.cards.length > 0}}">
+        <view class="section-loading-placeholder" wx:if="{{cardsLoading && combinedResults.cards.length === 0}}">
+          <text class="loading-dot"></text>
+          <text>搜索中...</text>
+        </view>
+        <view class="card-item" wx:for="{{combinedResults.cards}}" wx:key="index" bindtap="viewCardDetail" data-id="{{item.id}}">
+          <view class="card-name">{{item.zhs_name || item.name}}</view>
+          <view class="card-type">{{item.type_line}}</view>
         </view>
       </view>
-    </block>
-  </view>
+    </view>
 
-  <!-- 无结果 -->
-  <view class="no-results" wx:if="{{keyword && searchDone && results.length === 0}}">
-    <text class="no-results-icon">🔎</text>
-    <text class="no-results-text">未找到与「{{keyword}}」相关的内容</text>
-    <text class="no-results-hint">试试其他关键词</text>
+    <!-- 规则结果 -->
+    <view class="result-section">
+      <view class="section-header">
+        <view class="section-bar rule-bar">
+          <text class="section-title">规则</text>
+        </view>
+        <view class="section-loading" wx:if="{{rulesLoading}}">
+          <text class="loading-dot"></text>
+          <text>搜索中...</text>
+        </view>
+        <text class="section-count" wx:elif="{{combinedResults.rules.length > 0}}">{{combinedResults.rules.length}}</text>
+      </view>
+      <view class="result-list" wx:if="{{!rulesLoading || combinedResults.rules.length > 0}}">
+        <view class="section-loading-placeholder" wx:if="{{rulesLoading && combinedResults.rules.length === 0}}">
+          <text class="loading-dot"></text>
+          <text>搜索中...</text>
+        </view>
+        <view class="result-card" wx:for="{{combinedResults.rules}}" wx:key="index" bindtap="viewRuleDetail" data-rule="{{item.rule_number}}">
+          <view class="result-header">
+            <text class="result-number">{{item.rule_number}}</text>
+            <text class="result-title">{{item.rule_title}}</text>
+          </view>
+          <text class="result-content">{{item.rule_content}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 无结果 -->
+    <view class="no-results" wx:if="{{searchDone && combinedResults.keywords.length === 0 && combinedResults.cards.length === 0 && combinedResults.rules.length === 0}}">
+      <text class="no-results-icon">🔎</text>
+      <text class="no-results-text">未找到与「{{keyword}}」相关的内容</text>
+    </view>
   </view>
 
   <!-- 加载中 -->

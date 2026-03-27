@@ -12,7 +12,21 @@ fi
 
 # 登录 CloudBase
 echo "步骤 1: 登录 CloudBase"
-tcb login
+echo ""
+echo "【请用微信扫码登录】"
+echo ""
+
+# 捕获登录URL和用户码
+LOGIN_OUTPUT=$(tcb login 2>&1)
+echo "$LOGIN_OUTPUT"
+
+# 提取用户码
+USER_CODE=$(echo "$LOGIN_OUTPUT" | grep -oP 'user_code=\K[A-Z0-9-]+' | head -1)
+if [ -n "$USER_CODE" ]; then
+    echo ""
+    echo "【用户码】: $USER_CODE"
+    echo "【登录URL】: https://tcb.cloud.tencent.com/dev#/cli-auth?user_code=$USER_CODE&from=cli&flow=device"
+fi
 
 # 部署云函数
 echo ""

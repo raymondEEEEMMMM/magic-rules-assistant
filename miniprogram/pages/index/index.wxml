@@ -1,106 +1,144 @@
 <!--pages/index/index.wxml-->
-<view class="container">
+<view class="container {{isLightTheme ? 'page-light' : ''}}">
   <!-- 顶部Banner -->
   <view class="banner">
     <view class="banner-content">
       <text class="banner-title">mtgAsk</text>
-      <text class="banner-subtitle">Magic: The Gathering Rules Assistant</text>
+      <text class="banner-subtitle">万智牌规则问答助手</text>
     </view>
-    <view class="banner-decoration"></view>
+    <view class="theme-btn" bindtap="toggleTheme">{{isLightTheme ? '🌙' : '☀️'}}</view>
   </view>
 
-  <!-- 快速功能入口 -->
-  <view class="quick-actions">
-    <view class="section-title">快速入口</view>
-    <view class="action-grid">
-      <view class="action-card" bindtap="goToKeyword">
-        <view class="action-icon">📖</view>
-        <text class="action-text">关键词</text>
-        <text class="action-desc">异能的规则解释</text>
-      </view>
-      <view class="action-card" bindtap="goToRule">
-        <view class="action-icon">📜</view>
-        <text class="action-text">规则</text>
-        <text class="action-desc">游戏规则搜索</text>
-      </view>
-      <view class="action-card" bindtap="goToCard">
-        <view class="action-icon">🃏</view>
-        <text class="action-text">卡牌</text>
-        <text class="action-desc">查询卡牌信息</text>
-      </view>
-      <view class="action-card" bindtap="goToSearch">
-        <view class="action-icon">🔍</view>
-        <text class="action-text">搜索</text>
-        <text class="action-desc">综合搜索</text>
-      </view>
+  <!-- AI 裁判入口 -->
+  <view class="ai-judge-section" bindtap="goToAIJudge">
+    <view class="ai-judge-badge">
+      <view class="ai-badge-icon">⚖️</view>
+      <view class="ai-badge-glow"></view>
     </view>
+    <view class="ai-judge-info">
+      <text class="ai-judge-title">AI 裁判</text>
+      <text class="ai-judge-desc">智能规则问答 · 随时随地</text>
+    </view>
+    <view class="ai-judge-arrow">›</view>
   </view>
 
-  <!-- 热门关键词 -->
-  <view class="hot-keywords">
-    <view class="section-title">热门关键词</view>
-    <view class="keyword-tags">
-      <view class="keyword-tag" wx:for="{{hotKeywords}}" wx:key="index" bindtap="searchKeyword" data-keyword="{{item}}">
-        {{item}}
+  <!-- 搜索框 -->
+  <view class="search-box">
+    <view class="search-input-wrapper">
+      <text class="search-icon">🔍</text>
+      <input
+        class="search-input"
+        placeholder="异能关键词、卡牌、规则编号..."
+        placeholder-class="search-placeholder"
+        bindinput="onInput"
+        bindconfirm="onSearch"
+        confirm-type="search"
+        value="{{keyword}}"
+      />
+      <view class="search-clear" wx:if="{{keyword}}" bindtap="clearSearch">
+        <text>✕</text>
       </view>
     </view>
+    <view class="search-btn" bindtap="onSearch">搜索</view>
   </view>
 
-  <!-- 每日卡牌 -->
-  <view class="daily-card" bindtap="showRandomCard">
-    <view class="daily-header">
-      <text class="daily-title">🎲 今日随机卡牌</text>
+  <!-- 搜索历史 -->
+  <view class="search-history" wx:if="{{!keyword && history.length > 0}}">
+    <view class="history-header">
+      <text class="history-title">历史记录</text>
+      <text class="history-clear" bindtap="clearHistory">清空</text>
     </view>
-    <view class="daily-hint">点击查看一张随机卡牌</view>
-  </view>
-
-  <!-- 测试工具 -->
-  <view class="test-tools">
-    <view class="section-title">🧪 测试工具</view>
-    <view class="test-buttons">
-      <view class="test-card" bindtap="goToKeywordTest">
-        <view class="test-icon">📖</view>
-        <text class="test-title">关键词测试</text>
-        <text class="test-desc">测试关键词模块功能</text>
-      </view>
-      <view class="test-card" bindtap="autoTestLifelink">
-        <view class="test-icon">⚡</view>
-        <text class="test-title">自动化测试</text>
-        <text class="test-desc">测试系命异能查询流程</text>
-      </view>
-      <view class="test-card" bindtap="goToApiTest">
-        <view class="test-icon">🔧</view>
-        <text class="test-title">API测试</text>
-        <text class="test-desc">测试后端接口</text>
+    <view class="history-list">
+      <view
+        class="history-item"
+        wx:for="{{history}}"
+        wx:key="index"
+        bindtap="useHistory"
+        data-keyword="{{item}}"
+      >
+        <text class="history-icon">🕐</text>
+        <text class="history-text">{{item}}</text>
       </view>
     </view>
   </view>
 
-  <!-- 功能说明 -->
-  <view class="features">
-    <view class="section-title">功能说明</view>
-    <view class="feature-list">
-      <view class="feature-item">
-        <text class="feature-icon">🔍</text>
-        <view class="feature-content">
-          <text class="feature-name">规则搜索</text>
-          <text class="feature-desc">输入关键词搜索相关游戏规则</text>
+  <!-- 生命值计数器入口 -->
+  <view class="counter-entry" wx:if="{{!keyword}}" bindtap="goToCounter">
+    <view class="counter-icon">❤️</view>
+    <view class="counter-info">
+      <text class="counter-title">生命值计数器</text>
+      <text class="counter-desc">指挥官 · 2-4人游戏</text>
+    </view>
+    <view class="counter-arrow">›</view>
+  </view>
+
+  <!-- 组合搜索结果 -->
+  <view class="combined-results" wx:if="{{keyword && searchDone}}">
+    <!-- 关键词结果 -->
+    <view class="result-section" wx:if="{{combinedResults.keywords.length > 0}}">
+      <view class="section-header">
+        <view class="section-bar keyword-bar">
+          <text class="section-title">关键词异能</text>
         </view>
+        <text class="section-count">{{combinedResults.keywords.length}}</text>
       </view>
-      <view class="feature-item">
-        <text class="feature-icon">📖</text>
-        <view class="feature-content">
-          <text class="feature-name">关键词查询</text>
-          <text class="feature-desc">查询卡牌异能的详细规则解释</text>
-        </view>
-      </view>
-      <view class="feature-item">
-        <text class="feature-icon">🃏</text>
-        <view class="feature-content">
-          <text class="feature-name">卡牌查询</text>
-          <text class="feature-desc">搜索卡牌并查看详细信息</text>
+      <view class="result-list">
+        <view class="result-card keyword-card" wx:for="{{combinedResults.keywords}}" wx:key="index" bindtap="viewKeywordDetail" data-keyword="{{item.keyword_name}}">
+          <view class="result-header">
+            <text class="result-number">{{item.keyword_en}}</text>
+            <text class="result-title">{{item.keyword_name}}</text>
+          </view>
+          <text class="result-content">{{item.description}}</text>
         </view>
       </view>
     </view>
+
+    <!-- 卡牌结果 -->
+    <view class="result-section" wx:if="{{combinedResults.cards.length > 0}}">
+      <view class="section-header">
+        <view class="section-bar card-bar">
+          <text class="section-title">卡牌</text>
+        </view>
+        <text class="section-count">{{combinedResults.cards.length}}</text>
+      </view>
+      <view class="result-list card-list">
+        <view class="card-item" wx:for="{{combinedResults.cards}}" wx:key="index" bindtap="viewCardDetail" data-id="{{item.id}}">
+          <view class="card-name">{{item.zhs_name || item.name}}</view>
+          <view class="card-type">{{item.type_line}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 规则结果 -->
+    <view class="result-section" wx:if="{{combinedResults.rules.length > 0}}">
+      <view class="section-header">
+        <view class="section-bar rule-bar">
+          <text class="section-title">规则</text>
+        </view>
+        <text class="section-count">{{combinedResults.rules.length}}</text>
+      </view>
+      <view class="result-list">
+        <view class="result-card" wx:for="{{combinedResults.rules}}" wx:key="index" bindtap="viewRuleDetail" data-rule="{{item.rule_number}}">
+          <view class="result-header">
+            <text class="result-number">{{item.rule_number}}</text>
+            <text class="result-title">{{item.rule_title}}</text>
+          </view>
+          <text class="result-content">{{item.rule_content}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 无结果 -->
+    <view class="no-results" wx:if="{{combinedResults.keywords.length === 0 && combinedResults.cards.length === 0 && combinedResults.rules.length === 0}}">
+      <text class="no-results-icon">🔎</text>
+      <text class="no-results-text">未找到与「{{keyword}}」相关的内容</text>
+    </view>
+  </view>
+
+  <!-- 版本信息 -->
+  <view class="version-info">
+    <text class="version-text">v{{version}}</text>
+    <text class="version-divider">·</text>
+    <text class="feedback-link" bindtap="goToFeedback">意见反馈</text>
   </view>
 </view>

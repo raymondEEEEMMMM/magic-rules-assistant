@@ -21,3 +21,6 @@ ENV/
 *.db
 *.sqlite
 *.sqlite3
+
+# 日志文件
+backend/logs/

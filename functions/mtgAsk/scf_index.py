@@ -10,6 +10,11 @@ from urllib.parse import parse_qs
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
 
+# 添加 vendor 依赖目录到 Python 路径
+vendor_path = os.path.join(os.path.dirname(__file__), 'vendor')
+if os.path.exists(vendor_path):
+    sys.path.insert(0, vendor_path)
+
 # 添加 backend 目录到路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 
@@ -57,7 +62,7 @@ try:
     print("✓ Loaded WECHAT_TOKEN from backend.config")
 except Exception as e:
     print(f"✗ Config import error: {e}, using environment variable")
-    WECHAT_TOKEN = os.environ.get('WECHAT_TOKEN', 'wx_mtg_rules_2024')
+    WECHAT_TOKEN = os.environ.get('WECHAT_TOKEN', '')
 
 print(f"WECHAT_TOKEN: {WECHAT_TOKEN}")
 
@@ -84,12 +89,16 @@ class RequestHandler(BaseHTTPRequestHandler):
             # 解析路径和查询参数
             path = self.path
             query_params = {}
-            
+
+            # 规范化路径：处理双斜杠等问题
+            while '//' in path:
+                path = path.replace('//', '/')
+
             if '?' in path:
                 path, query_string = path.split('?', 1)
                 query_params = parse_qs(query_string)
                 query_params = {k: v[0] if len(v) == 1 else v for k, v in query_params.items()}
-            
+
             print(f"Parsed path: {path}")
             print(f"Query params: {query_params}")
             print(f"Current directory: {os.getcwd()}")
@@ -97,8 +106,8 @@ class RequestHandler(BaseHTTPRequestHandler):
             print(f"Files in script directory: {os.listdir(os.path.dirname(__file__))}")
             print(f"Files in data directory: {os.listdir(os.path.join(os.path.dirname(__file__), 'data')) if os.path.exists(os.path.join(os.path.dirname(__file__), 'data')) else 'N/A'}")
             
-            # 规则搜索 API（支持 /api/search 和 /search）
-            if path in ('/api/search', '/search'):
+            # 规则搜索 API（支持 /api/search、/search 和 /wechat/api/search）
+            if path in ('/api/search', '/search', '/wechat/api/search'):
                 # 规则搜索 API
                 try:
                     from backend.database import RuleDatabase
@@ -142,9 +151,37 @@ class RequestHandler(BaseHTTPRequestHandler):
                     response = {'error': str(e), 'traceback': traceback.format_exc()}
                     self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
                     return
-            
-            # 关键词查询 API（支持 /api/keyword 和 /keyword）
-            elif path in ('/api/keyword', '/keyword'):
+
+            # 规则详情查询 API（支持 /api/rule、/rule）
+            elif path in ('/api/rule', '/rule'):
+                try:
+                    from backend.database import RuleDatabase
+
+                    db = RuleDatabase()
+                    rule_number = query_params.get('n', '')
+                    if not rule_number:
+                        rule_number = query_params.get('rule_number', '')
+
+                    result = db.get_rule_by_number(rule_number)
+
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'rule_number': rule_number, 'result': result}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False, default=str).encode('utf-8'))
+                    return
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    self.send_response(500)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'error': str(e)}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
+
+            # 关键词查询 API（支持 /api/keyword、/keyword 和 /wechat/api/keyword）
+            elif path in ('/api/keyword', '/keyword', '/wechat/api/keyword'):
                 # 关键词查询 API
                 try:
                     from backend.database import RuleDatabase
@@ -180,8 +217,56 @@ class RequestHandler(BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
                     return
 
-            # MTGCH 卡牌搜索 API（支持 /mtgch/search、/api/mtgch/search 和 /api/card）
-            elif path in ('/mtgch/search', '/api/mtgch/search', '/card', '/api/card'):
+            # 规则详情查询 API
+            elif path in ('/api/rule', '/rule', '/wechat/api/rule'):
+                try:
+                    from backend.database import RuleDatabase
+
+                    db = RuleDatabase()
+                    rule_number = query_params.get('n', query_params.get('rule_number', ''))
+
+                    if not rule_number:
+                        self.send_response(400)
+                        self.send_header('Content-Type', 'application/json')
+                        self.end_headers()
+                        response = {'error': '缺少规则编号参数 n'}
+                        self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                        return
+
+                    result = db.get_rule_by_number(rule_number)
+
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'rule_number': rule_number, 'result': result}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False, default=str).encode('utf-8'))
+                    return
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    self.send_response(500)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'error': str(e)}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'keyword': keyword, 'result': None, 'error': 'Database not found'}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    self.send_response(500)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'error': str(e)}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
+
+            # MTGCH 卡牌搜索 API（支持 /mtgch/search、/api/mtgch/search、/api/card 和 /wechat/api/mtgch/search）
+            elif path in ('/mtgch/search', '/api/mtgch/search', '/card', '/api/card', '/wechat/api/mtgch/search'):
                 # MTGCH 卡牌搜索 API
                 try:
                     from backend.services.mtgch_api import MTGCHAPIClient
@@ -218,8 +303,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
                     return
 
-            # MTGCH 单张卡牌详情 API（支持 /mtgch/card 和 /api/mtgch/card）
-            elif path in ('/mtgch/card', '/api/mtgch/card'):
+            # MTGCH 单张卡牌详情 API（支持 /mtgch/card、/api/mtgch/card 和 /wechat/api/mtgch/card）
+            elif path in ('/mtgch/card', '/api/mtgch/card', '/wechat/api/mtgch/card'):
                 # MTGCH 单张卡牌详情 API
                 try:
                     from backend.services.mtgch_api import MTGCHAPIClient
@@ -268,8 +353,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
                     return
 
-            # MTGCH 随机卡牌 API（支持 /mtgch/random 和 /api/mtgch/random）
-            elif path in ('/mtgch/random', '/api/mtgch/random'):
+            # MTGCH 随机卡牌 API（支持 /mtgch/random、/api/mtgch/random 和 /wechat/api/mtgch/random）
+            elif path in ('/mtgch/random', '/api/mtgch/random', '/wechat/api/mtgch/random'):
                 # MTGCH 随机卡牌 API
                 try:
                     from backend.services.mtgch_api import MTGCHAPIClient
@@ -300,8 +385,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
                     return
 
-            # MTGCH 自动补全 API（支持 /mtgch/autocomplete 和 /api/mtgch/autocomplete）
-            elif path in ('/mtgch/autocomplete', '/api/mtgch/autocomplete'):
+            # MTGCH 自动补全 API（支持 /mtgch/autocomplete、/api/mtgch/autocomplete 和 /wechat/api/mtgch/autocomplete）
+            elif path in ('/mtgch/autocomplete', '/api/mtgch/autocomplete', '/wechat/api/mtgch/autocomplete'):
                 # MTGCH 自动补全 API
                 try:
                     from backend.services.mtgch_api import MTGCHAPIClient
@@ -371,6 +456,21 @@ class RequestHandler(BaseHTTPRequestHandler):
                     self.wfile.write('签名验证失败'.encode('utf-8'))
                     return
 
+            # 根路径 / 或 /wechat - 健康检查
+            if path in ('/', '/wechat'):
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                response = {
+                    'message': '万智牌规则问答服务运行中',
+                    'status': 'ok',
+                    'service': 'CloudBase HTTP Function',
+                    'path': path,
+                    'query_params': query_params
+                }
+                self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                return
+
             # 根路径或其他路径
             print(f"⚠️ No matching route for path: {path}")
             print(f"⚠️ Checked paths: /, /wechat, /search, /api/search, /keyword, /api/keyword, /card, /api/card, /mtgch/search, /api/mtgch/search, /mtgch/card, /api/mtgch/card, /mtgch/random, /api/mtgch/random, /mtgch/autocomplete, /api/mtgch/autocomplete")
@@ -416,6 +516,81 @@ class RequestHandler(BaseHTTPRequestHandler):
         print(f"Body: {body_str}")
         
         try:
+            # AI Judge API - 必须在微信消息处理之前
+            if '/ai-judge/chat' in self.path:
+                print(f"AI Judge chat request, body: {body_str}")
+                try:
+                    request_body = json.loads(body_str) if body_str else {}
+                    message = request_body.get('message', '')
+                    session_id = request_body.get('session_id', 'default')
+                    clear_history = request_body.get('clear_history', False)
+                    short_mode = request_body.get('short_mode', False)
+                    openid = request_body.get('openid', None)
+
+                    if not message:
+                        self.send_response(200)
+                        self.send_header('Content-Type', 'application/json')
+                        self.end_headers()
+                        response = {'success': False, 'reply': '消息不能为空'}
+                        self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                        return
+
+                    from backend.services.ai_judge_service import ai_judge_service
+
+                    if clear_history:
+                        ai_judge_service.clear_session(session_id)
+
+                    result = ai_judge_service.chat(message, session_id, short_mode=short_mode, openid=openid)
+
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+                    return
+                except json.JSONDecodeError as e:
+                    print(f"JSON decode error: {e}")
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'success': False, 'reply': '请求格式错误'}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'success': False, 'reply': f'错误: {str(e)}'}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
+
+            # AI Judge 新会话 API
+            if '/ai-judge/new-session' in self.path:
+                print(f"AI Judge new-session request, body: {body_str}")
+                try:
+                    request_body = json.loads(body_str) if body_str else {}
+                    session_id = request_body.get('session_id', 'default')
+                    reset_agent = request_body.get('reset_agent', True)
+
+                    from backend.services.ai_judge_service import ai_judge_service
+                    result = ai_judge_service.new_session(session_id, reset_agent)
+
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+                    return
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'success': False, 'message': f'错误: {str(e)}'}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
+
             # 微信消息处理
             if '/wechat' in self.path:
                 # 确保数据库可用
@@ -616,7 +791,85 @@ class RequestHandler(BaseHTTPRequestHandler):
                     self.end_headers()
                     self.wfile.write('success'.encode('utf-8'))
                     return
-            
+
+            # AI Judge API - 支持 /ai-judge/chat 和 /api/ai-judge/chat
+            if '/ai-judge/chat' in self.path:
+                print(f"AI Judge chat request, body: {body_str}")
+                try:
+                    request_body = json.loads(body_str) if body_str else {}
+                    message = request_body.get('message', '')
+                    session_id = request_body.get('session_id', 'default')
+                    clear_history = request_body.get('clear_history', False)
+                    short_mode = request_body.get('short_mode', False)
+                    openid = request_body.get('openid', None)
+
+                    if not message:
+                        self.send_response(200)
+                        self.send_header('Content-Type', 'application/json')
+                        self.end_headers()
+                        response = {'success': False, 'reply': '消息不能为空'}
+                        self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                        return
+
+                    # 调用 AI Judge 服务
+                    from backend.services.ai_judge_service import ai_judge_service
+
+                    # 如果请求清除历史
+                    if clear_history:
+                        ai_judge_service.clear_session(session_id)
+
+                    result = ai_judge_service.chat(message, session_id, short_mode=short_mode, openid=openid)
+
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+                    return
+                except json.JSONDecodeError as e:
+                    print(f"JSON decode error: {e}")
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'success': False, 'reply': '请求格式错误'}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'success': False, 'reply': f'错误: {str(e)}'}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
+
+            # AI Judge 新会话 API
+            if '/ai-judge/new-session' in self.path:
+                print(f"AI Judge new-session request, body: {body_str}")
+                try:
+                    request_body = json.loads(body_str) if body_str else {}
+                    session_id = request_body.get('session_id', 'default')
+                    reset_agent = request_body.get('reset_agent', True)
+
+                    # 调用 AI Judge 服务
+                    from backend.services.ai_judge_service import ai_judge_service
+                    result = ai_judge_service.new_session(session_id, reset_agent)
+
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+                    return
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    response = {'success': False, 'message': f'错误: {str(e)}'}
+                    self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
+                    return
+
             # 其他 POST 请求
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
@@ -656,26 +909,73 @@ def main_handler(event, context):
     CloudBase HTTP 函数入口
     处理 API Gateway 触发的事件
     """
-    print(f"=== main_handler called ===")
-    print(f"Event: {event}")
-    print(f"Context: {context}")
-    
+    # 从 context.environment 加载环境变量到 os.environ
+    if 'environment' in context:
+        try:
+            env_data = context['environment']
+            if isinstance(env_data, str):
+                import json
+                env_data = json.loads(env_data)
+            for key, value in env_data.items():
+                os.environ[key] = value
+        except Exception as e:
+            print(f"Failed to load environment from context: {e}")
+
     # 解析请求
     http_method = event.get('httpMethod', 'GET')
     path = event.get('path', '/')
+    # 规范化路径
+    while '//' in path:
+        path = path.replace('//', '/')
+
+    # 尝试从多个位置获取 query_string
+    # 1. 直接从 event 获取
     query_string = event.get('queryString', '')
+
+    # 2. 如果有 params，构建 query_string (MCP 工具调用)
+    if 'params' in event and isinstance(event['params'], dict):
+        params = event['params']
+        if params:
+            query_string = '&'.join([f"{k}={v}" for k, v in params.items()])
+
     headers = event.get('headers', {})
-    body = event.get('body', '')
-    
-    print(f"Method: {http_method}, Path: {path}, Query: {query_string}")
-    
+
+    # 从多个位置尝试获取 body
+    body = ''
+    if 'body' in event:
+        body = event['body']
+    elif 'requestBody' in event:
+        body = event['requestBody']
+
+    # 如果 body 是 dict，转换为字符串
+    if isinstance(body, dict):
+        import json
+        body = json.dumps(body)
+    elif body and not isinstance(body, str):
+        body = str(body)
+
+    # CloudBase HTTP API Gateway 使用 queryStringParameters
+    query_string_params = event.get('queryStringParameters', {})
+    if query_string_params:
+        query_string = '&'.join([f"{k}={v}" for k, v in query_string_params.items()])
+
     # 创建模拟的请求处理器
     from io import BytesIO
-    
+
+    # 确保 headers 包含 Content-Length
+    if body:
+        headers = dict(headers)
+        body_bytes = body.encode('utf-8') if body else b''
+        headers['Content-Length'] = str(len(body_bytes))
+
     class MockHandler(RequestHandler):
         def __init__(self):
             self.headers = headers
-            self.path = path + ('?' + query_string if query_string else '')
+            # 规范化路径
+            full_path = path + ('?' + query_string if query_string else '')
+            while '//' in full_path:
+                full_path = full_path.replace('//', '/')
+            self.path = full_path
             self.command = http_method
             self.rfile = BytesIO(body.encode('utf-8') if body else b'')
             self.wfile = BytesIO()

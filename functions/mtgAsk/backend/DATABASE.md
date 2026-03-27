@@ -29,7 +29,7 @@
   "MYSQL_HOST": "172.17.0.5",
   "MYSQL_PORT": "3306",
   "MYSQL_USER": "mtgask",
-  "MYSQL_PASSWORD": "Ray19940211",
+  "MYSQL_PASSWORD": "your_password_here",
   "MYSQL_DATABASE": "magic-rules-assistant-0a1904c329"
 }
 ```
@@ -40,7 +40,7 @@
 MYSQL_HOST=sh-cynosdbmysql-grp-5ydpqjru.sql.tencentcdb.com
 MYSQL_PORT=27987
 MYSQL_USER=mtgask
-MYSQL_PASSWORD=Ray19940211
+MYSQL_PASSWORD=your_password_here
 MYSQL_DATABASE=magic-rules-assistant-0a1904c329
 ```
 

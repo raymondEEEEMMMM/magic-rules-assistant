@@ -10,15 +10,46 @@ wx.cloud.init({
 
 App({
   globalData: {
-    // API 基础地址 (HTTP 调用用)
-    apiBase: 'https://magic-rules-assistant-0a1904c329-1410769303.ap-shanghai.app.tcloudbase.com',
+    // 云函数名称
+    functionName: 'mtgAsk',
     userInfo: null,
-    useCloudCall: true  // 使用云调用
+    isLightTheme: false
   },
 
+  // 小程序版本号
+  version: '1.0.0',
+
   onLaunch() {
-    // 检查登录状态
-    this.checkLogin()
+    console.log('CODEBUDDY_DEBUG app onLaunch started')
+    // 读取主题设置，默认日间主题
+    const theme = wx.getStorageSync('appTheme') || 'light'
+    this.globalData.isLightTheme = theme === 'light'
+    console.log('CODEBUDDY_DEBUG app theme loaded theme=', theme, 'isLightTheme=', this.globalData.isLightTheme)
+    this.updateTheme(theme === 'light')
+    console.log('CODEBUDDY_DEBUG app onLaunch completed')
+  },
+
+  onShow() {
+    console.log('CODEBUDDY_DEBUG app onShow')
+  },
+
+  // 切换主题
+  toggleTheme() {
+    const newTheme = !this.globalData.isLightTheme
+    this.globalData.isLightTheme = newTheme
+    wx.setStorageSync('appTheme', newTheme ? 'light' : 'dark')
+    this.updateTheme(newTheme)
+    return newTheme
+  },
+
+  // 更新页面主题
+  updateTheme(isLight) {
+    const pages = getCurrentPages()
+    pages.forEach(page => {
+      if (page.updateTheme) {
+        page.updateTheme(isLight)
+      }
+    })
   },
 
   checkLogin() {
@@ -33,26 +64,6 @@ App({
           })
         }
       }
-    })
-  },
-
-  // API 请求封装
-  requestApi(endpoint, data = {}, method = 'GET') {
-    const url = `${this.globalData.apiBase}${endpoint}`
-    return new Promise((resolve, reject) => {
-      wx.request({
-        url,
-        method,
-        data,
-        success: res => {
-          if (res.statusCode === 200) {
-            resolve(res.data)
-          } else {
-            reject(new Error(`请求失败: ${res.statusCode}`))
-          }
-        },
-        fail: reject
-      })
     })
   }
 })

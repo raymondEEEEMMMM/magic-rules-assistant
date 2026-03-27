@@ -1,4 +1,6 @@
 {
   "usingComponents": {},
-  "navigationBarTitleText": "API测试工具"
+  "navigationBarTitleText": "API 测试",
+  "navigationBarBackgroundColor": "#1a1a2e",
+  "navigationBarTextStyle": "white"
 }

@@ -251,10 +251,17 @@ miniprogram/
 |-----|------|-------|
 | ENVIRONMENT | 运行环境 | production |
 | WECHAT_TOKEN | 微信验证 Token | wx_mtg_rules_2024 |
-| MYSQL_HOST | MySQL 主机 | 172.17.0.5 |
-| MYSQL_PORT | MySQL 端口 | 3306 |
+| MYSQL_HOST | MySQL 主机 | sh-cynosdbmysql-grp-5ydpqjru.sql.tencentcdb.com |
+| MYSQL_PORT | MySQL 端口 | 27987 |
 | MYSQL_USER | MySQL 用户 | mtgask |
 | MYSQL_DATABASE | 数据库名称 | magic-rules-assistant-0a1904c329 |
+| OPENCLAW_ENABLED | 启用 OpenCLAW | true |
+| OPENCLAW_HOST | OpenCLAW 服务器 IP | (环境变量) |
+| OPENCLAW_PORT | OpenCLAW 端口 | 19601 |
+| OPENCLAW_SSH_USER | SSH 用户名 | openclaw |
+| OPENCLAW_SSH_KEY | SSH 密钥 | (环境变量) |
+| OPENCLAW_SSH_KEY_CONTENT | SSH 私钥内容 | (环境变量) |
+| OPENCLAW_AGENT | Agent 名称 | main |
 
 ### 6.3 访问地址
 
@@ -263,30 +270,170 @@ miniprogram/
 
 ---
 
-## 7. 扩展性设计
+## 7. AI 裁判系统架构
 
-### 7.1 AI 问答集成 (第二阶段)
+### 7.1 系统概述
 
-预留 AI 问答接口，可接入 OpenAI API 实现智能问答：
+AI 裁判系统基于 OpenCLAW Gateway 实现，提供智能万智牌规则问答服务。
 
-```python
-# 规划中的 AI 问答服务
-class AIService:
-    def __init__(self, openai_api_key: str):
-        self.client = OpenAI(api_key=openai_api_key)
+### 7.2 部署架构
 
-    def answer_question(self, question: str, context: dict) -> str:
-        # 基于规则上下文进行问答
-        pass
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           mtgAsk 系统                                       │
+│  ┌─────────────────┐         ┌─────────────────┐                          │
+│  │   微信小程序     │         │   微信公众号     │                          │
+│  └────────┬────────┘         └────────┬────────┘                          │
+│           │                            │                                   │
+│           │    HTTPS API               │  微信消息                          │
+│           ▼                            ▼                                   │
+│  ┌─────────────────────────────────────────────┐                          │
+│  │            云函数 mtgAsk                     │                          │
+│  │  ┌─────────────────────────────────────┐    │                          │
+│  │  │      ai_judge_service.py           │    │                          │
+│  │  │   /api/ai-judge/chat (POST)        │    │                          │
+│  │  │   /api/ai-judge/analyze (POST)     │────┼──SSH+CLI──▶            │
+│  │  └─────────────────────────────────────┘    │                          │
+│  └─────────────────────────────────────────────┘                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                                    │
+                                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      自建服务器 (OpenCLAW Gateway)                          │
+│  ┌─────────────────────────────────────────────────────────────────────┐  │
+│  │  openclaw agent CLI                                                 │  │
+│  │  ├── Skill: mtg-judge                                              │  │
+│  │  ├── 知识库: workspace/skills/ai_judge/                           │  │
+│  │  │   ├── markdown/ (规则 1-9 章 + 术语表)                          │  │
+│  │  │   └── knowledge-map/ (知识图谱)                                │  │
+│  │  └── LLM: MiniMax API                                              │  │
+│  └─────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 7.2 缓存机制
+### 7.3 组件说明
+
+| 组件 | 部署位置 | 说明 |
+|-----|---------|------|
+| mtgAsk 云函数 | CloudBase | Python 云函数，处理微信消息和 API 请求 |
+| ai_judge_service | CloudBase | AI 裁判业务逻辑，通过 SSH 调用 Gateway |
+| OpenCLAW Gateway | 自建服务器 | Docker 部署的 AI Agent 服务 |
+| MiniMax API | 云厂商 | LLM 提供商 |
+| 知识库 | 自建服务器 | 万智牌规则、术语、知识图谱 |
+
+### 7.4 部署配置
+
+**自建服务器配置：**
+
+| 属性 | 值 |
+|------|-----|
+| 服务器 IP | (环境变量) |
+| SSH 端口 | 22 |
+| SSH 用户 | openclaw |
+| Agent 名称 | main |
+| Docker 端口 | 18789 |
+
+**云函数环境变量：**
+
+| 变量 | 说明 | 默认值 |
+|-----|------|-------|
+| OPENCLAW_ENABLED | 启用 OpenCLAW | true |
+| OPENCLAW_HOST | 服务器 IP | (环境变量) |
+| OPENCLAW_PORT | SSH 端口 | 22 |
+| OPENCLAW_SSH_USER | SSH 用户名 | openclaw |
+| OPENCLAW_SSH_KEY | SSH 密钥路径 | (环境变量) |
+| OPENCLAW_SSH_KEY_CONTENT | SSH 私钥内容 | (环境变量) |
+| OPENCLAW_AGENT | Agent 名称 | main |
+| OPENCLAW_MOCK | Mock 测试模式 | false |
+
+### 7.5 知识库同步
+
+**知识库来源：** GitHub (Kuuusoda/magic-comp-rules-zh-cn-agent)
+
+**同步流程：**
+
+```
+GitHub ──同步脚本──▶ 本地目录 ──同步脚本──▶ 自建服务器
+                 functions/mtgAsk/     workspace/skills/
+                 backend/data/knowledge ai_judge/
+```
+
+**同步文件列表：**
+
+| 类别 | 文件 |
+|-----|------|
+| 规则 | markdown/1.md ~ 9.md |
+| 术语 | markdown/glossarycn.md, translatedterms.md |
+| 知识图谱 | knowledge-map/*.md |
+
+**同步脚本位置：** `functions/mtgAsk/scripts/sync_judge_knowledge.py`
+
+**使用方式：**
+```bash
+# 同步所有
+python functions/mtgAsk/scripts/sync_judge_knowledge.py
+
+# 仅同步规则
+python functions/mtgAsk/scripts/sync_judge_knowledge.py --rules
+
+# 强制同步
+python functions/mtgAsk/scripts/sync_judge_knowledge.py --force
+```
+
+### 7.6 API 端点
+
+| 端点 | 方法 | 功能 |
+|-----|------|------|
+| `/api/ai-judge/chat` | POST | AI 裁判问答 |
+| `/api/ai-judge/analyze` | POST | 游戏局势分析 |
+| `/api/ai-judge/clear` | POST | 清除会话 |
+| `/api/ai-judge/status` | GET | 服务状态 |
+
+### 7.7 目录结构
+
+**AI 裁判知识库目录（与 magic-comp-rules-zh-cn-agent 对齐）：**
+
+```
+functions/mtgAsk/backend/data/magic-comp-rules-zh-cn-agent/
+├── skill.md              # 技能定义
+├── 345.md                # 裁判技能定义（旧版兼容）
+├── cc.pem                # SSH 客户端证书
+├── markdown/             # 规则文件（1-9章 + 术语表）
+│   ├── 1.md ~ 9.md
+│   ├── glossarycn.md    # 中文术语表
+│   ├── glossary.md       # 英文术语表
+│   ├── index.md          # 规则索引
+│   ├── intro.md          # 简介
+│   ├── credits.md        # 贡献者
+│   └── translatedterms.md
+├── references/           # 知识图谱
+│   ├── triggered-abilities.md
+│   ├── stack-priority.md
+│   ├── continuous-effects.md
+│   ├── copy-effects.md
+│   ├── prevention-effects.md
+│   └── replacement-effects.md
+└── scripts/
+    └── sync_judge_knowledge.py # 同步脚本
+```
+
+**服务器端目录：**
+```
+/root/openclaw/workspace/skills/ai_judge/
+└── (与本地目录结构相同)
+```
+
+---
+
+## 8. 扩展性设计
+
+### 8.1 缓存机制
 
 - 热门查询结果缓存
 - 规则版本缓存
 - 向量化数据预加载
 
-### 7.3 日志系统
+### 8.2 日志系统
 
 - 请求日志
 - 错误追踪
@@ -294,7 +441,7 @@ class AIService:
 
 ---
 
-## 8. 安全考虑
+## 9. 安全考虑
 
 1. **微信签名验证**：所有微信请求经过 SHA1 签名验证
 2. **环境变量隔离**：敏感信息通过环境变量管理
@@ -303,7 +450,7 @@ class AIService:
 
 ---
 
-## 9. 依赖技术栈
+## 10. 依赖技术栈
 
 | 层级 | 技术 | 版本 |
 |-----|------|------|
@@ -316,7 +463,7 @@ class AIService:
 
 ---
 
-## 10. 目录结构总览
+## 11. 目录结构总览
 
 ```
 cbworkplace/

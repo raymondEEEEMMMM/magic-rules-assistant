@@ -1,0 +1,11 @@
+<view class="loading-container">
+  <view class="loading-icon">
+    <view class="pulse-ring"></view>
+    <view class="pulse-ring delay-1"></view>
+    <view class="pulse-ring delay-2"></view>
+  </view>
+  <view class="loading-text">{{ currentText }}</view>
+  <view class="loading-progress">
+    <view class="progress-bar" style="width: {{ progress }}%"></view>
+  </view>
+</view>

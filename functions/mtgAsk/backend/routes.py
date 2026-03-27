@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
-from starlette.responses import Response
+from fastapi.responses import XMLResponse, StreamingResponse
 from typing import Optional
 import hashlib
 from database import RuleDatabase
@@ -71,16 +71,16 @@ async def wechat_message(request: Request):
         event = root.find("Event").text
         response = message_handler.handle_event(event)
         if response:
-            return Response(content=create_xml_response(response, from_user, to_user), media_type="application/xml")
-        return Response(content="", media_type="application/xml")
+            return XMLResponse(content=create_xml_response(response, from_user, to_user))
+        return XMLResponse(content="")
 
     # 处理文本消息
     elif msg_type == "text":
         user_message = root.find("Content").text
         response = message_handler.handle_text_message(user_message)
-        return Response(content=create_xml_response(response, from_user, to_user), media_type="application/xml")
+        return XMLResponse(content=create_xml_response(response, from_user, to_user))
 
-    return Response(content="", media_type="application/xml")
+    return XMLResponse(content="")
 
 @app.get("/api/search")
 async def search_rules(q: str):
@@ -104,6 +104,83 @@ async def get_card_rule(card_name: str):
         return {"card_name": card_name, "result": result}
     return {"card_name": card_name, "result": None}
 
+# ==================== 微信 HTTP 访问路径 API ====================
+# 这些路由用于 HTTP 访问路径 /wechat 的调用
+
+@app.get("/wechat/api/search")
+async def wechat_search_rules(q: str):
+    """规则搜索API - 微信HTTP访问"""
+    results = rule_service.search_rules(q)
+    return {"query": q, "results": results}
+
+@app.get("/wechat/api/keyword")
+async def wechat_get_keyword_ability(k: str):
+    """获取关键词异能API - 微信HTTP访问"""
+    result = rule_service.get_keyword_ability(k)
+    if result:
+        return {"keyword": k, "result": result}
+    return {"keyword": k, "result": None}
+
+@app.get("/wechat/api/mtgch/search")
+async def wechat_mtgch_search(q: str, page: int = 1, page_size: int = 5, priority_chinese: bool = True):
+    """MTGCH 卡牌搜索API - 微信HTTP访问"""
+    try:
+        from services.mtgch_api import MTGCHAPIClient
+        client = MTGCHAPIClient(timeout=30)
+        result = client.search_cards(
+            q,
+            page=page,
+            page_size=page_size,
+            priority_chinese=priority_chinese
+        )
+        client.close()
+        return result
+    except Exception as e:
+        return {"error": str(e), "items": [], "total": 0}
+
+@app.get("/wechat/api/mtgch/random")
+async def wechat_mtgch_random():
+    """MTGCH 随机卡牌API - 微信HTTP访问"""
+    try:
+        from services.mtgch_api import MTGCHAPIClient
+        client = MTGCHAPIClient(timeout=30)
+        result = client.get_random_card()
+        client.close()
+        return result if result else {"error": "No card found"}
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/wechat/api/mtgch/autocomplete")
+async def wechat_mtgch_autocomplete(q: str, size: int = 10):
+    """MTGCH 自动补全API - 微信HTTP访问"""
+    try:
+        from services.mtgch_api import MTGCHAPIClient
+        client = MTGCHAPIClient(timeout=30)
+        result = client.autocomplete(q, size=size)
+        client.close()
+        return result
+    except Exception as e:
+        return {"error": str(e), "items": [], "suggestions": []}
+
+@app.get("/wechat/api/mtgch/card")
+async def wechat_mtgch_card(id: str = None, set: str = None, number: str = None):
+    """MTGCH 卡牌详情API - 微信HTTP访问"""
+    try:
+        from services.mtgch_api import MTGCHAPIClient
+        client = MTGCHAPIClient(timeout=30)
+
+        if id:
+            result = client.get_card_by_id(id)
+        elif set and number:
+            result = client.get_card_by_set_and_number(set, number)
+        else:
+            return {"error": "Missing id or set+number parameters"}
+
+        client.close()
+        return result if result else {"error": "Card not found"}
+    except Exception as e:
+        return {"error": str(e)}
+
 # ==================== 规则下载相关 API ====================
 
 @app.on_event("startup")
@@ -115,9 +192,9 @@ async def startup_event():
         rule_scheduler = rs
         rule_scheduler.set_update_callback(on_rules_update)
         rule_scheduler.start()
-        print("Scheduler started")
+        print("✓ 规则更新调度器已启动")
     except Exception as e:
-        print(f"Scheduler failed: {e}")
+        print(f"⚠ 调度器启动失败: {e}")
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -125,7 +202,7 @@ async def shutdown_event():
     global rule_scheduler
     if rule_scheduler:
         rule_scheduler.stop()
-        print("Scheduler stopped")
+        print("✓ 规则更新调度器已停止")
 
 @app.post("/api/rules/update")
 async def update_rules(background_tasks: BackgroundTasks, force: bool = False):
@@ -237,6 +314,333 @@ async def get_rules_status():
             "success": False,
             "message": f"获取状态失败: {str(e)}"
         }
+
+# ==================== AI 裁判 API ====================
+
+@app.post("/api/ai-judge/init")
+async def ai_judge_init(request: Request):
+    """预热 AI Agent
+
+    参数:
+    - openid: 微信 openid (必填，用于 per-user agent 隔离)
+
+    作用:
+    - 提前创建/获取用户的 Agent
+    - 减少用户首次发送消息时的等待时间
+    """
+    body = await request.json()
+    openid = body.get("openid", None)
+
+    if not openid:
+        return {"success": False, "error": "openid is required"}
+
+    from services.ai_judge_service import ai_judge_service
+    result = ai_judge_service.init_agent(openid=openid)
+    return result
+
+@app.post("/api/ai-judge/chat")
+async def ai_judge_chat(request: Request):
+    """与 AI 裁判对话
+
+    参数:
+    - message: 用户消息
+    - session_id: 会话ID (默认: default)
+    - clear_history: 是否清除历史 (默认: false)
+    - short_mode: 是否使用简短模式 (默认: false, 减少 token 消耗)
+    - openid: 微信 openid (可选，用于 per-user agent 隔离)
+    """
+    body = await request.json()
+    message = body.get("message", "")
+    session_id = body.get("session_id", "default")
+    clear_history = body.get("clear_history", False)
+    short_mode = body.get("short_mode", False)
+    openid = body.get("openid", None)
+
+    if not message:
+        return {"success": False, "reply": "消息不能为空"}
+
+    from services.ai_judge_service import ai_judge_service
+
+    # 如果请求清除历史
+    if clear_history:
+        ai_judge_service.clear_session(session_id)
+
+    result = ai_judge_service.chat(message, session_id, short_mode=short_mode, openid=openid)
+    return result
+
+
+@app.post("/api/ai-judge/analyze")
+async def ai_judge_analyze(request: Request):
+    """AI 裁判分析对局"""
+    body = await request.json()
+    game_state = body.get("game_state", "")
+    cards = body.get("cards", [])
+    question = body.get("question", "")
+
+    if not game_state and not question:
+        return {"success": False, "analysis": "请提供对局描述或问题"}
+
+    from services.ai_judge_service import ai_judge_service
+    result = ai_judge_service.analyze({
+        "game_state": game_state,
+        "cards": cards,
+        "question": question
+    })
+    return result
+
+@app.post("/api/ai-judge/clear")
+async def ai_judge_clear_session(request: Request):
+    """清除 AI 裁判会话历史"""
+    body = await request.json()
+    session_id = body.get("session_id", "default")
+    openid = body.get("openid", None)
+
+    from services.ai_judge_service import ai_judge_service
+    from database import db
+
+    # 获取 agent_name
+    agent_name = None
+    if openid:
+        agent_info = db.get_agent_by_openid(openid)
+        if agent_info:
+            agent_name = agent_info.get("agent_name")
+
+    ai_judge_service.clear_session(session_id, agent_name=agent_name)
+    return {"success": True, "message": "会话已清除"}
+
+# ==================== 微信 HTTP 访问路径 AI 裁判 API ====================
+
+@app.post("/wechat/api/ai-judge/chat")
+async def wechat_ai_judge_chat(request: Request):
+    """与 AI 裁判对话 - 微信HTTP访问
+
+    参数:
+    - message: 用户消息
+    - session_id: 会话ID (默认: default)
+    - clear_history: 是否清除历史 (默认: false)
+    - short_mode: 是否使用简短模式 (默认: false)
+    - openid: 微信 openid (可选，用于 per-user agent 隔离)
+    """
+    body = await request.json()
+    message = body.get("message", "")
+    session_id = body.get("session_id", "default")
+    clear_history = body.get("clear_history", False)
+    short_mode = body.get("short_mode", False)
+    openid = body.get("openid", None)
+
+    if not message:
+        return {"success": False, "reply": "消息不能为空"}
+
+    from services.ai_judge_service import ai_judge_service
+
+    if clear_history:
+        ai_judge_service.clear_session(session_id)
+
+    result = ai_judge_service.chat(message, session_id, short_mode=short_mode, openid=openid)
+    return result
+
+
+@app.post("/wechat/api/ai-judge/new-session")
+async def wechat_ai_judge_new_session(request: Request):
+    """创建新会话 - 微信HTTP访问"""
+    body = await request.json()
+    session_id = body.get("session_id", "default")
+    reset_agent = body.get("reset_agent", True)
+
+    from services.ai_judge_service import ai_judge_service
+    result = ai_judge_service.new_session(session_id, reset_agent)
+    return result
+
+
+@app.post("/wechat/api/ai-judge/clear")
+async def wechat_ai_judge_clear_session(request: Request):
+    """清除会话 - 微信HTTP访问"""
+    body = await request.json()
+    session_id = body.get("session_id", "default")
+    openid = body.get("openid", None)
+
+    from services.ai_judge_service import ai_judge_service
+    from database import db
+
+    # 获取 agent_name
+    agent_name = None
+    if openid:
+        agent_info = db.get_agent_by_openid(openid)
+        if agent_info:
+            agent_name = agent_info.get("agent_name")
+
+    ai_judge_service.clear_session(session_id, agent_name=agent_name)
+    return {"success": True, "message": "会话已清除"}
+
+
+@app.get("/wechat/api/ai-judge/history")
+async def wechat_get_ai_judge_history(
+    request: Request,
+    openid: str = None,
+    limit: int = 10,
+    offset: int = 0,
+    session_id: str = None
+):
+    """
+    获取 AI 裁判会话历史 - 微信HTTP访问
+
+    参数和使用方式与 /api/ai-judge/history 相同
+    """
+    return await get_ai_judge_history(request, openid, limit, offset, session_id)
+
+
+@app.post("/api/ai-judge/new-session")
+async def ai_judge_new_session(
+    session_id: str = "default",
+    reset_agent: bool = True
+):
+    """
+    创建新会话
+
+    清除当前会话历史并可选重置 OpenCLAW Agent
+    """
+    from services.ai_judge_service import ai_judge_service
+    result = ai_judge_service.new_session(session_id, reset_agent)
+    return result
+
+
+@app.get("/api/ai-judge/history")
+async def get_ai_judge_history(
+    request: Request,
+    openid: str = None,
+    limit: int = 10,
+    offset: int = 0,
+    session_id: str = None
+):
+    """
+    获取 AI 裁判会话历史
+
+    - 不传 session_id: 返回会话列表
+    - 传 session_id: 返回该会话的消息历史
+
+    请求参数:
+    - openid (必填): 用户 openid
+    - limit (可选, 默认10): 会话数量上限
+    - offset (可选, 默认0): 分页偏移
+    - session_id (可选): 指定会话 ID
+    """
+    if not openid:
+        return {"success": False, "error": {"code": "MISSING_OPENID", "message": "openid 参数必填"}}
+
+    try:
+        from services.agent_pool_manager import AgentPoolManager
+        from services.openclaw_client import OpenCLAWClient
+
+        # 获取用户的 agent 名称
+        agent_manager = AgentPoolManager()
+        agent_info = agent_manager.db.get_agent_by_openid(openid)
+
+        if not agent_info:
+            return {"success": False, "error": {"code": "AGENT_NOT_FOUND", "message": "未找到该用户的会话记录"}}
+
+        agent_name = agent_info["agent_name"]
+
+    except Exception as e:
+        return {"success": False, "error": {"code": "DB_ERROR", "message": str(e)}}
+
+    try:
+        client = OpenCLAWClient()
+
+        if session_id:
+            # 返回指定会话的消息
+            messages = client.get_session_messages(agent_name, session_id, limit=limit)
+
+            # 统计
+            user_count = sum(1 for m in messages if m.get("role") == "user")
+            assistant_count = sum(1 for m in messages if m.get("role") == "assistant")
+
+            return {
+                "success": True,
+                "data": {
+                    "sessionId": session_id,
+                    "messages": messages,
+                    "summary": {
+                        "totalMessages": len(messages),
+                        "userMessages": user_count,
+                        "assistantMessages": assistant_count
+                    }
+                }
+            }
+        else:
+            # 返回会话列表
+            result = client.get_sessions(agent_name, limit=limit, offset=offset)
+            return {
+                "success": True,
+                "data": result
+            }
+
+    except Exception as e:
+        return {"success": False, "error": {"code": "SSH_ERROR", "message": str(e)}}
+
+
+# ==================== 微信 HTTP 访问路径 AI 裁判 API ====================
+
+@app.post("/api/feedback")
+async def submit_feedback(request: Request):
+    """
+    提交用户反馈
+
+    请求体:
+    {
+        "content": "反馈内容",
+        "contact": "联系方式(可选)",
+        "type": "suggestion" | "bug" | "other"
+    }
+    """
+    body = await request.json()
+    content = body.get("content", "")
+    contact = body.get("contact")
+    feedback_type = body.get("type", "suggestion")
+
+    if not content:
+        return {"success": False, "message": "反馈内容不能为空"}
+
+    # 获取用户 openid
+    openid = body.get("openid") or request.headers.get("X-WX-Openid")
+
+    if not openid:
+        return {"success": False, "message": "无法获取用户身份"}
+
+    success = db.submit_feedback(openid, content, contact, feedback_type)
+
+    if success:
+        return {"success": True, "message": "反馈已提交"}
+    else:
+        return {"success": False, "message": "反馈提交失败"}
+
+
+# ==================== 管理 API ====================
+
+@app.post("/api/admin/cleanup-sessions")
+async def admin_cleanup_sessions():
+    """
+    清理所有 OpenCLAW 过期会话
+
+    调用 openclaw sessions cleanup --enforce 清理累积的会话历史
+    """
+    from services.agent_pool_manager import AgentPoolManager
+
+    manager = AgentPoolManager()
+    result = manager.cleanup_all_sessions()
+    return result
+
+
+@app.post("/api/admin/agent-pool/stats")
+async def admin_agent_pool_stats():
+    """
+    获取 Agent 池统计信息
+    """
+    from services.agent_pool_manager import AgentPoolManager
+
+    manager = AgentPoolManager()
+    stats = manager.get_pool_stats()
+    return {"success": True, "stats": stats}
+
 
 if __name__ == "__main__":
     import uvicorn

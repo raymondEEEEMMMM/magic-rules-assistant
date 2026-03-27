@@ -1,10 +1,14 @@
 # API 快速参考
 
+## ⚠️ 重要更新
+
+> 后端当前**只支持英文规则查询**，**支持中文卡牌查询**（通过 MTGCH API）。
+
 ## 基础配置
 
 ```javascript
 // API 基础地址
-const API_BASE = 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la'
+const API_BASE = 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com'
 ```
 
 ## 快速示例
@@ -12,7 +16,7 @@ const API_BASE = 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la'
 ### 1. 搜索规则
 ```javascript
 wx.request({
-  url: `${API_BASE}/api/search`,
+  url: `${API_BASE}/wechat/api/search`,
   data: { q: 'combat' },
   success(res) {
     const rules = res.data.results.rules || []
@@ -24,7 +28,7 @@ wx.request({
 ### 2. 查询关键词
 ```javascript
 wx.request({
-  url: `${API_BASE}/api/keyword`,
+  url: `${API_BASE}/wechat/api/keyword`,
   data: { k: 'Flying' },
   success(res) {
     const result = res.data.result
@@ -36,7 +40,7 @@ wx.request({
 ### 3. 搜索卡牌
 ```javascript
 wx.request({
-  url: `${API_BASE}/api/card`,
+  url: `${API_BASE}/wechat/api/mtgch/search`,
   data: { q: 'Lightning Bolt' },
   method: 'GET',
   success(res) {
@@ -49,7 +53,7 @@ wx.request({
 ### 4. 获取单张卡牌详情
 ```javascript
 wx.request({
-  url: `${API_BASE}/api/mtgch/card`,
+  url: `${API_BASE}/wechat/api/mtgch/card`,
   data: { id: 'card-uuid' },
   method: 'GET',
   success(res) {
@@ -58,21 +62,10 @@ wx.request({
 })
 ```
 
-### 5. 获取随机卡牌
+### 5. 自动补全
 ```javascript
 wx.request({
-  url: `${API_BASE}/api/mtgch/random`,
-  method: 'GET',
-  success(res) {
-    console.log('随机卡牌:', res.data)
-  }
-})
-```
-
-### 6. 自动补全
-```javascript
-wx.request({
-  url: `${API_BASE}/api/mtgch/autocomplete`,
+  url: `${API_BASE}/wechat/api/mtgch/autocomplete`,
   data: { q: 'light', size: 5 },
   method: 'GET',
   success(res) {
@@ -82,26 +75,46 @@ wx.request({
 })
 ```
 
+### 6. AI 裁判问答
+```javascript
+wx.request({
+  url: `${API_BASE}/api/ai-judge/chat`,
+  method: 'POST',
+  header: {
+    'Content-Type': 'application/json'
+  },
+  data: {
+    message: '闪电击的伤害何时结算？',
+    session_id: 'miniprogram'
+  },
+  success(res) {
+    if (res.data.success) {
+      console.log('AI 回答:', res.data.reply)
+    }
+  }
+})
+```
+
 ## 完整封装
 
 ```javascript
 // utils/api.js
-const API_BASE = 'https://magic-rules-assistant-0a1904c329.tcb.qcloud.la'
+const API_BASE = 'https://magic-rules-assistant-0a1904c329.service.tcloudbase.com'
 
 const api = {
   // 搜索规则
   searchRules(keyword) {
-    return this.request('/api/search', { q: keyword })
+    return this.request('/wechat/api/search', { q: keyword })
   },
 
   // 查询关键词
   getKeyword(keyword) {
-    return this.request('/api/keyword', { k: keyword })
+    return this.request('/wechat/api/keyword', { k: keyword })
   },
 
   // 搜索卡牌
   searchCard(cardName, page = 1, pageSize = 5) {
-    return this.request('/api/card', {
+    return this.request('/wechat/api/mtgch/search', {
       q: cardName,
       page,
       page_size: pageSize
@@ -110,17 +123,12 @@ const api = {
 
   // 获取单张卡牌详情
   getCardById(cardId) {
-    return this.request('/api/mtgch/card', { id: cardId })
-  },
-
-  // 获取随机卡牌
-  getRandomCard() {
-    return this.request('/api/mtgch/random', {})
+    return this.request('/wechat/api/mtgch/card', { id: cardId })
   },
 
   // 自动补全
   autocomplete(query, size = 10) {
-    return this.request('/api/mtgch/autocomplete', { q: query, size })
+    return this.request('/wechat/api/mtgch/autocomplete', { q: query, size })
   },
 
   // 通用请求方法
@@ -218,16 +226,20 @@ Page({
 
 ## 常用关键词
 
-| 关键词 | 英文 |
-|--------|------|
-| 飞行 | Flying |
-| 触死 | Deathtouch |
-| 先攻 | First Strike |
-| 警戒 | Vigilance |
-| 闪现 | Flash |
-| 死触 | Deathtouch |
-| 威慑 | Menace |
-| 祭献 | Evoke |
-| 等等 | ... |
+> ⚠️ **注意**: 关键词查询仅支持**英文**，中文为参考翻译。
+
+| 关键词(英文) | 中文 |
+|-------------|------|
+| Flying | 飞行 |
+| Deathtouch | 触死/死触 |
+| First Strike | 先攻 |
+| Trample | 践踏 |
+| Vigilance | 警戒 |
+| Flash | 闪现 |
+| Menace | 威慑 |
+| Evoke | 祭献 |
+| Haste | 加速 |
+| Lifelink | 系命 |
+| etc. | ... |
 
 > 更多关键词请参考完整文档: `/miniprogram/API.md`
