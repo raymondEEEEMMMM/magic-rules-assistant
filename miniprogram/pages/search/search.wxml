@@ -53,7 +53,7 @@
   </view>
 
   <!-- 组合搜索结果 -->
-  <view class="combined-results" wx:if="{{keyword && (searchDone || combinedResults.keywords.length > 0 || combinedResults.cards.length > 0 || combinedResults.rules.length > 0)}}">
+  <view class="combined-results" wx:if="{{keyword && (loading || searchDone || combinedResults.keywords.length > 0 || combinedResults.cards.length > 0 || combinedResults.rules.length > 0)}}">
     <!-- 关键词结果 -->
     <view class="result-section">
       <view class="section-header">
@@ -67,6 +67,10 @@
         <text class="section-count" wx:elif="{{combinedResults.keywords.length > 0}}">{{combinedResults.keywords.length}}</text>
       </view>
       <view class="result-list" wx:if="{{!keywordsLoading || combinedResults.keywords.length > 0}}">
+        <view class="section-loading-placeholder" wx:if="{{keywordsLoading && combinedResults.keywords.length === 0}}">
+          <text class="loading-dot"></text>
+          <text>搜索中...</text>
+        </view>
         <view class="result-card keyword-card" wx:for="{{combinedResults.keywords}}" wx:key="index" bindtap="viewKeywordDetail" data-keyword="{{item.keyword_name}}">
           <view class="result-header">
             <text class="result-number">{{item.keyword_en}}</text>
@@ -90,6 +94,10 @@
         <text class="section-count" wx:elif="{{combinedResults.cards.length > 0}}">{{combinedResults.cards.length}}</text>
       </view>
       <view class="result-list card-list" wx:if="{{!cardsLoading || combinedResults.cards.length > 0}}">
+        <view class="section-loading-placeholder" wx:if="{{cardsLoading && combinedResults.cards.length === 0}}">
+          <text class="loading-dot"></text>
+          <text>搜索中...</text>
+        </view>
         <view class="card-item" wx:for="{{combinedResults.cards}}" wx:key="index" bindtap="viewCardDetail" data-id="{{item.id}}">
           <view class="card-name">{{item.zhs_name || item.name}}</view>
           <view class="card-type">{{item.type_line}}</view>
@@ -110,6 +118,10 @@
         <text class="section-count" wx:elif="{{combinedResults.rules.length > 0}}">{{combinedResults.rules.length}}</text>
       </view>
       <view class="result-list" wx:if="{{!rulesLoading || combinedResults.rules.length > 0}}">
+        <view class="section-loading-placeholder" wx:if="{{rulesLoading && combinedResults.rules.length === 0}}">
+          <text class="loading-dot"></text>
+          <text>搜索中...</text>
+        </view>
         <view class="result-card" wx:for="{{combinedResults.rules}}" wx:key="index" bindtap="viewRuleDetail" data-rule="{{item.rule_number}}">
           <view class="result-header">
             <text class="result-number">{{item.rule_number}}</text>

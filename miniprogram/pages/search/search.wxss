@@ -377,6 +377,16 @@ page {
   color: rgba(255, 255, 255, 0.5);
 }
 
+.section-loading-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  padding: 40rpx 20rpx;
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.5);
+}
+
 .loading-dot {
   width: 10rpx;
   height: 10rpx;
@@ -478,6 +488,10 @@ page {
 
 .container.page-light .section-loading {
   color: #666666;
+}
+
+.container.page-light .section-loading-placeholder {
+  color: #999999;
 }
 
 .container.page-light .loading-dot {
