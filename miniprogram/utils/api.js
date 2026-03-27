@@ -285,13 +285,9 @@ const api = {
 
       console.log('CODEBUDDY_DEBUG api request started path=', path, 'method=', method, 'data=', data)
 
-      // chat 接口需要较长超时（AI 处理可能需要 60+ 秒）
-      const requestTimeout = path === '/api/ai-judge/chat' ? 120000 : 60000
-
       wx.cloud.callFunction({
         name: FUNCTION_NAME,
         data: callData,
-        timeout: requestTimeout,
         success: res => {
           console.log('CODEBUDDY_DEBUG api request success path=', path, 'res=', JSON.stringify(res).substring(0, 200))
           if (showLoading) {
@@ -342,7 +338,12 @@ const api = {
 
           // 判断错误类型
           if (err.errMsg && err.errMsg.includes('timeout')) {
-            reject('请求超时，请检查网络')
+            // chat 接口超时说明是 AI 处理中，让用户刷新
+            if (path === '/api/ai-judge/chat') {
+              reject('async_timeout')
+            } else {
+              reject('请求超时，请检查网络')
+            }
           } else if (err.errMsg && err.errMsg.includes('fail')) {
             reject('网络连接失败')
           } else {

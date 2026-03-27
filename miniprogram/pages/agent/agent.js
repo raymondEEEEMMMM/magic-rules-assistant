@@ -340,6 +340,17 @@ Page({
         thinkingStep: 0,
         thinkingText: ''
       })
+
+      // 超时是异步处理中，提示用户刷新
+      if (err === 'async_timeout') {
+        wx.showToast({
+          title: 'AI 正在思考中，请稍后刷新会话',
+          icon: 'none',
+          duration: 3000
+        })
+        return
+      }
+
       const errorMsg = '网络错误，请检查网络后重试。'
       const now = new Date()
       const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
