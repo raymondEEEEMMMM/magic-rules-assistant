@@ -34,7 +34,8 @@ page {
 }
 
 .loading-icon {
-  font-size: 80rpx;
+  width: 100rpx;
+  height: 100rpx;
   animation: pulse 1.5s ease-in-out infinite;
 }
 
@@ -125,7 +126,8 @@ page {
 }
 
 .ai-badge {
-  font-size: 36rpx;
+  width: 48rpx;
+  height: 48rpx;
 }
 
 .nav-title text {
@@ -147,15 +149,15 @@ page {
 }
 
 .welcome-avatar {
-  width: 64rpx;
-  height: 64rpx;
+  width: 80rpx;
+  height: 80rpx;
   border-radius: 50%;
   background: linear-gradient(135deg, #ffd700 0%, #daa520 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 30rpx;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .welcome-bubble {
@@ -216,22 +218,25 @@ page {
 }
 
 .message.user .message-main {
-  flex-direction: row-reverse;
+  flex-direction: row;
+  justify-content: flex-end;
 }
 
 .avatar {
-  width: 64rpx;
-  height: 64rpx;
+  width: 80rpx;
+  height: 80rpx;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 30rpx;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .user-avatar {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  width: 60rpx;
+  height: 60rpx;
 }
 
 .bot-avatar {

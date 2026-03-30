@@ -3,7 +3,7 @@
   <!-- 加载遮罩 -->
   <view class="loading-overlay" wx:if="{{isLoading}}">
     <view class="loading-content">
-      <view class="loading-icon">⚖️</view>
+      <image class="loading-icon" src="/images/mtgask_logo.png" mode="aspectFit"></image>
       <view class="loading-text-main">{{loadingText}}</view>
       <view class="loading-progress">
         <view class="progress-dot {{loadingStep >= 1 ? 'active' : ''}}"></view>
@@ -20,7 +20,7 @@
       <view class="back-btn" bindtap="goBack">←</view>
     </view>
     <view class="nav-title">
-      <view class="ai-badge">⚖️</view>
+      <image class="ai-badge" src="/images/mtgask_logo.png" mode="aspectFit"></image>
       <text>AI 裁判</text>
     </view>
     <view class="nav-right">
@@ -41,7 +41,7 @@
     <!-- 欢迎消息 -->
     <view class="welcome-wrapper" wx:if="{{messages.length === 0}}">
       <view class="welcome-ai">
-        <view class="welcome-avatar">⚖️</view>
+        <image class="welcome-avatar" src="/images/mtgask_logo.png" mode="aspectFit"></image>
         <view class="welcome-bubble">
           <text class="welcome-greeting">你好！我是裁判 Agent</text>
           <text class="welcome-text">可以问我任何万智牌规则问题，比如：</text>
@@ -66,12 +66,12 @@
     <!-- 消息列表 -->
     <view class="message {{item.role}}" wx:for="{{messages}}" wx:key="index" id="msg-{{index}}">
       <view class="message-main">
-        <view wx:if="{{item.role === 'assistant'}}" class="avatar bot-avatar">⚖️</view>
+        <image class="avatar bot-avatar" src="/images/mtgask_logo.png" mode="aspectFit" wx:if="{{item.role === 'assistant'}}"></image>
         <view class="bubble {{item.role}}">
           <text wx:if="{{item.role === 'user'}}">{{item.content}}</text>
           <rich-text wx:else nodes="{{item.parsedNodes}}"></rich-text>
         </view>
-        <view wx:if="{{item.role === 'user'}}" class="avatar user-avatar">👤</view>
+        <image class="avatar user-avatar" src="/images/user_avatar.avif" mode="aspectFit" wx:if="{{item.role === 'user'}}"></image>
       </view>
       <!-- 再问一次按钮（仅最新AI回复显示） -->
       <view class="retry-btn-wrapper" wx:if="{{item.role === 'assistant' && index === messages.length - 1}}">
@@ -83,7 +83,7 @@
     <!-- Loading -->
     <view class="message bot" wx:if="{{loading}}">
       <view class="message-main">
-        <view class="avatar bot-avatar">⚖️</view>
+        <image class="avatar bot-avatar" src="/images/mtgask_logo.png" mode="aspectFit"></image>
         <view class="bubble loading-bubble">
           <text class="loading-text">{{thinkingText || '思考中'}}</text>
           <view class="loading-dots">

@@ -3,7 +3,7 @@
   <!-- 顶部Banner -->
   <view class="banner">
     <view class="banner-content">
-      <text class="banner-title">mtgAsk</text>
+      <text class="banner-title">MTGAsk</text>
       <text class="banner-subtitle">万智牌规则问答助手</text>
     </view>
     <view class="theme-btn" bindtap="toggleTheme">{{isLightTheme ? '🌙' : '☀️'}}</view>
@@ -12,7 +12,7 @@
   <!-- AI 裁判入口 -->
   <view class="ai-judge-section" bindtap="goToAIJudge">
     <view class="ai-judge-badge">
-      <view class="ai-badge-icon">⚖️</view>
+      <image class="ai-badge-icon" src="/images/mtgask_logo.png" mode="aspectFit"></image>
       <view class="ai-badge-glow"></view>
     </view>
     <view class="ai-judge-info">
