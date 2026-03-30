@@ -138,6 +138,9 @@ class AIJudgeService:
         # Mock 模式
         self.mock_mode = Config.OPENCLAW_MOCK
 
+        # AI Judge 每日问答次数限制（仅对有 openid 的用户生效）
+        self._daily_limit = Config.AI_JUDGE_DAILY_LIMIT
+
         # Agent 池管理器（用于 per-user agent）
         self.agent_pool = None
         if AgentPoolManager and self.openclaw_enabled:
@@ -156,6 +159,26 @@ class AIJudgeService:
     def _is_cloud_function(self) -> bool:
         """检查是否在云函数环境中"""
         return bool(os.getenv("SCF_FUNCTION_NAME") or os.getenv("TENCENTCLOUD_RUNENV"))
+
+    def _check_daily_limit(self, openid: str, db) -> tuple:
+        """
+        检查用户是否超过每日限制
+
+        Args:
+            openid: 微信 openid
+            db: 数据库实例
+
+        Returns:
+            (is_allowed: bool, current_count: int, remaining: int)
+        """
+        if not openid:
+            return (True, 0, self._daily_limit)  # 无 openid 不限制
+
+        today = datetime.now().strftime('%Y-%m-%d')
+        db.ensure_ai_judge_daily_stats_table()
+        current_count = db.get_daily_question_count(openid, today)
+        remaining = max(0, self._daily_limit - current_count)
+        return (current_count < self._daily_limit, current_count, remaining)
 
     def _sanitize_reply(self, reply: str) -> str:
         """
@@ -483,6 +506,7 @@ class AIJudgeService:
             print("未找到用户消息")
             return None
 
+        client = None
         try:
             # 构建 CLI 命令
             # 使用 bash -i 来加载环境变量
@@ -518,8 +542,6 @@ class AIJudgeService:
             output = stdout.read().decode()
             error = stderr.read().decode()
 
-            client.close()
-
             if error and "bash: cannot set terminal" not in error:
                 print(f"STDERR: {error[:200]}")
 
@@ -545,6 +567,9 @@ class AIJudgeService:
         except Exception as e:
             print(f"OpenCLAW SSH 调用失败: {e}，fallback 到 mock 模式")
             return self._get_mock_response(messages)
+        finally:
+            if client:
+                client.close()
 
     def _get_mock_response(self, messages: List[Dict]) -> str:
         """获取 Mock 响应（用于测试/服务器不可用时）"""
@@ -918,6 +943,19 @@ class AIJudgeService:
             }
         self._last_request_time[rate_key] = current_time
 
+        # 每日次数限制检查（仅对有 openid 的用户生效）
+        if openid:
+            db = self.agent_pool.db if self.agent_pool else None
+            if db:
+                is_allowed, current_count, remaining = self._check_daily_limit(openid, db)
+                if not is_allowed:
+                    return {
+                        "success": False,
+                        "reply": f"今日问答次数已用完（{self._daily_limit}次/天），将于明日 00:00 重置",
+                        "daily_limit": self._daily_limit,
+                        "remaining": 0
+                    }
+
         # 获取 per-user agent（如果提供了 openid）
         agent_name = None
         if openid and self.agent_pool:
@@ -945,6 +983,15 @@ class AIJudgeService:
 
         # 获取或初始化会话历史
         if session_id not in self.conversation_history:
+            # 防止 conversation_history 无限增长，达到 100 个会话后清理最老的
+            if len(self.conversation_history) >= 100:
+                oldest_key = next(iter(self.conversation_history))
+                del self.conversation_history[oldest_key]
+                # 同时清理该会话的限流记录
+                oldest_rate_key = f"session_{oldest_key}"
+                if oldest_rate_key in self._last_request_time:
+                    del self._last_request_time[oldest_rate_key]
+
             self.conversation_history[session_id] = [
                 {"role": "system", "content": system_prompt}
             ]
@@ -1010,6 +1057,11 @@ class AIJudgeService:
             # 限制历史长度（保留 system + 最近 max_history 条消息）
             if len(history) > max_history + 1:
                 self.conversation_history[session_id] = [history[0]] + history[-(max_history):]
+
+            # 成功响应后，递增每日计数（仅对有 openid 的用户）
+            if openid and self.agent_pool:
+                today = datetime.now().strftime('%Y-%m-%d')
+                self.agent_pool.db.increment_daily_question_count(openid, today)
 
             return {
                 "success": True,
@@ -1236,6 +1288,11 @@ class AIJudgeService:
         if session_id in self.conversation_history:
             del self.conversation_history[session_id]
 
+        # 清理该会话的限流记录
+        rate_key = f"session_{session_id}"
+        if rate_key in self._last_request_time:
+            del self._last_request_time[rate_key]
+
         # 同时删除 OpenCLAW 服务器上的 session 文件
         try:
             from backend.services.openclaw_client import OpenCLAWClient
@@ -1261,6 +1318,11 @@ class AIJudgeService:
         # 清除本地会话历史
         if session_id in self.conversation_history:
             del self.conversation_history[session_id]
+
+        # 清理该会话的限流记录
+        rate_key = f"session_{session_id}"
+        if rate_key in self._last_request_time:
+            del self._last_request_time[rate_key]
 
         result = {
             "success": True,

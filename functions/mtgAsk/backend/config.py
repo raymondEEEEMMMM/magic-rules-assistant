@@ -34,6 +34,9 @@ class Config:
     # Mock 模式配置（用于测试，不消耗 token）
     OPENCLAW_MOCK = os.getenv("OPENCLAW_MOCK", "false").lower() == "true"
 
+    # AI Judge 每日问答次数限制（仅对有 openid 的用户生效）
+    AI_JUDGE_DAILY_LIMIT = int(os.getenv("AI_JUDGE_DAILY_LIMIT", "10"))
+
     # 数据库配置
     DATABASE_PATH = os.getenv("DATABASE_PATH", "./data/magic_rules.db")
 
