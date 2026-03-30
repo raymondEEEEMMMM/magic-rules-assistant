@@ -181,5 +181,19 @@ AI:  如果场上有多个反对派密探，每个都有自己的警示异能...
 - **用途**: 提供 AI 裁判的技能（Skill）和裁判知识库
 - **本地路径**: `functions/mtgAsk/backend/data/magic-comp-rules-zh-cn-agent/`
 
+## 📚 外部数据源
+
+### 卡牌数据
+| 数据源 | 用途 | 说明 |
+|--------|------|------|
+| [MTGCH API](https://mtgch.com/api/v1/docs) | 卡牌搜索、自动补全 | 中文万智牌 API，提供卡牌名称、中英文名称匹配 |
+| [MTGJSON](https://mtgjson.com) | 卡牌详情 | 卡牌完整数据下载（用于本地数据更新） |
+
+### 规则数据
+| 数据源 | 用途 | 说明 |
+|--------|------|------|
+| [Wizards of Coast](https://media.wizards.com/2026/downloads/) | 万智牌完整规则 | 官方 Comp Rules TXT 版本，定时自动更新 |
+
+
 ## 📝 许可证
 MIT License
