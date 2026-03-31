@@ -16,7 +16,7 @@ Page({
     scrollIntoView: '',
     aiAvatar: AI_AVATAR,
     shortMode: false,  // 简洁模式，减少 token 消耗
-    sessionId: 'miniprogram',  // 会话 ID
+    sessionId: 'main',  // 会话 ID（统一使用 main）
     isLightTheme: true,  // 默认日间主题
     openid: null,  // 用户 openid
     isLoading: true,  // 初始加载状态
@@ -389,7 +389,7 @@ Page({
             // 清除本地会话历史
             that.setData({
               messages: [],
-              sessionId: 'miniprogram_' + Date.now()  // 新的会话 ID
+              sessionId: 'main'  // 统一使用 main 会话
             })
 
             wx.showToast({
@@ -463,6 +463,23 @@ Page({
         break
       }
     }
+  },
+
+  // 复制单条消息内容
+  copyMessage(e) {
+    const index = e.currentTarget.dataset.index
+    const msg = this.data.messages[index]
+    if (!msg) return
+
+    wx.setClipboardData({
+      data: msg.content,
+      success() {
+        wx.showToast({ title: '已复制', icon: 'success' })
+      },
+      fail() {
+        wx.showToast({ title: '复制失败', icon: 'none' })
+      }
+    })
   },
 
   // 刷新消息（调用历史会话接口获取最新回复）
