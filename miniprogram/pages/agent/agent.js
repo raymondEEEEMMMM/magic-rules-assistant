@@ -179,11 +179,13 @@ Page({
     })
   },
 
-  // 清洗消息内容（移除 OpenCLAW 加的 [Thu 2026-03-26 21:17 GMT+8] 前缀和 <final> 标签）
+  // 清洗消息内容（移除 OpenCLAW 加的 [Thu 2026-03-26 21:17 GMT+8] 前缀、<final> 标签和 [[reply_to_current]] 标记）
   cleanMessageContent(content) {
     if (!content) return ''
     // 移除 <final> 标签
     let cleaned = content.replace(/<\/?final>/g, '')
+    // 移除 [[reply_to_current]] 标记
+    cleaned = cleaned.replace(/\[\[reply_to_current\]\]/g, '')
     // 匹配 [星期 YYYY-MM-DD HH:MM GMT+8] 格式的前缀
     return cleaned.replace(/^\[([A-Za-z]{3}\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+GMT[+-]\d+)\]\s*/, '')
   },
