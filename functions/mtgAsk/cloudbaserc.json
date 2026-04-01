@@ -1,0 +1,15 @@
+{
+  "version": "2.0",
+  "envId": "magic-rules-assistant-0a1904c329",
+  "functionRoot": ".",
+  "functions": [
+    {
+      "name": "mtgAsk",
+      "timeout": 300,
+      "runtime": "Python3.10",
+      "handler": "index.main",
+      "memorySize": 512,
+      "envVariables": {}
+    }
+  ]
+}

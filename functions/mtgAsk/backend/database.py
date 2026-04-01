@@ -92,6 +92,7 @@ class RuleDatabase:
                 database=self.mysql_database,
                 charset='utf8mb4',
                 cursorclass=pymysql.cursors.DictCursor,
+                use_unicode=True,
                 connect_timeout=10
             )
             
@@ -130,6 +131,7 @@ class RuleDatabase:
                 password=self.mysql_password,
                 database=self.mysql_database,
                 charset='utf8mb4',
+                use_unicode=True,
                 connect_timeout=10
             )
 
@@ -466,6 +468,7 @@ class RuleDatabase:
                 database=self.mysql_database,
                 charset='utf8mb4',
                 cursorclass=pymysql.cursors.DictCursor,
+                use_unicode=True,
                 connect_timeout=10
             )
 
@@ -494,6 +497,7 @@ class RuleDatabase:
                 password=self.mysql_password,
                 database=self.mysql_database,
                 charset='utf8mb4',
+                use_unicode=True,
                 connect_timeout=10
             )
 

@@ -368,6 +368,20 @@ def main(event, context):
                 'body': json.dumps({'success': True, 'stats': stats}, ensure_ascii=False)
             }
 
+        elif path == '/api/admin/import-rules' and http_method == 'POST':
+            # 从 Cloud Storage 导入规则到数据库
+            import sys
+            import os
+            sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
+            from backend.scripts.import_rules import import_rules_from_storage
+
+            result = import_rules_from_storage()
+            return {
+                'statusCode': 200 if result.get('success') else 500,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps(result, ensure_ascii=False)
+            }
+
         elif path == '/api/feedback' and http_method == 'POST':
             # 提交反馈
             from backend.database import RuleDatabase
@@ -596,6 +610,7 @@ def main(event, context):
                         '/api/ai-judge/history',
                         '/api/admin/cleanup-sessions',
                         '/api/admin/agent-pool/stats',
+                        '/api/admin/import-rules',
                         '/api/feedback'
                     ]
                 })
