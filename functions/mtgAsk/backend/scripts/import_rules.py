@@ -133,36 +133,86 @@ def extract_content(section):
 def parse_rule_file(filepath):
     """解析规则文件
 
-    文件格式:
-    - ## <span id='cr100'>100.</span> 章节标题 (章节头)
-      <b id='cr100-1'>100.1.</b> 中文内容 (规则条目)
-      <b>100.1.</b> English content
-      <b id='cr100-1a'>100.1a</b> 中文内容 (子规则)
-      <b>100.1a</b> English content
+    规则文件格式:
+    - ## <span id='cr100'>100.</span> 章节标题 (章节头，不是规则)
+    - <b id='cr100-1'>100.1.</b> 内容 (规则)
+    - <b id='cr100-1a'>100.1a</b> 子规则
+
+    关键词异能格式 (702.x):
+    - ## <span id='cr702-9'>702.9. 飞行 Flying</span> (这是主规则!)
+    - <b id='cr702-9a'>702.9a</b> 子规则
     """
     rules = []
 
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # 按 ## 分割章节（## 是二级标题）
+    # 按 ## 分割章节
     sections = re.split(r'^## ', content, flags=re.MULTILINE)
 
     for section in sections:
         if not section.strip():
             continue
 
-        # 从章节中提取所有规则
-        # 匹配 <span id='cr...'> 或 <b id='cr...'> 格式
-        # 分割每个规则条目
+        # 分割所有块
         rule_blocks = re.split(r'(?=<(?:span|b) id=[\'"]?cr)', section)
 
-        for block in rule_blocks:
-            if not block.strip():
-                continue
-            rule = parse_rule_section(block)
-            if rule:
-                rules.append(rule)
+        i = 0
+        while i < len(rule_blocks):
+            block = rule_blocks[i]
+
+            # 检查是否是 span 块
+            # id格式可能是 cr702-9 (hyphen) 或 cr100 (no hyphen)
+            # 需要将 cr702-9 转换为 702.9
+            span_match = re.match(r'\s*<span id=[\'"]?cr([\d]+(?:-[\d]+)?)', block)
+
+            if span_match:
+                span_num = span_match.group(1).replace('-', '.')
+                # span_num like "702.9" or "100"
+                # 如果是完整的规则号（如 702.9），合并后续的子规则块
+                # 如果只是章节号（如 702），则合并后续规则
+                merged = block
+                j = i + 1
+
+                while j < len(rule_blocks):
+                    next_block = rule_blocks[j]
+                    # 检查下一个块的规则号
+                    next_match = re.match(r'\s*<b id=[\'"]?cr([\d]+(?:-[\d]+)?[a-z]?)', next_block)
+                    if not next_match:
+                        next_match = re.match(r'\s*<span id=[\'"]?cr([\d]+(?:-[\d]+)?)', next_block)
+
+                    if next_match:
+                        next_num = next_match.group(1).replace('-', '.')
+                        # 检查是否是 <span> 块（新的规则/章节开始），如果是则停止合并
+                        is_next_span = next_block.strip().startswith('<span')
+                        if is_next_span:
+                            # 遇到新的 span 块，停止合并
+                            break
+                        # 只有 <b> 块才能合并
+                        # 检查编号是否匹配（用于决定是否继续合并）
+                        # 702.9 后面跟 702.9a, 702.9b -> 合并
+                        # 702 后面跟 702.1a 等 -> 合并
+                        if next_num.startswith(span_num) and (len(next_num) == len(span_num) or next_num[len(span_num)] in 'abcdefghijklmnopqrstuvwxyz'):
+                            merged += '\n' + next_block
+                            j += 1
+                        else:
+                            break
+                    else:
+                        break
+
+                merged_blocks = [merged]
+                # 解析合并后的块
+                rule = parse_rule_section(merged_blocks[0])
+                if rule:
+                    rules.append(rule)
+                i = j
+            else:
+                # 非 span 块（纯 b 块），直接解析
+                if block.strip():
+                    rule = parse_rule_section(block)
+                    if rule:
+                        rules.append(rule)
+                i += 1
 
     return rules
 
