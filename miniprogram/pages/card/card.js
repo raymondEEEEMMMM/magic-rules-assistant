@@ -230,5 +230,26 @@ Page({
   // 阻止弹窗关闭
   preventClose(e) {
     // 空函数，阻止事件冒泡
+  },
+
+  // 复制卡牌名称
+  copyCardName(e) {
+    const cardName = e.currentTarget.dataset.name || this.data.currentCard.name
+    wx.setClipboardData({
+      data: cardName,
+      success: () => {
+        wx.showToast({
+          title: '已复制: ' + cardName,
+          icon: 'none',
+          duration: 2000
+        })
+      },
+      fail: () => {
+        wx.showToast({
+          title: '复制失败',
+          icon: 'none'
+        })
+      }
+    })
   }
 })

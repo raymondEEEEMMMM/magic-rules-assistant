@@ -93,7 +93,10 @@
   <view class="detail-content">
     <!-- 名称 -->
     <view class="detail-name-section">
-      <text class="detail-name">{{currentCard.name}}</text>
+      <view class="detail-name-row">
+        <text class="detail-name">{{currentCard.name}}</text>
+        <view class="copy-btn" bindtap="copyCardName" data-name="{{currentCard.name}}">复制</view>
+      </view>
       <text class="detail-en-name" wx:if="{{currentCard.enName && currentCard.enName !== currentCard.name}}">{{currentCard.enName}}</text>
     </view>
 
