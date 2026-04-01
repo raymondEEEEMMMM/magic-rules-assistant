@@ -375,9 +375,11 @@ page {
 
 .detail-name-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  flex-wrap: wrap;
   margin-bottom: 12rpx;
+  gap: 16rpx;
 }
 
 .detail-name {
