@@ -33,97 +33,136 @@ def get_mysql_connection():
 
 
 def parse_rule_section(section):
-    """解析单个规则章节"""
+    """解析单个规则章节
+
+    支持两种格式:
+    1. <span id='cr702-9'>702.9. 飞行 Flying</span> (关键词异能章节标题)
+    2. <b id='cr603-1'>603.1.</b> 内容 (普通规则条目)
+    """
     if not section.strip():
         return None
 
-    # 匹配规则编号和标题: ### <span id=cr702-9>702.9. 飞行 Flying</span>
-    match = re.search(r'<span id=cr(\d+(?:\.\d+)?)[^>]*>(\d+(?:\.\d+)?)\.\s*([^<]+)</span>', section)
-    if not match:
-        return None
+    # 尝试匹配 <span id='cr702-9'> 格式 (章节标题/关键词异能)
+    span_match = re.search(r'<span id=[\'"]?cr(\d+(?:\.\d+)?)[^\'">]*[\'"]?\s*>(\d+(?:\.\d+)?)\.\s*([^<]+)</span>', section)
+    if span_match:
+        rule_number = span_match.group(2)
+        title_part = span_match.group(3).strip()
+        title_cn, title_en = split_title(title_part)
+        # 内容从剩余部分提取
+        content_cn, content_en = extract_content(section)
+        return {
+            'rule_number': rule_number,
+            'rule_title_cn': title_cn,
+            'rule_title_en': title_en,
+            'rule_content_cn': content_cn,
+            'rule_content_en': content_en
+        }
 
-    rule_number = match.group(2)
-    title_part = match.group(3).strip()  # 如 "飞行 Flying"
+    # 尝试匹配 <b id='cr603-1'> 格式 (普通规则)
+    b_match = re.search(r'<b id=[\'"]?cr(\d+(?:\.\d+)?)[^\'">]*[\'"]?\s*>(\d+(?:\.\d+)?)\.\s*</b>', section)
+    if b_match:
+        rule_number = b_match.group(2)
+        # 标题为空（普通规则条目没有独立标题）
+        title_cn = ''
+        title_en = ''
+        # 内容紧跟在 </b> 后面
+        content_cn, content_en = extract_content(section)
+        return {
+            'rule_number': rule_number,
+            'rule_title_cn': title_cn,
+            'rule_title_en': title_en,
+            'rule_content_cn': content_cn,
+            'rule_content_en': content_en
+        }
 
-    # 分离中英文标题
-    # 格式: "飞行 Flying" 或 "敏捷 Haste"
+    return None
+
+
+def split_title(title_part):
+    """分离中英文标题"""
     title_cn = ''
     title_en = ''
-
-    # 尝试分离中文和英文
     cn_en_match = re.match(r'([\u4e00-\u9fff]+)\s+([A-Za-z\s]+)', title_part)
     if cn_en_match:
         title_cn = cn_en_match.group(1).strip()
         title_en = cn_en_match.group(2).strip()
     else:
-        # 如果没有中文，可能是纯英文
         if re.search(r'[\u4e00-\u9fff]', title_part):
-            # 有中文但没分离开，当作中文
             title_cn = title_part
         else:
             title_en = title_part
+    return title_cn, title_en
 
-    # 提取规则内容
+
+def extract_content(section):
+    """从章节中提取中英文内容
+
+    格式示例:
+    <b id='cr100-1'>100.1.</b> 这些万智牌规则适用于...   \n
+    <b>100.1.</b> These Magic rules...
+
+    中文内容在 <b id='crXXX'>...</b> 标签后面的行
+    英文内容在 <b>XXX.</b> 标签后面的行
+    """
+    cn_lines = []
+    en_lines = []
+
     lines = section.split('\n')
-    content_cn = []
-    content_en = []
-
-    # 跟踪当前是中文还是英文（交替）
-    last_was_cn = None
-
     for line in lines:
-        line = line.strip()
-        if not line:
-            continue
-
         # 跳过标题行
         if line.startswith('#') or '<span' in line:
             continue
 
-        # 跳过规则编号行 (如 702.9a, 702.9b)
-        if re.match(r'^\d+\.\d+[a-z]?\s', line):
-            # 这是规则编号行，可能包含内容
-            # 去掉编号部分
-            line = re.sub(r'^\d+\.\d+[a-z]?\s*', '', line)
+        # 提取 <b id='crXXX'>...</b>后面的中文内容
+        # 格式: <b id='cr100-1'>100.1.</b> 中文内容
+        match = re.match(r'<b[^>]*>[^<]*</b>\s*(.+)$', line)
+        if match:
+            text = match.group(1).strip()
+            text = re.sub(r'<[^>]+>', '', text)  # 去掉残余标签
+            text = re.sub(r'\s+', ' ', text).strip()
+            if text:
+                # 判断是中文还是英文
+                if re.search(r'[\u4e00-\u9fff]', text):
+                    cn_lines.append(text)
+                else:
+                    en_lines.append(text)
 
-        # 判断是否是空行
-        if not line:
-            continue
-
-        # 判断中英文
-        has_cn = bool(re.search(r'[\u4e00-\u9fff]', line))
-        has_en = bool(re.search(r'[A-Za-z]', line))
-
-        if has_cn:
-            content_cn.append(line)
-            last_was_cn = True
-        elif has_en:
-            content_en.append(line)
-            last_was_cn = False
-
-    return {
-        'rule_number': rule_number,
-        'rule_title_cn': title_cn,
-        'rule_title_en': title_en,
-        'rule_content_cn': ' '.join(content_cn),
-        'rule_content_en': ' '.join(content_en)
-    }
+    return ' '.join(cn_lines), ' '.join(en_lines)
 
 
 def parse_rule_file(filepath):
-    """解析规则文件"""
+    """解析规则文件
+
+    文件格式:
+    - ## <span id='cr100'>100.</span> 章节标题 (章节头)
+      <b id='cr100-1'>100.1.</b> 中文内容 (规则条目)
+      <b>100.1.</b> English content
+      <b id='cr100-1a'>100.1a</b> 中文内容 (子规则)
+      <b>100.1a</b> English content
+    """
     rules = []
 
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # 按 ### 分割章节
-    sections = re.split(r'^### ', content, flags=re.MULTILINE)
+    # 按 ## 分割章节（## 是二级标题）
+    sections = re.split(r'^## ', content, flags=re.MULTILINE)
 
     for section in sections:
-        rule = parse_rule_section(section)
-        if rule:
-            rules.append(rule)
+        if not section.strip():
+            continue
+
+        # 从章节中提取所有规则
+        # 匹配 <span id='cr...'> 或 <b id='cr...'> 格式
+        # 分割每个规则条目
+        rule_blocks = re.split(r'(?=<(?:span|b) id=[\'"]?cr)', section)
+
+        for block in rule_blocks:
+            if not block.strip():
+                continue
+            rule = parse_rule_section(block)
+            if rule:
+                rules.append(rule)
 
     return rules
 
