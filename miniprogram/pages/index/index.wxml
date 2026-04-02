@@ -72,6 +72,20 @@
     <view class="counter-arrow">›</view>
   </view>
 
+  <!-- 最新系列资讯 -->
+  <view class="latest-sets" wx:if="{{latestSets.length > 0 && !keyword}}">
+    <view class="sets-header">
+      <text class="new-tag">New</text>
+      <text class="sets-title">最新系列</text>
+    </view>
+    <view class="sets-list">
+      <view class="set-item" wx:for="{{latestSets}}" wx:key="code">
+        <image class="set-icon" src="{{item.iconUrl}}" mode="aspectFit" />
+        <text class="set-name">{{item.name}}</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 组合搜索结果 -->
   <view class="combined-results" wx:if="{{keyword && searchDone}}">
     <!-- 关键词结果 -->

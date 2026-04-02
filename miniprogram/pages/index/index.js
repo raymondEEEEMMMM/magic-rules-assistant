@@ -15,7 +15,8 @@ Page({
       rules: []
     },
     history: [],
-    searchDone: false
+    searchDone: false,
+    latestSets: []
   },
 
   onLoad() {
@@ -26,6 +27,7 @@ Page({
     })
     console.log('CODEBUDDY_DEBUG index setData version=', this.data.version, 'isLightTheme=', this.data.isLightTheme)
     this.loadHistory()
+    this.fetchLatestSets()
   },
 
   onShow() {
@@ -57,6 +59,25 @@ Page({
     console.log('CODEBUDDY_DEBUG index loadHistory historyLength=', history.length, 'history=', history)
     this.setData({ history })
     console.log('CODEBUDDY_DEBUG index loadHistory setData completed')
+  },
+
+  // 获取最新系列资讯
+  fetchLatestSets() {
+    api.request('/api/mtgch/sets', {}).then(sets => {
+      if (!sets || !Array.isArray(sets)) return
+      // 按发行日期排序，取最新 3 个
+      const latest = sets
+        .sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate))
+        .slice(0, 3)
+        .map(s => ({
+          name: s.translated_name || s.name,
+          code: s.code,
+          iconUrl: s.icon_svg_uri
+        }))
+      this.setData({ latestSets: latest })
+    }).catch(err => {
+      console.error('获取最新系列失败:', err)
+    })
   },
 
   // 输入监听
