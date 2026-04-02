@@ -76,13 +76,6 @@ Page({
     })
   },
 
-  // 返回
-  goBack() {
-    wx.redirectTo({
-      url: '/pages/index/index'
-    })
-  },
-
   // 切换语言
   switchLang(e) {
     const lang = e.currentTarget.dataset.lang

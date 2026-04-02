@@ -347,7 +347,8 @@ page {
 }
 
 .ai-badge-icon {
-  font-size: 56rpx;
+  width: 72rpx;
+  height: 72rpx;
   z-index: 2;
   animation: float 3s ease-in-out infinite;
 }

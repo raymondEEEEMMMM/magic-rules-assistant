@@ -55,7 +55,14 @@ class RuleScheduler:
     def stop(self):
         """停止调度器"""
         logger.info("停止调度器...")
-        self.scheduler.shutdown()
+        try:
+            self.scheduler.shutdown(wait=False)
+        except RuntimeError as e:
+            # Event loop may already be closed during pytest teardown
+            if "Event loop is closed" in str(e):
+                logger.warning("调度器停止失败: Event loop is closed (这在测试环境中是正常的)")
+            else:
+                raise
         logger.info("调度器已停止")
 
     def set_update_callback(self, callback: Callable):

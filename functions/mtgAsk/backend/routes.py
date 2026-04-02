@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
-from fastapi.responses import XMLResponse, StreamingResponse
+from fastapi.responses import XMLResponse, StreamingResponse, PlainTextResponse
 from typing import Optional
 import hashlib
 from database import RuleDatabase
@@ -30,7 +30,7 @@ def verify_wechat_signature(timestamp: str, nonce: str, signature: str) -> bool:
 async def root():
     return {"message": "万智牌规则问答服务运行中", "status": "ok"}
 
-@app.get("/wechat")
+@app.get("/wechat", response_class=PlainTextResponse)
 async def wechat_verify(
     signature: str,
     timestamp: str,
@@ -396,9 +396,8 @@ async def ai_judge_clear_session(request: Request):
     openid = body.get("openid", None)
 
     from services.ai_judge_service import ai_judge_service
-    from database import db
 
-    # 获取 agent_name
+    # 获取 agent_name - 使用模块级 db 实例
     agent_name = None
     if openid:
         agent_info = db.get_agent_by_openid(openid)

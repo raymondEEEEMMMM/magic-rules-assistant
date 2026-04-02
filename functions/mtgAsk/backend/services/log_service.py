@@ -100,14 +100,15 @@ class LogService:
 
             # 插入日志记录
             insert_sql = """
-            INSERT INTO ai_judge_logs (service, level, message, data)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO ai_judge_logs (service, level, message, data, _openid)
+            VALUES (%s, %s, %s, %s, %s)
             """
             success = db._execute_write_sql(insert_sql, (
                 log_data['service'],
                 log_data['level'],
                 log_data['message'],
-                json.dumps(log_data.get('data', {}), ensure_ascii=False)
+                json.dumps(log_data.get('data', {}), ensure_ascii=False),
+                log_data.get('_openid', '')
             ))
 
             if success:

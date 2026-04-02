@@ -350,8 +350,8 @@ class RuleDatabase:
 
     def create_agent(self, openid: str, agent_name: str) -> bool:
         """创建新的 Agent 绑定"""
-        sql = "INSERT INTO ai_agent_pool (openid, agent_name) VALUES (%s, %s)"
-        return self._execute_write_sql_with_params(sql, (openid, agent_name))
+        sql = "INSERT INTO ai_agent_pool (openid, agent_name, _openid) VALUES (%s, %s, %s)"
+        return self._execute_write_sql_with_params(sql, (openid, agent_name, ''))
 
     def update_agent_last_used(self, openid: str) -> bool:
         """更新 Agent 最后使用时间"""
@@ -406,8 +406,8 @@ class RuleDatabase:
         # 确保表存在
         self.create_feedbacks_table()
 
-        sql = """INSERT INTO feedbacks (openid, content, contact, type) VALUES (%s, %s, %s, %s)"""
-        return self._execute_write_sql_with_params(sql, (openid, content, contact, feedback_type))
+        sql = """INSERT INTO feedbacks (openid, content, contact, type, _openid) VALUES (%s, %s, %s, %s, %s)"""
+        return self._execute_write_sql_with_params(sql, (openid, content, contact, feedback_type, ''))
 
     def get_lru_agent(self, exclude_openids: List[str] = None) -> Optional[Dict]:
         """获取最久未使用的 Agent（用于 LRU 回收）"""
@@ -446,11 +446,11 @@ class RuleDatabase:
 
     def increment_daily_question_count(self, openid: str, date: str) -> bool:
         """原子递增当日次数（使用 ON DUPLICATE KEY UPDATE）"""
-        sql = """INSERT INTO ai_judge_daily_stats (openid, date, question_count)
-                 VALUES (%s, %s, 1)
+        sql = """INSERT INTO ai_judge_daily_stats (openid, date, question_count, _openid)
+                 VALUES (%s, %s, 1, %s)
                  ON DUPLICATE KEY UPDATE question_count = question_count + 1,
                  updated_at = CURRENT_TIMESTAMP"""
-        return self._execute_write_sql_with_params(sql, (openid, date))
+        return self._execute_write_sql_with_params(sql, (openid, date, ''))
 
     def _execute_read_sql_with_params(self, sql: str, params: tuple) -> List[Dict]:
         """执行带参数的只读 SQL 查询"""

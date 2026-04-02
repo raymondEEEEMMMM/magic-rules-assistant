@@ -406,3 +406,25 @@ class TestForceRecycleOldest:
             manager._force_recycle_oldest()
 
         mock_db.delete_agent_by_openid.assert_called_once_with("old_user")
+
+
+# ==================== Cleanup ====================
+
+@pytest.fixture(scope="module", autouse=True)
+def cleanup_sys_modules():
+    """清理 sys.modules 中被污染的 mock 模块,避免影响其他测试"""
+    yield
+    # 清理 test_agent_pool_manager.py 添加的 mock 模块
+    modules_to_remove = [
+        'backend.services.openclaw_client',
+        'backend.database',
+        'database',
+        'backend.services',
+        'agent_pool_manager',
+        'backend.services.agent_pool_manager',
+        'backend.services.ai_judge_service',
+        'ai_judge_service',
+    ]
+    for mod in modules_to_remove:
+        if mod in sys.modules:
+            del sys.modules[mod]

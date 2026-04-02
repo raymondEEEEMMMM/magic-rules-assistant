@@ -70,8 +70,9 @@
         <view class="bubble {{item.role}}">
           <text wx:if="{{item.role === 'user'}}">{{item.content}}</text>
           <rich-text wx:else nodes="{{item.parsedNodes}}"></rich-text>
+          <view class="copy-btn" catchtap="copyMessage" data-index="{{index}}">📋</view>
         </view>
-        <image class="avatar user-avatar" src="/images/user_avatar.avif" mode="aspectFit" wx:if="{{item.role === 'user'}}"></image>
+        <image class="avatar user-avatar" src="/images/user_avatar.png" mode="aspectFit" wx:if="{{item.role === 'user'}}"></image>
       </view>
       <!-- 再问一次按钮（仅最新AI回复显示） -->
       <view class="retry-btn-wrapper" wx:if="{{item.role === 'assistant' && index === messages.length - 1}}">

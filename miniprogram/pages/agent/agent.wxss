@@ -264,6 +264,32 @@ page {
   color: #1a1a2e;
   border-bottom-left-radius: 10rpx;
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.15);
+  position: relative;
+}
+
+/* 气泡内复制按钮 */
+.bubble .copy-btn {
+  position: absolute;
+  bottom: 8rpx;
+  right: 12rpx;
+  font-size: 28rpx;
+  opacity: 0;
+  transition: opacity 0.2s;
+  padding: 8rpx;
+}
+
+.bubble:active .copy-btn {
+  opacity: 0.6;
+}
+
+/* 日间主题 */
+.page-light .bubble.assistant {
+  background: rgba(255, 255, 255, 0.98);
+  color: #1a1a2e;
+}
+
+.page-light .bubble.user {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 /* AI 消息富文本样式 */

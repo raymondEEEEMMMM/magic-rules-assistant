@@ -150,12 +150,6 @@ class AIJudgeService:
             except Exception as e:
                 print(f"AgentPoolManager 初始化失败: {e}")
 
-        # 加载规则内容
-        self.rules_content = self._load_rules()
-
-        # 系统提示词
-        self.system_prompt = self._build_system_prompt()
-
     def _is_cloud_function(self) -> bool:
         """检查是否在云函数环境中"""
         return bool(os.getenv("SCF_FUNCTION_NAME") or os.getenv("TENCENTCLOUD_RUNENV"))
@@ -216,116 +210,6 @@ class AIJudgeService:
             return "抱歉，AI 裁判暂时无法回答此问题，请稍后再试。"
 
         return reply
-
-    def _load_rules(self) -> str:
-        """
-        从本地加载规则内容
-
-        规则知识库通过 sync_judge_knowledge.py 同步到 OpenCLAW Gateway 服务器，
-        由 OpenCLAW Agent 通过 ai-judge skill 读取。
-        """
-        # 从本地加载（用于开发/测试或备用）
-        local_path = os.getenv("AI_RULES_LOCAL_PATH", "/Users/lianghaoming/cbworkplace/functions/mtgAsk/backend/data/magic-comp-rules-zh-cn-agent")
-        content = self._load_from_local(local_path)
-        if content:
-            return content
-
-        print("未能加载规则内容，使用默认提示词")
-        return ""
-
-    def _load_from_local(self, local_path: str) -> str:
-        """从本地加载规则"""
-        import os
-
-        print(f"尝试从本地加载规则: {local_path}")
-        loaded_content = []
-
-        # 如果 local_path 是绝对路径，直接使用
-        if os.path.isabs(local_path):
-            base_dir = local_path if os.path.isdir(local_path) else os.path.dirname(local_path)
-        else:
-            # 尝试相对路径
-            base_dir = os.path.join(os.path.dirname(__file__), local_path)
-
-        # 检查目录是否存在
-        if not os.path.isdir(base_dir):
-            # 尝试项目根目录
-            base_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".claude/skills/ai_judge/345")
-
-        if not os.path.isdir(base_dir):
-            print(f"  目录不存在: {base_dir}")
-            return ""
-
-        print(f"  使用目录: {base_dir}")
-
-        for file_path in self.RULE_FILES:
-            # 保持完整路径
-            full_path = os.path.join(base_dir, file_path)
-
-            if os.path.exists(full_path):
-                try:
-                    with open(full_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                        loaded_content.append(f"\n\n=== {file_path} ===\n\n")
-                        loaded_content.append(content)
-                        print(f"  ✓ 已加载: {file_path}")
-                except Exception as e:
-                    print(f"  ✗ 读取失败 {file_path}: {e}")
-            else:
-                print(f"  - 文件不存在: {full_path}")
-
-        if loaded_content:
-            content = "".join(loaded_content)
-            print(f"共加载 {len(content)} 字符的规则内容")
-            return content
-
-        return ""
-
-    def _build_system_prompt(self) -> str:
-        """构建系统提示词"""
-        base_prompt = """你是一位专业的万智牌裁判助手，精通万智牌 Comprehensive Rules（综合规则）。
-
-## 你的职责
-1. 回答玩家关于万智牌规则的问题
-2. 分析对局情况，判断触发时机、费用支付、优先权等
-3. 解释关键词异能和卡牌互动规则
-
-## 回答规范
-- 使用中文回答
-- 引用具体的规则编号（如 CR 117.1、CR 504.1）
-- 解释清晰，简明扼要
-- 如果问题涉及多个规则，逐一说明
-
-## 重要规则参考
-- 堆叠（Stack）：咒语和异能在堆叠上 resolving
-- 优先权（Priority）：谁可以做什么
-- 触发式异能（Triggered Abilities）：何时触发、如何进入堆叠
-- 伤害步骤（Combat Damage）：伤害如何分配
-
-如果不确定某些细节，请明确说明并给出合理的推测。"""
-
-        # 如果有加载的规则内容，附加到提示词中
-        if self.rules_content:
-            base_prompt += f"""
-
-## 规则知识库（供参考）
-
-{self.rules_content}
-
-请在回答时参考上述规则内容。"""
-
-        return base_prompt
-
-    def _get_short_system_prompt(self) -> str:
-        """构建简短版系统提示词（减少 token 消耗）"""
-        return """你是一位专业的万智牌裁判。请简洁回答万智牌规则问题。
-
-要求：
-- 使用中文回答
-- 简洁明了
-- 引用规则编号
-
-回答格式：先给出结论，再简要解释。"""
 
     def _query_card(self, card_name: str) -> Optional[Dict]:
         """
@@ -424,13 +308,14 @@ class AIJudgeService:
             print(f"MiniMax API 调用失败: {e}")
             return None
 
-    def _call_openclaw_gateway(self, messages: List[Dict], agent_name: str = None, temperature: float = 0.7) -> Optional[str]:
+    def _call_openclaw_gateway(self, messages: List[Dict], agent_name: str = None, temperature: float = 0.7, session_id: str = None) -> Optional[str]:
         """调用 OpenCLAW Gateway CLI（通过 SSH）
 
         Args:
             messages: 对话历史
             agent_name: 可选，指定使用的 agent 名称（per-user agent）
             temperature: 温度参数（未使用，保留兼容性）
+            session_id: 会话 ID，用于 OpenCLAW 会话追踪
         """
         # 如果没有指定 agent_name，使用默认的
         effective_agent = agent_name or self.openclaw_agent
@@ -473,7 +358,7 @@ class AIJudgeService:
                 )
 
                 # 直接调用，返回纯文本
-                content = client.call_agent(user_message)
+                content = client.call_agent(user_message, session_id=session_id)
                 client.close()
 
                 if content:
@@ -970,17 +855,6 @@ class AIJudgeService:
         # 记录用户提问
         logger.info(f"=== 会话 [{session_id}] 用户提问 (short_mode={short_mode}, openid={openid}) ===\n{user_message}")
 
-        # 自动检测并查询卡牌信息
-        enhanced_message = self._enhance_message_with_cards(user_message)
-
-        # 简短模式：使用简化版系统提示词
-        if short_mode:
-            system_prompt = self._get_short_system_prompt()
-            max_history = 4  # 简短模式只保留最近2轮对话
-        else:
-            system_prompt = self.system_prompt
-            max_history = 10  # 普通模式保留最近5轮对话（控制 token 消耗）
-
         # 获取或初始化会话历史
         if session_id not in self.conversation_history:
             # 防止 conversation_history 无限增长，达到 100 个会话后清理最老的
@@ -992,30 +866,23 @@ class AIJudgeService:
                 if oldest_rate_key in self._last_request_time:
                     del self._last_request_time[oldest_rate_key]
 
-            self.conversation_history[session_id] = [
-                {"role": "system", "content": system_prompt}
-            ]
-        else:
-            # 更新系统提示词（以支持切换模式）
-            if self.conversation_history[session_id][0]["role"] == "system":
-                self.conversation_history[session_id][0]["content"] = system_prompt
+            self.conversation_history[session_id] = []
 
         history = self.conversation_history[session_id]
 
-        # 自动截断：只保留 system + 最近 max_history 条消息（控制 token 消耗）
-        if len(history) > max_history + 1:
-            history = [history[0]] + history[-(max_history):]
+        # 自动截断：只保留最近 max_history 条消息（控制 token 消耗）
+        max_history = 10
+        if len(history) > max_history:
+            history = history[-max_history:]
 
-        # 添加用户消息（增强版）
-        history.append({"role": "user", "content": enhanced_message})
+        # 添加用户消息
+        history.append({"role": "user", "content": user_message})
 
         # 构建调试信息
         debug_info = {
             "session_id": session_id,
             "user_message": user_message,
-            "enhanced_message": enhanced_message[:500] + "..." if len(enhanced_message) > 500 else enhanced_message,
             "message_count": len(history),
-            "card_query_performed": enhanced_message != user_message,
             "agent_name": agent_name,
             "openid": openid
         }
@@ -1024,7 +891,7 @@ class AIJudgeService:
         reply = None
         if self.openclaw_enabled:
             print("尝试调用 OpenCLAW Gateway...")
-            reply = self._call_openclaw_gateway(history, agent_name=agent_name)
+            reply = self._call_openclaw_gateway(history, agent_name=agent_name, session_id=session_id)
             if reply:
                 print("OpenCLAW Gateway 调用成功")
 
@@ -1054,9 +921,9 @@ class AIJudgeService:
                 "reply_preview": reply[:200]
             })
 
-            # 限制历史长度（保留 system + 最近 max_history 条消息）
-            if len(history) > max_history + 1:
-                self.conversation_history[session_id] = [history[0]] + history[-(max_history):]
+            # 限制历史长度
+            if len(history) > max_history:
+                self.conversation_history[session_id] = history[-max_history:]
 
             # 成功响应后，递增每日计数（仅对有 openid 的用户）
             if openid and self.agent_pool:
@@ -1152,7 +1019,6 @@ class AIJudgeService:
 请根据万智牌规则进行分析。"""
 
         messages = [
-            {"role": "system", "content": self.system_prompt},
             {"role": "user", "content": analysis_prompt}
         ]
 
@@ -1210,35 +1076,19 @@ class AIJudgeService:
             yield {"error": "AI 裁判服务暂未配置，请联系管理员。"}
             return
 
-        # 自动检测并查询卡牌信息
-        enhanced_message = self._enhance_message_with_cards(user_message)
-
-        # 简短模式：使用简化版系统提示词
-        if short_mode:
-            system_prompt = self._get_short_system_prompt()
-            max_history = 4  # 简短模式只保留最近2轮对话
-        else:
-            system_prompt = self.system_prompt
-            max_history = 10  # 普通模式保留最近5轮对话（控制 token 消耗）
-
         # 获取或初始化会话历史
         if session_id not in self.conversation_history:
-            self.conversation_history[session_id] = [
-                {"role": "system", "content": system_prompt}
-            ]
-        else:
-            # 更新系统提示词（以支持切换模式）
-            if self.conversation_history[session_id][0]["role"] == "system":
-                self.conversation_history[session_id][0]["content"] = system_prompt
+            self.conversation_history[session_id] = []
 
         history = self.conversation_history[session_id]
 
-        # 自动截断：只保留 system + 最近 max_history 条消息（控制 token 消耗）
-        if len(history) > max_history + 1:
-            history = [history[0]] + history[-(max_history):]
+        # 自动截断：只保留最近 max_history 条消息（控制 token 消耗）
+        max_history = 10
+        if len(history) > max_history:
+            history = history[-max_history:]
 
-        # 添加用户消息（增强版）
-        history.append({"role": "user", "content": enhanced_message})
+        # 添加用户消息
+        history.append({"role": "user", "content": user_message})
 
         # 流式调用 API（优先使用 OpenCLAW）
         full_reply = ""
