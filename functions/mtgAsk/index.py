@@ -244,6 +244,20 @@ def main(event, context):
                 'body': json.dumps(result, ensure_ascii=False)
             }
 
+        elif path in ('/api/mtgch/sets', '/wechat/api/mtgch/sets'):
+            # 获取系列列表
+            from backend.services.mtgch_api import MTGCHAPIClient
+
+            client = MTGCHAPIClient()
+            result = client.get_sets()
+            client.close()
+
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps(result, ensure_ascii=False)
+            }
+
         elif path == '/api/ai-judge/init' and http_method == 'POST':
             # 预热 AI Agent
             from backend.services.ai_judge_service import ai_judge_service
