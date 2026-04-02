@@ -68,7 +68,7 @@ Page({
       // 按发行日期排序，取最新 3 个
       const latest = sets
         .sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate))
-        .slice(0, 3)
+        .slice(0, 5)
         .map(s => ({
           name: s.translated_name || s.name,
           code: s.code,
