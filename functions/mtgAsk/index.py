@@ -137,24 +137,25 @@ def main(event, context):
                 }
 
         elif path in ('/api/card', '/card', '/mtgch/search', '/api/mtgch/search'):
-            # 卡牌搜索
+            # 卡牌搜索 - 按发行日期排序，原版优先
             from backend.services.mtgch_api import MTGCHAPIClient
-            
+
             q = query_params.get('q', '')
             page = int(query_params.get('page', 1))
             page_size = int(query_params.get('page_size', 5))
-            
+            order = query_params.get('order', 'released_at')  # 默认按发行日期排序，原版优先
+
             if not q:
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json'},
                     'body': json.dumps({'error': '缺少查询参数 q'})
                 }
-            
+
             client = MTGCHAPIClient()
-            result = client.search_cards(q, page=page, page_size=page_size)
+            result = client.search_cards(q, page=page, page_size=page_size, order=order)
             client.close()
-            
+
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json'},

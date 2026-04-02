@@ -97,12 +97,16 @@ async def get_keyword_ability(keyword: str):
     return {"keyword": keyword, "result": None}
 
 @app.get("/api/card")
-async def get_card_rule(card_name: str):
-    """获取卡牌规则API"""
-    result = rule_service.get_card_rule(card_name)
-    if result:
-        return {"card_name": card_name, "result": result}
-    return {"card_name": card_name, "result": None}
+async def get_card_rule(card_name: str, order: str = "releaseDate"):
+    """获取卡牌规则API - 使用 MTGCH API，按发行日期排序返回原版优先"""
+    try:
+        from services.mtgch_api import MTGCHAPIClient
+        client = MTGCHAPIClient(timeout=30)
+        result = client.search_cards(card_name, page=1, page_size=5, order=order)
+        client.close()
+        return result  # MTGCH API 返回 {items: [...], total: ...}
+    except Exception as e:
+        return {"items": [], "total": 0, "error": str(e)}
 
 # ==================== 微信 HTTP 访问路径 API ====================
 # 这些路由用于 HTTP 访问路径 /wechat 的调用
