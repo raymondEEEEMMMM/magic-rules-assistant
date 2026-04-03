@@ -25,12 +25,12 @@ class RuleDatabase:
         
         # 根据环境选择连接配置
         if self.is_cloud_function:
-            # 云端环境：强制使用外网地址（云函数无法访问内网VPC）
-            self.mysql_host = 'sh-cynosdbmysql-grp-5ydpqjru.sql.tencentcdb.com'
-            self.mysql_port = 27987
+            # 云端环境：强制使用环境变量中的外网地址（云函数无法访问内网VPC）
+            self.mysql_host = os.environ.get('MYSQL_HOST', '')
+            self.mysql_port = int(os.environ.get('MYSQL_PORT', '27987'))
         else:
             # 本地调试：使用外网地址
-            self.mysql_host = os.environ.get('MYSQL_HOST', 'sh-cynosdbmysql-grp-5ydpqjru.sql.tencentcdb.com')
+            self.mysql_host = os.environ.get('MYSQL_HOST', '')
             self.mysql_port = int(os.environ.get('MYSQL_PORT', '27987'))
         
         self.mysql_user = os.environ.get('MYSQL_USER', 'mtgask')

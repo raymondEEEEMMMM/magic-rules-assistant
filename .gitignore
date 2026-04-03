@@ -53,3 +53,12 @@ Thumbs.db
 
 # Logo
 logo/
+
+# 本地环境变量配置
+.env.local
+.env.*.local
+
+# CloudBase 相关
+cloudbaserc.json
+.secret.yaml
+.secrets.json

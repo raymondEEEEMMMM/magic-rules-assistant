@@ -121,6 +121,8 @@ miniprogram/
 │   ├── card/            # 卡牌详情页
 │   ├── rule/            # 规则详情页
 │   ├── keyword/         # 关键词页
+│   ├── setcards/        # 系列卡牌页
+│   ├── sldcards/         # Secret Lair 专区页
 │   ├── apitest/         # API 测试页
 │   ├── test/            # 测试页
 │   └── example/         # 示例页
@@ -148,8 +150,16 @@ miniprogram/
 | `/api/search` | GET | 规则综合搜索 |
 | `/api/keyword` | GET | 关键词查询 |
 | `/api/card` | GET | 卡牌查询 |
+| `/api/mtgch/card` | GET | 卡牌详情 |
+| `/api/mtgch/sets` | GET | 系列列表 |
+| `/api/mtgch/set/{code}/cards` | GET | 系列卡牌列表 |
+| `/api/scryfall/set/{code}/cards` | GET | 通过Scryfall获取系列卡牌（含图片） |
+| `/api/secret-lair/cards` | GET | Secret Lair 卡牌列表 |
+| `/api/secret-lair/search` | GET | Secret Lair 卡牌搜索 |
 | `/api/rules/update` | POST | 更新规则 |
 | `/api/rules/status` | GET | 规则状态 |
+| `/api/ai-judge/chat` | POST | AI 裁判对话 |
+| `/api/ai-judge/clear` | POST | 清除会话 |
 
 ### 4.2 业务逻辑层 (services/)
 

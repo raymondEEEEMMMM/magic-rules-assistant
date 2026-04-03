@@ -660,11 +660,12 @@ def main(event, context):
 
             try:
                 key_content = os.getenv('OPENCLAW_SSH_KEY_CONTENT', '')
-                if not key_content:
+                ssh_host = os.getenv('OPENCLAW_HOST', '')
+                if not key_content or not ssh_host:
                     return {
                         'statusCode': 500,
                         'headers': {'Content-Type': 'application/json'},
-                        'body': json.dumps({'error': 'No SSH key configured'})
+                        'body': json.dumps({'error': 'SSH host or key not configured'})
                     }
 
                 # 创建 SSH 客户端
@@ -679,7 +680,7 @@ def main(event, context):
 
                 # 连接
                 print('Connecting to SSH...')
-                client.connect('101.43.48.45', port=22, username='openclaw', key_filename=key_path, timeout=10)
+                client.connect(ssh_host, port=22, username='openclaw', key_filename=key_path, timeout=10)
                 print('SSH connected')
 
                 # 执行简单命令
