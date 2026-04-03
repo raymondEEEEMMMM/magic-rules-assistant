@@ -25,12 +25,12 @@ class RuleDatabase:
         
         # 根据环境选择连接配置
         if self.is_cloud_function:
-            # 云端环境：强制使用外网地址（云函数无法访问内网VPC）
-            self.mysql_host = 'sh-cynosdbmysql-grp-5ydpqjru.sql.tencentcdb.com'
-            self.mysql_port = 27987
+            # 云端环境：强制使用环境变量中的外网地址（云函数无法访问内网VPC）
+            self.mysql_host = os.environ.get('MYSQL_HOST', '')
+            self.mysql_port = int(os.environ.get('MYSQL_PORT', '27987'))
         else:
             # 本地调试：使用外网地址
-            self.mysql_host = os.environ.get('MYSQL_HOST', 'sh-cynosdbmysql-grp-5ydpqjru.sql.tencentcdb.com')
+            self.mysql_host = os.environ.get('MYSQL_HOST', '')
             self.mysql_port = int(os.environ.get('MYSQL_PORT', '27987'))
         
         self.mysql_user = os.environ.get('MYSQL_USER', 'mtgask')
@@ -92,6 +92,7 @@ class RuleDatabase:
                 database=self.mysql_database,
                 charset='utf8mb4',
                 cursorclass=pymysql.cursors.DictCursor,
+                use_unicode=True,
                 connect_timeout=10
             )
             
@@ -130,6 +131,7 @@ class RuleDatabase:
                 password=self.mysql_password,
                 database=self.mysql_database,
                 charset='utf8mb4',
+                use_unicode=True,
                 connect_timeout=10
             )
 
@@ -177,26 +179,26 @@ class RuleDatabase:
         is_chinese = any(bool(re.search(r'[\u4e00-\u9fff]', k)) for k in keywords)
 
         for keyword in keywords:
-            # 使用 LIKE 查询
-            escaped_keyword = keyword.replace('%', '\\%').replace("'", "\\'")
+            # 使用参数化查询防止 SQL 注入
+            like_pattern = f'%{keyword}%'
 
             # 根据语言选择搜索字段
             if is_chinese:
-                sql = f"""SELECT rule_number, rule_title_cn as rule_title, rule_content_cn as rule_content,
+                sql = """SELECT rule_number, rule_title_cn as rule_title, rule_content_cn as rule_content,
                     category, rule_title_en, rule_content_en
                     FROM rules_v2
-                    WHERE rule_content_cn LIKE '%{escaped_keyword}%'
-                       OR rule_title_cn LIKE '%{escaped_keyword}%'
+                    WHERE rule_content_cn LIKE %s
+                       OR rule_title_cn LIKE %s
                     LIMIT 10"""
             else:
-                sql = f"""SELECT rule_number, rule_title_en as rule_title, rule_content_en as rule_content,
+                sql = """SELECT rule_number, rule_title_en as rule_title, rule_content_en as rule_content,
                     category, rule_title_cn, rule_content_cn
                     FROM rules_v2
-                    WHERE rule_content_en LIKE '%{escaped_keyword}%'
-                       OR rule_title_en LIKE '%{escaped_keyword}%'
+                    WHERE rule_content_en LIKE %s
+                       OR rule_title_en LIKE %s
                     LIMIT 10"""
 
-            results = self._execute_read_sql(sql)
+            results = self._execute_read_sql_with_params(sql, (like_pattern, like_pattern))
 
             for result in results:
                 # 使用规则号去重
@@ -222,19 +224,20 @@ class RuleDatabase:
     
     def get_keyword_ability(self, keyword_name: str) -> Optional[Dict]:
         """获取关键词异能 - 使用 keyword_abilities_v2 表"""
-        escaped_keyword = keyword_name.replace('%', '\\%').replace("'", "\\'")
+        # 使用参数化查询防止 SQL 注入
+        like_pattern = f'%{keyword_name}%'
 
         # 尝试通过中文名或英文名匹配
-        sql = f"""SELECT
+        sql = """SELECT
             keyword_cn, keyword_en,
             description_cn, description_en,
             rule_ref_cn, rule_ref_en
         FROM keyword_abilities_v2
-        WHERE keyword_cn LIKE '%{escaped_keyword}%'
-           OR keyword_en LIKE '%{escaped_keyword}%'
+        WHERE keyword_cn LIKE %s
+           OR keyword_en LIKE %s
         LIMIT 1"""
 
-        results = self._execute_read_sql(sql)
+        results = self._execute_read_sql_with_params(sql, (like_pattern, like_pattern))
         if not results:
             return None
 
@@ -268,17 +271,17 @@ class RuleDatabase:
     
     def get_rule_by_number(self, rule_number: str) -> Optional[Dict]:
         """根据规则编号获取完整规则内容"""
-        escaped = rule_number.replace('%', '\\%').replace("'", "\\'")
+        # 使用参数化查询防止 SQL 注入
 
         # 先尝试精确匹配
-        sql = f"""SELECT
+        sql = """SELECT
             rule_number, rule_title_cn, rule_title_en,
             rule_content_cn, rule_content_en, category
             FROM rules_v2
-            WHERE rule_number = '{escaped}'
+            WHERE rule_number = %s
             LIMIT 1"""
 
-        results = self._execute_read_sql(sql)
+        results = self._execute_read_sql_with_params(sql, (rule_number,))
         if results:
             record = results[0]
             return {
@@ -291,14 +294,14 @@ class RuleDatabase:
             }
 
         # 如果没找到，尝试模糊匹配（如 702.9 匹配 702.9, 702.9a 等）
-        sql = f"""SELECT
+        sql = """SELECT
             rule_number, rule_title_cn, rule_title_en,
             rule_content_cn, rule_content_en, category
             FROM rules_v2
-            WHERE rule_number LIKE '{escaped}%'
+            WHERE rule_number LIKE %s
             LIMIT 1"""
 
-        results = self._execute_read_sql(sql)
+        results = self._execute_read_sql_with_params(sql, (f'{rule_number}%',))
         if not results:
             return None
 
@@ -347,8 +350,8 @@ class RuleDatabase:
 
     def create_agent(self, openid: str, agent_name: str) -> bool:
         """创建新的 Agent 绑定"""
-        sql = "INSERT INTO ai_agent_pool (openid, agent_name) VALUES (%s, %s)"
-        return self._execute_write_sql_with_params(sql, (openid, agent_name))
+        sql = "INSERT INTO ai_agent_pool (openid, agent_name, _openid) VALUES (%s, %s, %s)"
+        return self._execute_write_sql_with_params(sql, (openid, agent_name, ''))
 
     def update_agent_last_used(self, openid: str) -> bool:
         """更新 Agent 最后使用时间"""
@@ -403,8 +406,8 @@ class RuleDatabase:
         # 确保表存在
         self.create_feedbacks_table()
 
-        sql = """INSERT INTO feedbacks (openid, content, contact, type) VALUES (%s, %s, %s, %s)"""
-        return self._execute_write_sql_with_params(sql, (openid, content, contact, feedback_type))
+        sql = """INSERT INTO feedbacks (openid, content, contact, type, _openid) VALUES (%s, %s, %s, %s, %s)"""
+        return self._execute_write_sql_with_params(sql, (openid, content, contact, feedback_type, ''))
 
     def get_lru_agent(self, exclude_openids: List[str] = None) -> Optional[Dict]:
         """获取最久未使用的 Agent（用于 LRU 回收）"""
@@ -418,6 +421,36 @@ class RuleDatabase:
             sql = "SELECT * FROM ai_agent_pool ORDER BY last_used_at ASC LIMIT 1"
             results = self._execute_read_sql_with_params(sql, None)
         return results[0] if results else None
+
+    # ==================== AI Judge 每日统计 ====================
+
+    def ensure_ai_judge_daily_stats_table(self) -> bool:
+        """确保 ai_judge_daily_stats 表存在"""
+        sql = """CREATE TABLE IF NOT EXISTS ai_judge_daily_stats (
+            id              INT AUTO_INCREMENT PRIMARY KEY,
+            openid          VARCHAR(128) NOT NULL COMMENT '微信 openid',
+            date            DATE NOT NULL COMMENT '统计日期',
+            question_count  INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '当日提问次数',
+            created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY uk_openid_date (openid, date),
+            INDEX idx_date (date)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"""
+        return self._execute_write_sql(sql)
+
+    def get_daily_question_count(self, openid: str, date: str) -> int:
+        """获取用户指定日期的提问次数"""
+        sql = "SELECT question_count FROM ai_judge_daily_stats WHERE openid = %s AND date = %s"
+        results = self._execute_read_sql_with_params(sql, (openid, date))
+        return results[0]['question_count'] if results else 0
+
+    def increment_daily_question_count(self, openid: str, date: str) -> bool:
+        """原子递增当日次数（使用 ON DUPLICATE KEY UPDATE）"""
+        sql = """INSERT INTO ai_judge_daily_stats (openid, date, question_count, _openid)
+                 VALUES (%s, %s, 1, %s)
+                 ON DUPLICATE KEY UPDATE question_count = question_count + 1,
+                 updated_at = CURRENT_TIMESTAMP"""
+        return self._execute_write_sql_with_params(sql, (openid, date, ''))
 
     def _execute_read_sql_with_params(self, sql: str, params: tuple) -> List[Dict]:
         """执行带参数的只读 SQL 查询"""
@@ -435,6 +468,7 @@ class RuleDatabase:
                 database=self.mysql_database,
                 charset='utf8mb4',
                 cursorclass=pymysql.cursors.DictCursor,
+                use_unicode=True,
                 connect_timeout=10
             )
 
@@ -463,6 +497,7 @@ class RuleDatabase:
                 password=self.mysql_password,
                 database=self.mysql_database,
                 charset='utf8mb4',
+                use_unicode=True,
                 connect_timeout=10
             )
 

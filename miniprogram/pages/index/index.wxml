@@ -3,7 +3,7 @@
   <!-- 顶部Banner -->
   <view class="banner">
     <view class="banner-content">
-      <text class="banner-title">mtgAsk</text>
+      <text class="banner-title">MTGAsk</text>
       <text class="banner-subtitle">万智牌规则问答助手</text>
     </view>
     <view class="theme-btn" bindtap="toggleTheme">{{isLightTheme ? '🌙' : '☀️'}}</view>
@@ -12,7 +12,7 @@
   <!-- AI 裁判入口 -->
   <view class="ai-judge-section" bindtap="goToAIJudge">
     <view class="ai-judge-badge">
-      <view class="ai-badge-icon">⚖️</view>
+      <image class="ai-badge-icon" src="/images/mtgask_logo.png" mode="aspectFit"></image>
       <view class="ai-badge-glow"></view>
     </view>
     <view class="ai-judge-info">
@@ -70,6 +70,46 @@
       <text class="counter-desc">指挥官 · 2-4人游戏</text>
     </view>
     <view class="counter-arrow">›</view>
+  </view>
+
+  <!-- 最新系列资讯 -->
+  <view class="latest-sets" wx:if="{{latestSets.length > 0 && !keyword}}">
+    <view class="sets-header">
+      <text class="new-tag">New</text>
+      <text class="sets-title">最新系列</text>
+    </view>
+    <scroll-view class="sets-scroll" scroll-x enable-flex>
+      <view class="sets-list">
+        <view class="set-item" wx:for="{{latestSets}}" wx:key="code" bindtap="viewSetCards" data-code="{{item.code}}" data-name="{{item.name}}">
+          <image class="set-icon" src="{{item.iconUrl}}" mode="aspectFit" />
+          <text class="set-name">{{item.name}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- Secret Lair 资讯 -->
+  <view class="sld-section" wx:if="{{showSldSection && !keyword}}">
+    <view class="sets-header" bindtap="goToSldCards">
+      <view class="sld-header-left">
+        <text class="new-tag sld-tag">SLD</text>
+        <text class="sets-title">Secret Lair 专区</text>
+      </view>
+      <text class="sld-more">查看全部 ›</text>
+    </view>
+    <scroll-view class="sld-scroll" scroll-x enable-flex>
+      <view class="sld-list">
+        <view class="sld-group" wx:for="{{sldGroups}}" wx:key="date">
+          <view class="sld-date">{{item.date}}</view>
+          <view class="sld-cards">
+            <view class="sld-card" wx:for="{{item.cards}}" wx:for-item="card" wx:key="id" bindtap="viewCardDetail" data-id="{{card.id}}">
+              <image class="sld-card-image" src="{{card.image_url}}" mode="aspectFill" />
+              <text class="sld-card-name">{{card.name}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
   </view>
 
   <!-- 组合搜索结果 -->

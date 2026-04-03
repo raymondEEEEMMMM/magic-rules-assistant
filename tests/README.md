@@ -57,6 +57,9 @@ pytest tests/unit/test_mtgch_api.py -v
 | 文件 | 测试内容 |
 |------|----------|
 | `test_mtgch_api.py` | MTGCH API 客户端功能测试（27 个测试） |
+| `test_openclaw_client.py` | OpenCLAW SSH 客户端测试（28 个测试） |
+| `test_agent_pool_manager.py` | Agent 池管理器测试（23 个测试） |
+| `test_routes.py` | FastAPI 路由测试（24 个测试）⚠️ 需要修复 starlette/httpx 兼容性 |
 
 **运行方式**:
 ```bash
@@ -156,6 +159,17 @@ def test_format_card_info_rarity_mapping(self, rarity, expected):
 2. **可重复性**: 单元测试使用 mock，不依赖外部服务
 3. **明确性**: 测试名称应该清晰描述测试内容
 4. **快速性**: 单元测试应该快速执行
+
+## 当前测试状态
+
+| 文件 | 状态 | 说明 |
+|------|------|------|
+| `test_mtgch_api.py` | ✅ 通过 | 27 个测试全部通过 |
+| `test_openclaw_client.py` | ✅ 通过 | 28 个测试全部通过 |
+| `test_agent_pool_manager.py` | ✅ 通过 | 23 个测试全部通过 |
+| `test_routes.py` | ⚠️ 阻塞 | starlette 0.27.0 与 httpx 0.28.1 不兼容，需要环境修复 |
+
+**总测试数**: 78 个通过，24 个待修复
 
 ## 相关文档
 

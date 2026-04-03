@@ -138,6 +138,40 @@ const api = {
     return this.request('/api/mtgch/autocomplete', { q: query, size })
   },
 
+  /**
+   * 获取系列卡牌（使用Scryfall API，包含卡图）
+   * @param {string} setCode - 系列代码（如 mkm, mom）
+   * @param {number} page - 页码（默认 1）
+   * @param {number} pageSize - 每页数量（默认 20）
+   * @returns {Promise}
+   */
+  getSetCards(setCode, page = 1, pageSize = 20) {
+    if (!setCode || !setCode.trim()) {
+      return Promise.reject('请输入系列代码')
+    }
+    return this.request('/api/scryfall/set/' + setCode.toLowerCase() + '/cards/', {
+      page
+    })
+  },
+
+  /**
+   * 获取 Secret Lair 卡牌（按发布日期分组）
+   * @param {number} months - 查询月份数（默认12）
+   * @returns {Promise}
+   */
+  getSecretLairCards(months = 12) {
+    return this.request('/api/secret-lair/cards', { months })
+  },
+
+  /**
+   * 搜索 Secret Lair 卡牌（按 SLD 编码搜索）
+   * @param {string} code - SLD 编码（如 SLD-001, IFIYW-1）
+   * @returns {Promise}
+   */
+  searchSecretLair(code) {
+    return this.request('/api/secret-lair/search', { code })
+  },
+
   // ==================== AI 裁判 API ====================
 
   /**

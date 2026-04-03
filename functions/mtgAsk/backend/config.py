@@ -19,7 +19,7 @@ class Config:
 
     # OpenCLAW Gateway 配置（自建服务器）
     OPENCLAW_ENABLED = os.getenv("OPENCLAW_ENABLED", "true").lower() == "true"
-    OPENCLAW_HOST = os.getenv("OPENCLAW_HOST", "101.43.48.45")  # 自建服务器 IP
+    OPENCLAW_HOST = os.getenv("OPENCLAW_HOST", "")  # 自建服务器 IP（必填，如 101.43.48.45）
     OPENCLAW_PORT = os.getenv("OPENCLAW_PORT", "19601")
     OPENCLAW_SSH_USER = os.getenv("OPENCLAW_SSH_USER", "openclaw")  # 专用用户，非 root
     OPENCLAW_SSH_PASSWORD = os.getenv("OPENCLAW_SSH_PASSWORD", "")  # SSH 密码
@@ -33,6 +33,9 @@ class Config:
 
     # Mock 模式配置（用于测试，不消耗 token）
     OPENCLAW_MOCK = os.getenv("OPENCLAW_MOCK", "false").lower() == "true"
+
+    # AI Judge 每日问答次数限制（仅对有 openid 的用户生效）
+    AI_JUDGE_DAILY_LIMIT = int(os.getenv("AI_JUDGE_DAILY_LIMIT", "10"))
 
     # 数据库配置
     DATABASE_PATH = os.getenv("DATABASE_PATH", "./data/magic_rules.db")

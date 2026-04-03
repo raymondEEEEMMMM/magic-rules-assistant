@@ -151,6 +151,34 @@ class AgentPoolManager:
 当问题超出范围时，礼貌地回答：
 「抱歉，这个问题超出万智牌范围。作为万智牌裁判，我只能回答与游戏相关的问题。」
 
+## ⚠️ 强制规则：卡牌查询必须使用 API
+
+**当用户询问具体卡牌的异能、效果或规则时，必须立即使用 skill 中提供的 curl 命令查询 API，不得凭记忆回答！**
+
+### 查询步骤：
+
+1. **查询卡牌信息**（必须执行）：
+   ```bash
+   # 步骤1：先查 mtgch 获取官方中文名
+   curl -s "https://mtgch.com/api/v1/autocomplete/?q={卡牌名}&is_for_deck=false&size=1&page=1"
+
+   # 步骤2：再查 Scryfall 获取完整异能文本
+   curl -s "https://api.scryfall.com/cards/named?fuzzy={卡牌名}"
+   ```
+
+2. **根据查询结果回答**：获取卡牌信息后再回答用户问题
+
+### 示例：
+
+- 用户问：「潘卓欧谷大礼拜堂的效果是？」
+  → **必须执行** curl 查询 → 根据结果回答
+  → **禁止** 凭记忆或说"无法识别"
+
+- 用户问：「doomsday的异能」
+  → **必须执行** curl 查询 → 根据结果回答
+
+**记住**：任何涉及具体卡牌的问题，都必须先查询 API 获取准确信息，再回答。
+
 ## 持续性
 
 每次会话都是新的开始。这些文件是你的记忆。阅读并更新它们。
@@ -162,6 +190,7 @@ class AgentPoolManager:
 - **Vibe:** 严谨、专业、准确
 - **Emoji:** ⚖️
 """
+        sftp = None
         try:
             # 使用 SFTP 写入文件
             sftp = ssh.open_sftp()
@@ -173,12 +202,14 @@ class AgentPoolManager:
             with sftp.file(f"{workspace_dir}/IDENTITY.md", 'w') as f:
                 f.write(identity_md)
 
-            sftp.close()
             print(f"[AgentPool] Prompt 注入成功: {workspace_dir}")
             return True
         except Exception as e:
             print(f"[AgentPool] 注入 prompt 失败: {e}")
             return False
+        finally:
+            if sftp:
+                sftp.close()
 
     def _destroy_remote_agent(self, agent_name: str) -> bool:
         """
@@ -208,6 +239,32 @@ class AgentPoolManager:
             print(f"[AgentPool] 销毁远程 Agent 失败: {e}")
             return False
 
+    def _check_agent_exists_on_gateway(self, agent_name: str) -> bool:
+        """
+        检查 Agent 在 Gateway 上是否实际存在
+
+        Args:
+            agent_name: Agent 名称
+
+        Returns:
+            是否存在
+        """
+        try:
+            with OpenCLAWClient() as client:
+                ssh = client._get_ssh_client()
+                workspace_dir = f"/home/openclaw/agents/{agent_name}"
+                # 检查目录是否存在
+                cmd = f'test -d {workspace_dir} && echo "exists" || echo "not_found"'
+                stdin, stdout, stderr = ssh.exec_command(cmd, timeout=10)
+                result = stdout.read().decode().strip()
+                exists = result == "exists"
+                print(f"[AgentPool] Agent {agent_name} 存在检查: {exists} (result: {result})")
+                return exists
+        except Exception as e:
+            print(f"[AgentPool] 检查 Agent 存在性失败: {e}")
+            # 检查失败时保守返回 False，触发重新创建
+            return False
+
     def get_or_create_agent(self, openid: str) -> Tuple[str, bool]:
         """
         获取或创建用户的 Agent
@@ -221,9 +278,16 @@ class AgentPoolManager:
         # 1. 检查是否已有绑定
         existing = self.db.get_agent_by_openid(openid)
         if existing:
-            # 更新最后使用时间
-            self.db.update_agent_last_used(openid)
-            return existing["agent_name"], False
+            agent_name = existing["agent_name"]
+            # 验证 Agent 在 Gateway 上是否实际存在
+            if self._check_agent_exists_on_gateway(agent_name):
+                # Agent 存在，更新最后使用时间
+                self.db.update_agent_last_used(openid)
+                return agent_name, False
+            else:
+                # Agent 在 Gateway 上已被删除，清理 DB 记录，视为新创建
+                print(f"[AgentPool] Agent {agent_name} 在 Gateway 上不存在，清理并重建")
+                self.db.delete_agent_by_openid(openid)
 
         # 2. 检查当前 Agent 数量
         current_count = self.db.get_active_agent_count()
@@ -241,7 +305,14 @@ class AgentPoolManager:
         # 3. 创建新 Agent
         agent_name = self._generate_agent_name(openid)
         self.db.create_agent(openid, agent_name)
-        self._create_remote_agent(agent_name)
+
+        # 如果远程创建失败，回滚数据库记录
+        try:
+            self._create_remote_agent(agent_name)
+        except Exception as e:
+            print(f"[AgentPool] 远程创建 Agent 失败，回滚数据库记录: {e}")
+            self.db.delete_agent_by_openid(openid)
+            raise
 
         return agent_name, True
 

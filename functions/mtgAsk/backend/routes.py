@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
-from fastapi.responses import XMLResponse, StreamingResponse
+from fastapi.responses import XMLResponse, StreamingResponse, PlainTextResponse
 from typing import Optional
 import hashlib
 from database import RuleDatabase
@@ -30,7 +30,7 @@ def verify_wechat_signature(timestamp: str, nonce: str, signature: str) -> bool:
 async def root():
     return {"message": "万智牌规则问答服务运行中", "status": "ok"}
 
-@app.get("/wechat")
+@app.get("/wechat", response_class=PlainTextResponse)
 async def wechat_verify(
     signature: str,
     timestamp: str,
@@ -97,12 +97,16 @@ async def get_keyword_ability(keyword: str):
     return {"keyword": keyword, "result": None}
 
 @app.get("/api/card")
-async def get_card_rule(card_name: str):
-    """获取卡牌规则API"""
-    result = rule_service.get_card_rule(card_name)
-    if result:
-        return {"card_name": card_name, "result": result}
-    return {"card_name": card_name, "result": None}
+async def get_card_rule(card_name: str, order: str = "releaseDate"):
+    """获取卡牌规则API - 使用 MTGCH API，按发行日期排序返回原版优先"""
+    try:
+        from services.mtgch_api import MTGCHAPIClient
+        client = MTGCHAPIClient(timeout=30)
+        result = client.search_cards(card_name, page=1, page_size=5, order=order)
+        client.close()
+        return result  # MTGCH API 返回 {items: [...], total: ...}
+    except Exception as e:
+        return {"items": [], "total": 0, "error": str(e)}
 
 # ==================== 微信 HTTP 访问路径 API ====================
 # 这些路由用于 HTTP 访问路径 /wechat 的调用
@@ -396,9 +400,8 @@ async def ai_judge_clear_session(request: Request):
     openid = body.get("openid", None)
 
     from services.ai_judge_service import ai_judge_service
-    from database import db
 
-    # 获取 agent_name
+    # 获取 agent_name - 使用模块级 db 实例
     agent_name = None
     if openid:
         agent_info = db.get_agent_by_openid(openid)

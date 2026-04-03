@@ -347,7 +347,8 @@ page {
 }
 
 .ai-badge-icon {
-  font-size: 56rpx;
+  width: 72rpx;
+  height: 72rpx;
   z-index: 2;
   animation: float 3s ease-in-out infinite;
 }
@@ -439,6 +440,143 @@ page {
   font-size: 48rpx;
   color: rgba(74, 222, 128, 0.6);
   font-weight: 300;
+}
+
+/* 最新系列资讯 */
+.latest-sets {
+  padding: 20rpx 30rpx 30rpx;
+}
+
+.sets-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.sld-header-left {
+  display: flex;
+  align-items: center;
+}
+
+.new-tag {
+  background: #e63946;
+  color: #fff;
+  font-size: 20rpx;
+  font-weight: bold;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  margin-right: 12rpx;
+}
+
+.sets-title {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.sld-more {
+  font-size: 24rpx;
+  color: #9b59b6;
+}
+
+.sets-scroll {
+  white-space: nowrap;
+}
+
+.sets-list {
+  display: inline-flex;
+  gap: 20rpx;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 16rpx;
+  padding: 20rpx;
+}
+
+.set-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120rpx;
+}
+
+.set-icon {
+  width: 60rpx;
+  height: 60rpx;
+  margin-bottom: 10rpx;
+}
+
+.set-name {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  max-width: 120rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Secret Lair 资讯 */
+.sld-section {
+  padding: 20rpx 30rpx 30rpx;
+}
+
+.sld-tag {
+  background: #9b59b6;
+}
+
+.sld-scroll {
+  white-space: nowrap;
+}
+
+.sld-list {
+  display: inline-flex;
+  gap: 30rpx;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 16rpx;
+  padding: 20rpx;
+}
+
+.sld-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 280rpx;
+}
+
+.sld-date {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 16rpx;
+  padding-bottom: 12rpx;
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.1);
+}
+
+.sld-cards {
+  display: flex;
+  gap: 16rpx;
+}
+
+.sld-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100rpx;
+}
+
+.sld-card-image {
+  width: 80rpx;
+  height: 112rpx;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, 0.1);
+  margin-bottom: 8rpx;
+}
+
+.sld-card-name {
+  font-size: 20rpx;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  max-width: 100rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 版本信息 */
@@ -598,6 +736,45 @@ page {
 
 .container.page-light .counter-arrow {
   color: #22c55e;
+}
+
+.container.page-light .latest-sets {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16rpx;
+  margin: 0 30rpx 30rpx;
+  padding: 20rpx;
+}
+
+.container.page-light .sets-title {
+  color: #333;
+}
+
+.container.page-light .set-name {
+  color: #666;
+}
+
+.container.page-light .sld-section {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16rpx;
+  margin: 0 30rpx 30rpx;
+  padding: 20rpx;
+}
+
+.container.page-light .sld-date {
+  color: #666;
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+.container.page-light .sld-card-image {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.container.page-light .sld-card-name {
+  color: #666;
+}
+
+.container.page-light .sld-more {
+  color: #9b59b6;
 }
 
 .container.page-light .version-text {

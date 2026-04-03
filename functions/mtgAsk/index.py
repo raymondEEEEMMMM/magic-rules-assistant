@@ -4,6 +4,7 @@ CloudBase HTTP 函数入口 - 简化版
 """
 import json
 import os
+import re
 import sys
 
 # 添加 vendor 依赖和 backend 目录到路径
@@ -137,24 +138,25 @@ def main(event, context):
                 }
 
         elif path in ('/api/card', '/card', '/mtgch/search', '/api/mtgch/search'):
-            # 卡牌搜索
+            # 卡牌搜索 - 按发行日期排序，原版优先
             from backend.services.mtgch_api import MTGCHAPIClient
-            
+
             q = query_params.get('q', '')
             page = int(query_params.get('page', 1))
             page_size = int(query_params.get('page_size', 5))
-            
+            order = query_params.get('order', 'released_at')  # 默认按发行日期排序，原版优先
+
             if not q:
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json'},
                     'body': json.dumps({'error': '缺少查询参数 q'})
                 }
-            
+
             client = MTGCHAPIClient()
-            result = client.search_cards(q, page=page, page_size=page_size)
+            result = client.search_cards(q, page=page, page_size=page_size, order=order)
             client.close()
-            
+
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json'},
@@ -241,6 +243,226 @@ def main(event, context):
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json'},
                 'body': json.dumps(result, ensure_ascii=False)
+            }
+
+        elif path in ('/api/mtgch/sets', '/wechat/api/mtgch/sets'):
+            # 获取系列列表
+            from backend.services.mtgch_api import MTGCHAPIClient
+
+            client = MTGCHAPIClient()
+            result = client.get_sets()
+            client.close()
+
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps(result, ensure_ascii=False)
+            }
+
+        elif re.match(r'^/api/mtgch/set/([^/]+)/cards/?$', path):
+            # 获取特定系列的卡牌
+            match = re.match(r'^/api/mtgch/set/([^/]+)/cards/?$', path)
+            set_code = match.group(1)
+            page = int(query_params.get('page', 1))
+            page_size = int(query_params.get('page_size', 20))
+
+            from backend.services.mtgch_api import MTGCHAPIClient
+            client = MTGCHAPIClient()
+            result = client.get_set_cards(set_code, page=page, page_size=page_size)
+            client.close()
+
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps(result, ensure_ascii=False)
+            }
+
+        elif re.match(r'^/api/scryfall/set/([^/]+)/cards/?$', path):
+            # 通过Scryfall API获取系列卡牌（包含图片）
+            match = re.match(r'^/api/scryfall/set/([^/]+)/cards/?$', path)
+            set_code = match.group(1).lower()  # Scryfall set code is lowercase
+
+            from backend.services.mtgch_api import MTGCHAPIClient
+            client = MTGCHAPIClient()
+
+            # 获取所有页面的卡牌
+            all_cards = []
+            page = 1
+            while True:
+                result = client.search_cards_by_set(set_code, page=page)
+                cards = result.get('data', [])
+                all_cards.extend(cards)
+                if not result.get('has_more'):
+                    break
+                page += 1
+                if page > 10:  # 最多10页，防止无限循环
+                    break
+            client.close()
+
+            # 转换格式以适配前端
+            transformed = {
+                'items': [{
+                    'id': card['id'],
+                    'display_name': card['name'],
+                    'image_url': card.get('image_uris', {}).get('border_crop', ''),
+                    'collector_number': card.get('collector_number', ''),
+                    'colors': card.get('colors', []),  # 颜色
+                    'cmc': card.get('cmc', 0),  # 转换费用
+                    'type_line': card.get('type_line', ''),  # 类别
+                    'rarity': card.get('rarity', ''),  # 稀有度
+                    'mana_cost': card.get('mana_cost', ''),  # 法力费用
+                } for card in all_cards],
+                'total': len(all_cards)
+            }
+
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps(transformed, ensure_ascii=False)
+            }
+
+        elif path == '/api/secret-lair/cards':
+            # 获取 Secret Lair 卡牌（按发布日期分组）
+            import requests
+            from datetime import datetime
+
+            # 支持 months 参数，默认12个月
+            months_count = int(query_params.get('months', 12))
+
+            # 生成需要查询的月份列表（过去months_count个月，包含当月）
+            def get_past_months(start, months_count):
+                """获取从start往前推months_count个月份列表"""
+                months = []
+                current = start
+                for _ in range(months_count):
+                    months.append(current.strftime('%Y-%m'))
+                    # 上个月
+                    if current.month == 1:
+                        current = current.replace(year=current.year - 1, month=12)
+                    else:
+                        current = current.replace(month=current.month - 1)
+                return months
+
+            today = datetime.today()
+            months = get_past_months(today, months_count)
+
+            all_cards = []
+
+            # 按月查询（Scryfall 支持 date:YYYY-MM 前缀匹配）
+            # 带重试的请求函数
+            def fetch_with_retry(url, max_retries=3):
+                for attempt in range(max_retries):
+                    try:
+                        resp = requests.get(url, timeout=30)
+                        return resp.json()
+                    except requests.exceptions.RequestException as e:
+                        if attempt == max_retries - 1:
+                            raise
+                        import time
+                        time.sleep(1)  # 重试前等待1秒
+
+            for month in months:
+                query = f"set:sld+date:{month}"
+                page = 1
+                while True:
+                    # 直接调用 Scryfall API
+                    url = f"https://api.scryfall.com/cards/search?q={query}&page={page}"
+                    result = fetch_with_retry(url)
+                    cards = result.get('data', [])
+                    all_cards.extend(cards)
+                    if not result.get('has_more'):
+                        break
+                    page += 1
+                    if page > 5:  # 防止异常数据导致过多请求
+                        break
+
+            # 按年月分组
+            groups = {}
+            for card in all_cards:
+                released = card.get('released_at', '')
+                if released:
+                    year_month = released[:7]  # YYYY-MM
+                    if year_month not in groups:
+                        groups[year_month] = []
+                    groups[year_month].append({
+                        'id': card['id'],
+                        'name': card['name'],
+                        'image_url': card.get('image_uris', {}).get('border_crop', ''),
+                        'released_at': released,
+                        'type_line': card.get('type_line', ''),
+                        'collector_number': card.get('collector_number', ''),
+                    })
+
+            # 按日期降序排列
+            sorted_groups = sorted(groups.items(), key=lambda x: x[0], reverse=True)
+
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'total': len(all_cards),
+                    'groups': [{'date': k, 'cards': v} for k, v in sorted_groups]
+                }, ensure_ascii=False)
+            }
+
+        elif path == '/api/secret-lair/search':
+            # 搜索 Secret Lair 卡牌（按 SLD 编码搜索）
+            import requests
+            from datetime import datetime
+
+            code = query_params.get('code', '').strip()
+            if not code:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'error': '缺少 code 参数'})
+                }
+
+            # 使用 Scryfall 的 cn: 查询（collector_number）
+            query = f"set:sld+cn:{code}"
+            url = f"https://api.scryfall.com/cards/search?q={query}"
+            try:
+                resp = requests.get(url, timeout=30)
+                result = resp.json()
+            except requests.exceptions.RequestException:
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'found': False, 'code': code, 'error': '请求超时'})
+                }
+
+            cards = result.get('data', [])
+            if not cards:
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({
+                        'found': False,
+                        'code': code,
+                        'card': None
+                    }, ensure_ascii=False)
+                }
+
+            card = cards[0]
+            released_at = card.get('released_at', '')
+            year_month = released_at[:7] if released_at else ''
+
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'found': True,
+                    'code': code,
+                    'card': {
+                        'id': card['id'],
+                        'name': card['name'],
+                        'image_url': card.get('image_uris', {}).get('border_crop', ''),
+                        'released_at': released_at,
+                        'year_month': year_month,
+                        'type_line': card.get('type_line', ''),
+                        'collector_number': card.get('collector_number', ''),
+                    }
+                }, ensure_ascii=False)
             }
 
         elif path == '/api/ai-judge/init' and http_method == 'POST':
@@ -368,6 +590,20 @@ def main(event, context):
                 'body': json.dumps({'success': True, 'stats': stats}, ensure_ascii=False)
             }
 
+        elif path == '/api/admin/import-rules' and http_method == 'POST':
+            # 从 Cloud Storage 导入规则到数据库
+            import sys
+            import os
+            sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
+            from backend.scripts.import_rules import import_rules_from_storage
+
+            result = import_rules_from_storage()
+            return {
+                'statusCode': 200 if result.get('success') else 500,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps(result, ensure_ascii=False)
+            }
+
         elif path == '/api/feedback' and http_method == 'POST':
             # 提交反馈
             from backend.database import RuleDatabase
@@ -424,11 +660,12 @@ def main(event, context):
 
             try:
                 key_content = os.getenv('OPENCLAW_SSH_KEY_CONTENT', '')
-                if not key_content:
+                ssh_host = os.getenv('OPENCLAW_HOST', '')
+                if not key_content or not ssh_host:
                     return {
                         'statusCode': 500,
                         'headers': {'Content-Type': 'application/json'},
-                        'body': json.dumps({'error': 'No SSH key configured'})
+                        'body': json.dumps({'error': 'SSH host or key not configured'})
                     }
 
                 # 创建 SSH 客户端
@@ -443,7 +680,7 @@ def main(event, context):
 
                 # 连接
                 print('Connecting to SSH...')
-                client.connect('101.43.48.45', port=22, username='openclaw', key_filename=key_path, timeout=10)
+                client.connect(ssh_host, port=22, username='openclaw', key_filename=key_path, timeout=10)
                 print('SSH connected')
 
                 # 执行简单命令
@@ -596,6 +833,7 @@ def main(event, context):
                         '/api/ai-judge/history',
                         '/api/admin/cleanup-sessions',
                         '/api/admin/agent-pool/stats',
+                        '/api/admin/import-rules',
                         '/api/feedback'
                     ]
                 })

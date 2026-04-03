@@ -6,7 +6,7 @@ const api = require('../../utils/api')
 const { markdownToPlainText, parseMarkdown } = require('../../utils/markdown')
 
 // AI 头像（天平图标）
-const AI_AVATAR = '⚖️'
+const AI_AVATAR = '/images/mtgask_logo.png'
 
 Page({
   data: {
@@ -16,7 +16,7 @@ Page({
     scrollIntoView: '',
     aiAvatar: AI_AVATAR,
     shortMode: false,  // 简洁模式，减少 token 消耗
-    sessionId: 'miniprogram',  // 会话 ID
+    sessionId: 'main',  // 会话 ID（统一使用 main）
     isLightTheme: true,  // 默认日间主题
     openid: null,  // 用户 openid
     isLoading: true,  // 初始加载状态
@@ -90,6 +90,7 @@ Page({
 
     // 先获取会话列表
     historyPromise.then(res => {
+      console.log('loadHistory sessions response:', JSON.stringify(res, null, 2))
       // 步骤2: 知识库列表已加载
       that.setData({
         loadingStep: 2,
@@ -126,6 +127,7 @@ Page({
 
           // 加载该会话的消息
           api.aiJudgeHistory(openid, latestSession.sessionId).then(msgRes => {
+            console.log('loadHistory messages response:', JSON.stringify(msgRes, null, 2))
             if (msgRes && msgRes.success && msgRes.data) {
               const messages = msgRes.data.messages || []
               if (messages.length > 0) {
@@ -177,11 +179,15 @@ Page({
     })
   },
 
-  // 清洗消息内容（移除 OpenCLAW 加的 [Thu 2026-03-26 21:17 GMT+8] 前缀）
+  // 清洗消息内容（移除 OpenCLAW 加的 [Thu 2026-03-26 21:17 GMT+8] 前缀、<final> 标签和 [[reply_to_current]] 标记）
   cleanMessageContent(content) {
     if (!content) return ''
+    // 移除 <final> 标签
+    let cleaned = content.replace(/<\/?final>/g, '')
+    // 移除 [[reply_to_current]] 标记
+    cleaned = cleaned.replace(/\[\[reply_to_current\]\]/g, '')
     // 匹配 [星期 YYYY-MM-DD HH:MM GMT+8] 格式的前缀
-    return content.replace(/^\[([A-Za-z]{3}\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+GMT[+-]\d+)\]\s*/, '')
+    return cleaned.replace(/^\[([A-Za-z]{3}\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+GMT[+-]\d+)\]\s*/, '')
   },
 
   // 格式化时间戳
@@ -385,7 +391,7 @@ Page({
             // 清除本地会话历史
             that.setData({
               messages: [],
-              sessionId: 'miniprogram_' + Date.now()  // 新的会话 ID
+              sessionId: 'main'  // 统一使用 main 会话
             })
 
             wx.showToast({
@@ -461,15 +467,37 @@ Page({
     }
   },
 
+  // 复制单条消息内容
+  copyMessage(e) {
+    const index = e.currentTarget.dataset.index
+    const msg = this.data.messages[index]
+    if (!msg) return
+
+    wx.setClipboardData({
+      data: msg.content,
+      success() {
+        wx.showToast({ title: '已复制', icon: 'success' })
+      },
+      fail() {
+        wx.showToast({ title: '复制失败', icon: 'none' })
+      }
+    })
+  },
+
   // 刷新消息（调用历史会话接口获取最新回复）
   refreshMessages() {
     const openid = this.data.openid
     const sessionId = this.data.sessionId
-    if (!openid || !sessionId) return
+    console.log('refreshMessages called:', { openid, sessionId, messagesLength: this.data.messages.length })
+    if (!openid || !sessionId) {
+      console.warn('refreshMessages early return: openid or sessionId is empty')
+      return
+    }
 
     api.aiJudgeHistory(openid, sessionId).then(res => {
+      console.log('refreshMessages response:', JSON.stringify(res, null, 2))
       if (res && res.success && res.data) {
-        const messages = res.data.messages || []
+        const messages = res.data.messages || res.data.sessions || []
         // 比较消息数量
         if (messages.length > this.data.messages.length) {
           // 有新消息，更新

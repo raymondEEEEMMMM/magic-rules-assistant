@@ -15,7 +15,10 @@ Page({
       rules: []
     },
     history: [],
-    searchDone: false
+    searchDone: false,
+    latestSets: [],
+    sldGroups: [],
+    showSldSection: false
   },
 
   onLoad() {
@@ -26,6 +29,8 @@ Page({
     })
     console.log('CODEBUDDY_DEBUG index setData version=', this.data.version, 'isLightTheme=', this.data.isLightTheme)
     this.loadHistory()
+    this.fetchLatestSets()
+    this.fetchSecretLair()
   },
 
   onShow() {
@@ -57,6 +62,37 @@ Page({
     console.log('CODEBUDDY_DEBUG index loadHistory historyLength=', history.length, 'history=', history)
     this.setData({ history })
     console.log('CODEBUDDY_DEBUG index loadHistory setData completed')
+  },
+
+  // 获取最新系列资讯
+  fetchLatestSets() {
+    api.request('/api/mtgch/sets', {}).then(sets => {
+      if (!sets || !Array.isArray(sets)) return
+      // 按发行日期排序，取最新 7 个（跳过前2个，从第3个开始展示7个）
+      const latest = sets
+        .sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate))
+        .slice(2, 9)
+        .map(s => ({
+          name: s.translated_name || s.name,
+          code: s.code,
+          iconUrl: s.icon_svg_uri
+        }))
+      this.setData({ latestSets: latest })
+    }).catch(err => {
+      console.error('获取最新系列失败:', err)
+    })
+  },
+
+  // 获取 Secret Lair 资讯
+  fetchSecretLair() {
+    api.getSecretLairCards(3).then(res => {
+      if (res && res.groups) {
+        const recentGroups = res.groups.slice(0, 6)
+        this.setData({ sldGroups: recentGroups, showSldSection: recentGroups.length > 0 })
+      }
+    }).catch(err => {
+      console.error('获取Secret Lair失败:', err)
+    })
   },
 
   // 输入监听
@@ -197,6 +233,21 @@ Page({
     })
   },
 
+  // 查看系列卡牌列表
+  viewSetCards(e) {
+    const setCode = e.currentTarget.dataset.code
+    const setName = e.currentTarget.dataset.name
+    console.log('CODEBUDDY_DEBUG index viewSetCards called setCode=', setCode, 'setName=', setName)
+    if (!setCode) return
+    const url = `/pages/setcards/setcards?setCode=${encodeURIComponent(setCode)}&setName=${encodeURIComponent(setName)}`
+    console.log('CODEBUDDY_DEBUG index viewSetCards url=', url)
+    wx.navigateTo({
+      url,
+      success: () => console.log('CODEBUDDY_DEBUG index viewSetCards success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG index viewSetCards fail err=', err)
+    })
+  },
+
   // 跳转 AI 裁判页面
   goToAIJudge() {
     console.log('CODEBUDDY_DEBUG index goToAIJudge called url=/pages/agent/agent')
@@ -224,6 +275,16 @@ Page({
       url: '/pages/feedback/feedback',
       success: () => console.log('CODEBUDDY_DEBUG index goToFeedback success'),
       fail: (err) => console.log('CODEBUDDY_DEBUG index goToFeedback fail err=', err)
+    })
+  },
+
+  // 跳转 Secret Lair 专区页面
+  goToSldCards() {
+    console.log('CODEBUDDY_DEBUG index goToSldCards called url=/pages/sldcards/sldcards')
+    wx.navigateTo({
+      url: '/pages/sldcards/sldcards',
+      success: () => console.log('CODEBUDDY_DEBUG index goToSldCards success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG index goToSldCards fail err=', err)
     })
   },
 

@@ -6,9 +6,14 @@
       <view class="back-btn" bindtap="goBack">←</view>
     </view>
     <view class="nav-title">
-      <text>搜索</text>
+      <text>{{setName || '搜索'}}</text>
     </view>
     <view class="nav-right"></view>
+  </view>
+
+  <!-- 系列筛选提示 -->
+  <view class="set-filter-tip" wx:if="{{setName}}">
+    <text class="set-filter-text">{{setName}} 系列卡牌</text>
   </view>
 
   <!-- 搜索框 -->
@@ -33,7 +38,7 @@
   </view>
 
   <!-- 搜索历史 -->
-  <view class="search-history" wx:if="{{!keyword && history.length > 0}}">
+  <view class="search-history" wx:if="{{!keyword && !setCode && history.length > 0}}">
     <view class="history-header">
       <text class="history-title">历史记录</text>
       <text class="history-clear" bindtap="clearHistory">清空</text>
@@ -53,7 +58,7 @@
   </view>
 
   <!-- 组合搜索结果 -->
-  <view class="combined-results" wx:if="{{keyword && (loading || searchDone || combinedResults.keywords.length > 0 || combinedResults.cards.length > 0 || combinedResults.rules.length > 0)}}">
+  <view class="combined-results" wx:if="{{(keyword || setCode) && (loading || searchDone || combinedResults.keywords.length > 0 || combinedResults.cards.length > 0 || combinedResults.rules.length > 0)}}">
     <!-- 关键词结果 -->
     <view class="result-section">
       <view class="section-header">
@@ -135,13 +140,13 @@
     <!-- 无结果 -->
     <view class="no-results" wx:if="{{searchDone && combinedResults.keywords.length === 0 && combinedResults.cards.length === 0 && combinedResults.rules.length === 0}}">
       <text class="no-results-icon">🔎</text>
-      <text class="no-results-text">未找到与「{{keyword}}」相关的内容</text>
+      <text class="no-results-text">{{keyword ? '未找到与「' + keyword + '」相关的内容' : '该系列暂无卡牌数据'}}</text>
     </view>
   </view>
 
   <!-- 加载中 -->
-  <view class="loading" wx:if="{{loading}}">
+  <view class="loading" wx:if="{{loading && !searchDone}}">
     <view class="loading-spinner"></view>
-    <text class="loading-text">搜索中...</text>
+    <text class="loading-text">{{setCode ? '加载系列卡牌...' : '搜索中...'}}</text>
   </view>
 </view>

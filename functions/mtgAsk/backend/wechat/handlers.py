@@ -46,20 +46,22 @@ class MessageHandler:
             return "未知命令。输入 /help 查看可用命令。"
 
     def _handle_card_query(self, card_name: str) -> str:
-        """处理卡牌查询"""
-        card_rule = self.rule_service.get_card_rule(card_name)
+        """处理卡牌查询 - 使用 MTGCH API，按发行日期排序返回原版优先"""
+        from services.mtgch_api import MTGCHAPIClient
 
-        if card_rule:
-            response = f"🎴 {card_rule['card_name']}\n"
-            response += f"类型: {card_rule['card_type']}\n"
-            response += f"\n规则文本:\n{card_rule['oracle_text']}"
+        client = MTGCHAPIClient(timeout=30)
+        # 使用 order="releaseDate" 让原版排在前面
+        result = client.search_cards(card_name, page=1, page_size=1, order="releaseDate")
+        client.close()
 
-            if card_rule['related_rules']:
-                response += f"\n\n相关规则: {', '.join(card_rule['related_rules'])}"
-
+        if result.get("items") and len(result["items"]) > 0:
+            card = result["items"][0]  # 第一张就是原版（按发行日期排序）
+            response = f"🎴 {card.get('name')}\n"
+            response += f"类型: {card.get('type_line')}\n"
+            response += f"\n规则文本:\n{card.get('oracle_text')}"
             return response
         else:
-            return f"未找到卡牌: {card_name}\n\n请检查卡牌名称是否正确，或尝试简化名称。"
+            return f"未找到卡牌: {card_name}\n\n请检查卡牌名称是否正确。"
 
     def _handle_keyword_query(self, keyword: str) -> str:
         """处理关键词异能查询"""

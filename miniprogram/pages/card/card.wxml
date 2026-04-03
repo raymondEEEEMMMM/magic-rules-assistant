@@ -93,15 +93,26 @@
   <view class="detail-content">
     <!-- 名称 -->
     <view class="detail-name-section">
-      <text class="detail-name">{{currentCard.name}}</text>
+      <view class="detail-name-row">
+        <text class="detail-name">{{currentCard.name}}</text>
+        <view class="copy-btn" bindtap="copyCardName" data-name="{{currentCard.name}}">复制</view>
+      </view>
       <text class="detail-en-name" wx:if="{{currentCard.enName && currentCard.enName !== currentCard.name}}">{{currentCard.enName}}</text>
     </view>
 
     <!-- 基础信息 -->
     <view class="info-card">
-      <view class="info-row" wx:if="{{currentCard.manaCost}}">
+      <view class="info-row" wx:if="{{currentCard.manaSymbols.length > 0}}">
         <text class="info-label">法力费用</text>
-        <text class="info-value mana">{{currentCard.manaCost}}</text>
+        <view class="mana-symbols">
+          <image
+            class="mana-symbol"
+            wx:for="{{currentCard.manaSymbols}}"
+            wx:key="key"
+            src="{{item.url}}"
+            mode="aspectFit"
+          />
+        </view>
       </view>
       <view class="info-row">
         <text class="info-label">类型</text>

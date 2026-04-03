@@ -331,6 +331,60 @@ class MTGCHAPIClient:
             logger.error(f"获取系列卡牌失败: {e}")
             return {"error": str(e)}
 
+    def search_cards_by_set(self, set_code: str, page: int = 1) -> Dict:
+        """
+        通过系列代码搜索卡牌（使用Scryfall API获取图片）
+
+        Args:
+            set_code: 系列代码（如 mkm, mom）
+            page: 页码
+
+        Returns:
+            Scryfall API 响应数据（包含 image_uris）
+        """
+        params = {
+            "q": f"set:{set_code}",
+            "page": page
+        }
+        try:
+            response = self.session.get(
+                "https://api.scryfall.com/cards/search",
+                params=params,
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            logger.error(f"Scryfall搜索系列卡牌失败: {e}")
+            return {"error": str(e), "data": [], "total_cards": 0, "has_more": False}
+
+    def search_scryfall(self, query: str, page: int = 1) -> Dict:
+        """
+        通用的 Scryfall 搜索接口
+
+        Args:
+            query: Scryfall 搜索语法（如 "set:sld+date:2026-04"）
+            page: 页码
+
+        Returns:
+            Scryfall API 响应数据
+        """
+        params = {
+            "q": query,
+            "page": page
+        }
+        try:
+            response = self.session.get(
+                "https://api.scryfall.com/cards/search",
+                params=params,
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            logger.error(f"Scryfall搜索失败: {e}")
+            return {"error": str(e), "data": [], "total_cards": 0, "has_more": False}
+
     def close(self):
         """关闭会话"""
         self.session.close()

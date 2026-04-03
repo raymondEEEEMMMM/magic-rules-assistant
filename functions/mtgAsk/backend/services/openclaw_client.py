@@ -175,31 +175,36 @@ class OpenCLAWClient:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def build_command(self, message: str) -> str:
+    def build_command(self, message: str, session_id: str = None) -> str:
         """
         构建 OpenCLAW CLI 命令
 
         Args:
             message: 用户消息
+            session_id: 可选，指定会话 ID
 
         Returns:
             完整的命令字符串
         """
         escaped_message = message.replace('"', '\\"')
-        return f'bash -c "openclaw agent --agent {self.agent} -m \\"{escaped_message}\\""'
+        cmd = f'openclaw agent --agent {self.agent} -m \\"{escaped_message}\\"'
+        if session_id:
+            cmd += f' --session-id {session_id}'
+        return f'bash -c "{cmd}"'
 
-    def call_agent(self, message: str, timeout: Optional[int] = None) -> str:
+    def call_agent(self, message: str, session_id: str = None, timeout: Optional[int] = None) -> str:
         """
         调用 Agent，返回纯文本响应
 
         Args:
             message: 用户消息
+            session_id: 可选，指定会话 ID
             timeout: 超时时间（秒）
 
         Returns:
             Agent 回复的文本内容
         """
-        result = self.call_agent_json(message, timeout=timeout)
+        result = self.call_agent_json(message, session_id=session_id, timeout=timeout)
         if result and "text" in result:
             text = result["text"]
             # 过滤流式标记
@@ -208,13 +213,13 @@ class OpenCLAWClient:
                 return text
             # 如果过滤后为空，重新调用一次
             print("流式标记过滤后为空，重新调用...")
-            return self._call_agent_with_retry(message, timeout)
+            return self._call_agent_with_retry(message, session_id=session_id, timeout=timeout)
         return ""
 
-    def _call_agent_with_retry(self, message: str, timeout: Optional[int] = None, max_retries: int = 2) -> str:
+    def _call_agent_with_retry(self, message: str, session_id: str = None, timeout: Optional[int] = None, max_retries: int = 2) -> str:
         """带重试的 Agent 调用"""
         for attempt in range(max_retries):
-            result = self.call_agent_json(message, timeout=timeout)
+            result = self.call_agent_json(message, session_id=session_id, timeout=timeout)
             if result and "text" in result:
                 text = result["text"]
                 text = self._filter_stream_markers(text)
@@ -238,12 +243,13 @@ class OpenCLAWClient:
                 return ""
         return text
 
-    def call_agent_json(self, message: str, timeout: Optional[int] = None) -> Dict:
+    def call_agent_json(self, message: str, session_id: str = None, timeout: Optional[int] = None) -> Dict:
         """
         调用 Agent，返回 JSON 响应
 
         Args:
             message: 用户消息
+            session_id: 可选，指定会话 ID
             timeout: 超时时间（秒）
 
         Returns:
@@ -252,7 +258,7 @@ class OpenCLAWClient:
         import paramiko
 
         timeout = timeout or self.timeout
-        cmd = self.build_command(message)
+        cmd = self.build_command(message, session_id=session_id)
 
         try:
             client = self._get_ssh_client()
@@ -370,8 +376,20 @@ class OpenCLAWClient:
         """统计会话的消息数量"""
         if not session_id:
             return 0
+        sftp = None
         try:
-            session_file = f"/home/openclaw/.openclaw/agents/{agent_name}/sessions/{session_id}.jsonl"
+            # 如果 session_id 不是 UUID，尝试解析为逻辑名
+            effective_session_id = session_id
+            if not self._is_uuid(session_id):
+                sessions_result = self.get_sessions(agent_name=agent_name, limit=100)
+                sessions = sessions_result.get("sessions", [])
+                for s in sessions:
+                    key = s.get("key", "")
+                    if key.endswith(f":{session_id}"):
+                        effective_session_id = s.get("sessionId")
+                        break
+
+            session_file = f"/home/openclaw/.openclaw/agents/{agent_name}/sessions/{effective_session_id}.jsonl"
             client = self._get_ssh_client()
             sftp = client.open_sftp()
             count = 0
@@ -381,10 +399,21 @@ class OpenCLAWClient:
                         event = json.loads(line)
                         if event.get("type") == "message":
                             count += 1
-            sftp.close()
             return count
         except Exception:
             return 0
+        finally:
+            if sftp:
+                sftp.close()
+
+    def _is_uuid(self, s: str) -> bool:
+        """判断字符串是否是 UUID 格式"""
+        if not s or len(s) != 36:
+            return False
+        parts = s.split('-')
+        if len(parts) != 5:
+            return False
+        return all(len(p) in (8, 4, 4, 4, 12) and all(c in '0123456789abcdef' for c in p) for p in parts)
 
     def get_session_messages(self, agent_name: str, session_id: str, limit: int = 100) -> List[Dict]:
         """
@@ -392,7 +421,7 @@ class OpenCLAWClient:
 
         Args:
             agent_name: Agent 名称
-            session_id: 会话 ID
+            session_id: 会话 ID（可以是 UUID 或逻辑名如 "main"）
             limit: 返回消息数量限制
 
         Returns:
@@ -401,8 +430,22 @@ class OpenCLAWClient:
         if not session_id:
             return []
 
-        session_file = f"/home/openclaw/.openclaw/agents/{agent_name}/sessions/{session_id}.jsonl"
+        # 如果 session_id 不是 UUID，尝试解析为逻辑名
+        effective_session_id = session_id
+        if not self._is_uuid(session_id):
+            # 查找匹配的会话
+            sessions_result = self.get_sessions(agent_name=agent_name, limit=100)
+            sessions = sessions_result.get("sessions", [])
+            for s in sessions:
+                key = s.get("key", "")
+                # key 格式: "agent:{agent_name}:{session_name}"
+                if key.endswith(f":{session_id}"):
+                    effective_session_id = s.get("sessionId")
+                    break
 
+        session_file = f"/home/openclaw/.openclaw/agents/{agent_name}/sessions/{effective_session_id}.jsonl"
+
+        sftp = None
         try:
             client = self._get_ssh_client()
             sftp = client.open_sftp()
@@ -435,14 +478,15 @@ class OpenCLAWClient:
                                 "timestamp": event.get("timestamp")
                             })
 
-            sftp.close()
-
             # 限制返回数量
             return messages[-limit:] if len(messages) > limit else messages
 
         except Exception as e:
             print(f"读取会话消息失败: {e}")
             return []
+        finally:
+            if sftp:
+                sftp.close()
 
     def _extract_message_content(self, content: List[Dict]) -> str:
         """
@@ -476,7 +520,7 @@ class OpenCLAWClient:
 
         Args:
             agent_name: Agent 名称（默认使用 self.agent）
-            session_id: 会话 ID
+            session_id: 会话 ID（可以是 UUID 或逻辑名如 "main"）
 
         Returns:
             是否删除成功
@@ -486,10 +530,21 @@ class OpenCLAWClient:
 
         effective_agent = agent_name or self.agent
 
+        # 如果 session_id 不是 UUID，尝试解析为逻辑名
+        effective_session_id = session_id
+        if not self._is_uuid(session_id):
+            sessions_result = self.get_sessions(agent_name=effective_agent, limit=100)
+            sessions = sessions_result.get("sessions", [])
+            for s in sessions:
+                key = s.get("key", "")
+                if key.endswith(f":{session_id}"):
+                    effective_session_id = s.get("sessionId")
+                    break
+
         try:
             client = self._get_ssh_client()
-            # 使用 openclaw sessions --delete 命令删除会话
-            cmd = f'bash -c "openclaw sessions --agent {effective_agent} --delete {session_id}"'
+            # 尝试使用 openclaw sessions --delete 命令删除会话
+            cmd = f'bash -c "openclaw sessions --agent {effective_agent} --delete {effective_session_id}"'
             stdin, stdout, stderr = client.exec_command(cmd, timeout=30)
             output = stdout.read().decode().strip()
             error = stderr.read().decode().strip()
@@ -497,7 +552,7 @@ class OpenCLAWClient:
 
             # 如果命令没有错误，尝试直接删除文件作为备用
             if error:
-                session_file = f"/home/openclaw/.openclaw/agents/{effective_agent}/sessions/{session_id}.jsonl"
+                session_file = f"/home/openclaw/.openclaw/agents/{effective_agent}/sessions/{effective_session_id}.jsonl"
                 sftp = client.open_sftp()
                 try:
                     sftp.remove(session_file)

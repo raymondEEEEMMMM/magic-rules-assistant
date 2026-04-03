@@ -20,12 +20,23 @@ Page({
     // 各个分类的加载状态
     keywordsLoading: false,
     cardsLoading: false,
-    rulesLoading: false
+    rulesLoading: false,
+    // 系列筛选
+    setCode: '',
+    setName: ''
   },
 
-  onLoad() {
+  onLoad(options) {
     this.loadHistory()
     this.setData({ isLightTheme: true })
+    // 如果有 setCode 参数，自动加载系列卡牌
+    if (options.setCode) {
+      this.setData({
+        setCode: options.setCode,
+        setName: options.setName || ''
+      })
+      this.loadSetCards()
+    }
   },
 
   onShow() {
@@ -111,6 +122,31 @@ Page({
         searchDone: true
       })
     }
+  },
+
+  // 加载系列卡牌
+  loadSetCards() {
+    const { setCode } = this.data
+    if (!setCode) return
+    this.setData({
+      cardsLoading: true,
+      loading: true
+    })
+    api.getSetCards(setCode).then(res => {
+      this.setData({
+        'combinedResults.cards': res.items || [],
+        cardsLoading: false,
+        loading: false,
+        searchDone: true
+      })
+    }).catch(err => {
+      console.error('CODEBUDDY_DEBUG search loadSetCards error', err)
+      this.setData({
+        cardsLoading: false,
+        loading: false,
+        searchDone: true
+      })
+    })
   },
 
   // 同步查询关键词
