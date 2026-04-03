@@ -9,6 +9,19 @@ page {
   padding: 0;
 }
 
+/* 系列筛选提示 */
+.set-filter-tip {
+  padding: 16rpx 30rpx;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+  border-bottom: 1rpx solid rgba(102, 126, 234, 0.2);
+}
+
+.set-filter-text {
+  font-size: 26rpx;
+  color: #667eea;
+  font-weight: 500;
+}
+
 /* 导航栏 */
 .nav-bar {
   display: flex;

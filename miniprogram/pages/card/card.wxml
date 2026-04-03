@@ -102,9 +102,17 @@
 
     <!-- 基础信息 -->
     <view class="info-card">
-      <view class="info-row" wx:if="{{currentCard.manaCost}}">
+      <view class="info-row" wx:if="{{currentCard.manaSymbols.length > 0}}">
         <text class="info-label">法力费用</text>
-        <text class="info-value mana">{{currentCard.manaCost}}</text>
+        <view class="mana-symbols">
+          <image
+            class="mana-symbol"
+            wx:for="{{currentCard.manaSymbols}}"
+            wx:key="key"
+            src="{{item.url}}"
+            mode="aspectFit"
+          />
+        </view>
       </view>
       <view class="info-row">
         <text class="info-label">类型</text>

@@ -8,7 +8,9 @@
     "pages/apitest/apitest",
     "pages/rule/rule",
     "pages/feedback/feedback",
-    "pages/search/search"
+    "pages/search/search",
+    "pages/setcards/setcards",
+    "pages/sldcards/sldcards"
   ],
   "window": {
     "backgroundTextStyle": "light",

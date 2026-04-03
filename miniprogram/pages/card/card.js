@@ -145,6 +145,7 @@ Page({
 
         // 处理法力费用显示
         const manaCost = this.formatManaCost(card.mana_cost || '')
+        const manaSymbols = this.getManaSymbols(card.mana_cost || '')
 
         // 处理规则文本（转换 \\n 为真正换行）
         const oracleText = this.convertNewlines(card.zhs_text || card.oracle_text || '')
@@ -156,6 +157,7 @@ Page({
             name: card.zhs_name || card.name,
             enName: card.name,
             manaCost: manaCost,
+            manaSymbols: manaSymbols,
             type: card.zhs_type_line || card.type_line || '',
             text: oracleText,
             enText: enText,
@@ -193,11 +195,25 @@ Page({
     return text.replace(/\\n/g, '\n')
   },
 
-  // 格式化法力费用
+  // 格式化法力费用（转换为纯文本）
   formatManaCost(manaCost) {
     if (!manaCost) return ''
-    // 将 {2}{B} 转换为 2B 格式
     return manaCost.replace(/\{([^}]+)\}/g, '$1')
+  },
+
+  // 获取法力费用符号图片
+  getManaSymbols(manaCost) {
+    if (!manaCost) return []
+    const symbols = manaCost.match(/\{([^}]+)\}/g) || []
+    return symbols.map(s => {
+      const symbol = s.replace(/[{}]/g, '')
+      // 处理混合法力费用如 W/U -> WU
+      const symbolKey = symbol.replace('/', '')
+      return {
+        url: `https://svgs.scryfall.io/card-symbols/${symbol.replace('/', '')}.svg`,
+        key: symbol
+      }
+    })
   },
 
   // 获取卡牌官方裁定

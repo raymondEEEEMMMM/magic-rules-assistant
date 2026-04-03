@@ -1,0 +1,113 @@
+<!--pages/sldcards/sldcards.wxml-->
+<view class="container {{isLightTheme ? 'page-light' : ''}}">
+  <!-- 导航栏 -->
+  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
+    <view class="nav-left">
+      <view class="back-btn" bindtap="goBack">←</view>
+    </view>
+    <view class="nav-title">
+      <text>Secret Lair 专区</text>
+    </view>
+    <view class="nav-right">
+      <view class="view-toggle" bindtap="toggleView">
+        <text>{{viewMode === 'image' ? '📝' : '🖼️'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="search-section">
+    <view class="search-box">
+      <input
+        class="search-input"
+        placeholder="输入编号搜索，如 IFIYW-1"
+        placeholder-class="search-placeholder"
+        bindinput="onSearchInput"
+        bindconfirm="onSearch"
+        confirm-type="search"
+        value="{{searchCode}}"
+      />
+      <view class="search-btn" bindtap="onSearch">搜索</view>
+    </view>
+    <!-- 搜索结果提示 -->
+    <view class="search-tip" wx:if="{{searchResult}}">
+      <view class="search-result-card">
+        <image class="search-result-image" src="{{searchResult.image_url}}" mode="aspectFill" />
+        <view class="search-result-info">
+          <text class="search-result-name">{{searchResult.name}}</text>
+          <text class="search-result-meta">{{searchResult.year_month}} · {{searchResult.collector_number}}</text>
+        </view>
+      </view>
+      <text class="search-clear-btn" bindtap="clearSearch">清除</text>
+    </view>
+    <!-- 搜索无结果 -->
+    <view class="search-no-result" wx:if="{{searchNotFound}}">
+      <text>未找到编号 {{searchCode}} 的卡牌</text>
+      <text class="search-clear-btn" bindtap="clearSearch">清除</text>
+    </view>
+  </view>
+
+  <!-- 日期分组列表 -->
+  <view class="date-groups">
+    <view class="date-group" wx:for="{{groups}}" wx:key="date" wx:if="{{!filteredMonth || item.date === filteredMonth}}">
+      <!-- 日期头部 -->
+      <view class="date-header" bindtap="toggleDateGroup" data-date="{{item.date}}">
+        <view class="date-info">
+          <text class="date-label">{{item.date}}</text>
+          <text class="date-count">{{item.cards.length}} 张</text>
+        </view>
+        <text class="toggle-icon">{{expandedDates.indexOf(item.date) !== -1 ? '▼' : '▶'}}</text>
+      </view>
+
+      <!-- 卡牌网格视图 -->
+      <view class="card-grid" wx:if="{{viewMode === 'image' && expandedDates.indexOf(item.date) !== -1}}">
+        <view
+          class="card-grid-item"
+          wx:for="{{item.cards}}"
+          wx:for-item="card"
+          wx:key="id"
+          bindtap="viewCardDetail"
+          data-id="{{card.id}}"
+        >
+          <image
+            class="card-grid-image"
+            src="{{card.image_url}}"
+            mode="aspectFill"
+            lazy-load
+          />
+          <text class="card-grid-name">{{card.name}}</text>
+          <text class="card-grid-code">{{card.collector_number}}</text>
+        </view>
+      </view>
+
+      <!-- 卡牌列表视图 -->
+      <view class="card-list" wx:if="{{viewMode === 'text' && expandedDates.indexOf(item.date) !== -1}}">
+        <view
+          class="card-list-item"
+          wx:for="{{item.cards}}"
+          wx:for-item="card"
+          wx:key="id"
+          bindtap="viewCardDetail"
+          data-id="{{card.id}}"
+        >
+          <view class="card-list-header">
+            <text class="card-list-name">{{card.name}}</text>
+            <text class="card-list-code">{{card.collector_number}}</text>
+          </view>
+          <text class="card-list-type">{{card.type_line}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 无结果 -->
+  <view class="no-results" wx:if="{{loaded && groups.length === 0 && !searchCode}}">
+    <text class="no-results-text">暂无 Secret Lair 卡牌数据</text>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+</view>

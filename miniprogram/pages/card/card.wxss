@@ -441,6 +441,17 @@ page {
   font-size: 32rpx;
 }
 
+.mana-symbols {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.mana-symbol {
+  width: 40rpx;
+  height: 40rpx;
+}
+
 .section {
   margin-bottom: 30rpx;
 }

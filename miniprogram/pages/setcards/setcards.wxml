@@ -1,0 +1,147 @@
+<!--pages/setcards/setcards.wxml-->
+<view class="container {{isLightTheme ? 'page-light' : ''}}">
+  <!-- 导航栏 -->
+  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
+    <view class="nav-left">
+      <view class="back-btn" bindtap="goBack">←</view>
+    </view>
+    <view class="nav-title">
+      <text>{{setName || '系列卡牌'}}</text>
+    </view>
+    <view class="nav-right">
+    </view>
+  </view>
+
+  <!-- 系列信息 -->
+  <view class="set-header" wx:if="{{setInfo}}">
+    <image class="set-icon" src="{{setInfo.iconUrl}}" mode="aspectFit" />
+    <view class="set-meta">
+      <text class="set-name">{{setInfo.name}}</text>
+      <text class="set-date">{{setInfo.releaseDate}}</text>
+    </view>
+    <text class="card-count">{{filteredCards.length}} 张</text>
+  </view>
+
+  <!-- 筛选器 -->
+  <view class="filter-section">
+    <!-- 筛选头部 -->
+    <view class="filter-header">
+      <view class="filter-title" bindtap="toggleFilter">
+        <text class="filter-label">筛选</text>
+        <text class="toggle-icon">{{showFilter ? '▼' : '▶'}}</text>
+      </view>
+      <view class="filter-actions">
+        <view class="view-toggle" bindtap="toggleView">
+          <text>{{viewMode === 'image' ? '列表' : '图片'}}</text>
+        </view>
+        <view class="reset-btn" bindtap="resetFilters" wx:if="{{filterColor || filterCmc || filterType || filterRarity}}">
+          <text>重置</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 筛选内容 -->
+    <view class="filter-content" wx:if="{{showFilter}}">
+      <!-- 类别筛选 -->
+      <view class="filter-row">
+        <text class="filter-label">类别</text>
+        <view class="filter-chips type-chips">
+          <view class="filter-chip {{filterType === 'Creature' ? 'active' : ''}}" bindtap="onTypeFilter" data-type="Creature">生物</view>
+          <view class="filter-chip {{filterType === 'Artifact' ? 'active' : ''}}" bindtap="onTypeFilter" data-type="Artifact">神器</view>
+          <view class="filter-chip {{filterType === 'Instant' ? 'active' : ''}}" bindtap="onTypeFilter" data-type="Instant">法术</view>
+          <view class="filter-chip {{filterType === 'Land' ? 'active' : ''}}" bindtap="onTypeFilter" data-type="Land">地</view>
+          <view class="filter-chip {{filterType === 'Enchantment' ? 'active' : ''}}" bindtap="onTypeFilter" data-type="Enchantment">结界</view>
+        </view>
+      </view>
+
+      <!-- 颜色筛选 -->
+      <view class="filter-row">
+        <text class="filter-label">颜色</text>
+        <view class="filter-chips">
+          <view class="filter-chip {{filterColor === 'W' ? 'active' : ''}}" bindtap="onColorFilter" data-color="W">
+            <image class="mana-icon" src="https://svgs.scryfall.io/card-symbols/W.svg" />
+          </view>
+          <view class="filter-chip {{filterColor === 'U' ? 'active' : ''}}" bindtap="onColorFilter" data-color="U">
+            <image class="mana-icon" src="https://svgs.scryfall.io/card-symbols/U.svg" />
+          </view>
+          <view class="filter-chip {{filterColor === 'B' ? 'active' : ''}}" bindtap="onColorFilter" data-color="B">
+            <image class="mana-icon" src="https://svgs.scryfall.io/card-symbols/B.svg" />
+          </view>
+          <view class="filter-chip {{filterColor === 'R' ? 'active' : ''}}" bindtap="onColorFilter" data-color="R">
+            <image class="mana-icon" src="https://svgs.scryfall.io/card-symbols/R.svg" />
+          </view>
+          <view class="filter-chip {{filterColor === 'G' ? 'active' : ''}}" bindtap="onColorFilter" data-color="G">
+            <image class="mana-icon" src="https://svgs.scryfall.io/card-symbols/G.svg" />
+          </view>
+        </view>
+      </view>
+
+      <!-- 法力值筛选 -->
+      <view class="filter-row">
+        <text class="filter-label">费用</text>
+        <view class="filter-chips">
+          <view class="filter-chip {{filterCmc === '0' ? 'active' : ''}}" bindtap="onCmcFilter" data-cmc="0">0</view>
+          <view class="filter-chip {{filterCmc === '1' ? 'active' : ''}}" bindtap="onCmcFilter" data-cmc="1">1</view>
+          <view class="filter-chip {{filterCmc === '2' ? 'active' : ''}}" bindtap="onCmcFilter" data-cmc="2">2</view>
+          <view class="filter-chip {{filterCmc === '3' ? 'active' : ''}}" bindtap="onCmcFilter" data-cmc="3">3</view>
+          <view class="filter-chip {{filterCmc === '4' ? 'active' : ''}}" bindtap="onCmcFilter" data-cmc="4">4</view>
+          <view class="filter-chip {{filterCmc === '5' ? 'active' : ''}}" bindtap="onCmcFilter" data-cmc="5">5</view>
+          <view class="filter-chip {{filterCmc === '6+' ? 'active' : ''}}" bindtap="onCmcFilter" data-cmc="6+">6+</view>
+        </view>
+      </view>
+
+      <!-- 稀有度筛选 -->
+      <view class="filter-row">
+        <text class="filter-label">稀有度</text>
+        <view class="filter-chips rarity-chips">
+          <view class="filter-chip {{filterRarity === 'common' ? 'active' : ''}}" bindtap="onRarityFilter" data-rarity="common">Common</view>
+          <view class="filter-chip {{filterRarity === 'uncommon' ? 'active' : ''}}" bindtap="onRarityFilter" data-rarity="uncommon">Uncommon</view>
+          <view class="filter-chip {{filterRarity === 'rare' ? 'active' : ''}}" bindtap="onRarityFilter" data-rarity="rare">Rare</view>
+          <view class="filter-chip {{filterRarity === 'mythic' ? 'active' : ''}}" bindtap="onRarityFilter" data-rarity="mythic">Mythic</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 卡牌网格视图 (3列) -->
+  <view class="card-grid" wx:if="{{viewMode === 'image' && filteredCards.length > 0}}">
+    <view
+      class="card-grid-item"
+      wx:for="{{filteredCards}}"
+      wx:key="id"
+      bindtap="viewCardDetail"
+      data-id="{{item.id}}"
+    >
+      <image
+        class="card-grid-image"
+        src="{{item.image_url}}"
+        mode="aspectFill"
+        lazy-load
+      />
+    </view>
+  </view>
+
+  <!-- 卡牌列表视图 -->
+  <view class="card-list" wx:if="{{viewMode === 'text' && filteredCards.length > 0}}">
+    <view
+      class="card-list-item"
+      wx:for="{{filteredCards}}"
+      wx:key="id"
+      bindtap="viewCardDetail"
+      data-id="{{item.id}}"
+    >
+      <text class="card-list-name">{{item.display_name}}</text>
+    </view>
+  </view>
+
+  <!-- 无结果 -->
+  <view class="no-results" wx:if="{{loaded && filteredCards.length === 0}}">
+    <text class="no-results-text">没有符合条件的卡牌</text>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+</view>
