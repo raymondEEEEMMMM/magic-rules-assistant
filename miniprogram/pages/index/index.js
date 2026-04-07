@@ -93,7 +93,7 @@ Page({
       // 未来系列：排在已发布系列之前，按发行日期降序（最新的在前）
       const futureLatest = futureSets
         .sort((a, b) => new Date(b.released_at) - new Date(a.released_at))
-        .slice(0, 2)
+        .slice(0, 4)
 
       // 合并：未来系列 + 已发布系列
       const latest = [...futureLatest, ...releasedLatest].map(s => ({
