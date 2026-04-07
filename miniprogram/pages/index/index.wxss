@@ -269,6 +269,25 @@ page {
   margin-bottom: 8rpx;
 }
 
+/* 查看更多 */
+.view-more-card {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx;
+  background: rgba(102, 126, 234, 0.15);
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(102, 126, 234, 0.3);
+  margin-top: 8rpx;
+}
+
+.view-more-text {
+  font-size: 28rpx;
+  color: #667eea;
+  font-weight: 500;
+}
+
 /* 无结果 */
 .no-results {
   display: flex;
@@ -666,6 +685,15 @@ page {
 
 .container.page-light .card-type {
   color: #666666;
+}
+
+.container.page-light .view-more-card {
+  background: rgba(102, 126, 234, 0.1);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.container.page-light .view-more-text {
+  color: #667eea;
 }
 
 .container.page-light .no-results-text {

@@ -235,6 +235,20 @@ Page({
     })
   },
 
+  // 查看更多卡牌（跳转卡牌搜索页）
+  viewMoreCards(e) {
+    const keyword = e.currentTarget.dataset.keyword
+    console.log('CODEBUDDY_DEBUG index viewMoreCards keyword=', keyword)
+    if (!keyword) return
+    const url = `/pages/card/card?id=${encodeURIComponent(keyword)}`
+    console.log('CODEBUDDY_DEBUG index viewMoreCards url=', url)
+    wx.navigateTo({
+      url,
+      success: () => console.log('CODEBUDDY_DEBUG index viewMoreCards success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG index viewMoreCards fail err=', err)
+    })
+  },
+
   // 查看系列卡牌列表
   viewSetCards(e) {
     const setCode = e.currentTarget.dataset.code
