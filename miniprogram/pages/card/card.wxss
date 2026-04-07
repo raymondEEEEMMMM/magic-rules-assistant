@@ -452,6 +452,13 @@ page {
   height: 40rpx;
 }
 
+.oracle-mana-symbol {
+  width: 36rpx;
+  height: 36rpx;
+  vertical-align: middle;
+  margin: 0 4rpx;
+}
+
 .section {
   margin-bottom: 30rpx;
 }
