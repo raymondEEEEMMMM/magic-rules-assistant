@@ -12,6 +12,27 @@ vendor_path = os.path.join(os.path.dirname(__file__), 'vendor')
 sys.path.insert(0, vendor_path)
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 
+
+def _get_card_image_url(card):
+    """
+    获取卡牌图片 URL，支持双面牌（transform cards）
+    双面牌的图片在 card_faces[0].image_uris 中
+    """
+    # 优先使用顶层的 image_uris（普通单面牌）
+    image_uris = card.get('image_uris')
+    if image_uris:
+        return image_uris.get('border_crop') or image_uris.get('normal') or ''
+
+    # 双面牌（transform）：图片在 card_faces[0].image_uris 中
+    card_faces = card.get('card_faces', [])
+    if card_faces and len(card_faces) > 0:
+        face_uris = card_faces[0].get('image_uris')
+        if face_uris:
+            return face_uris.get('border_crop') or face_uris.get('normal') or ''
+
+    return ''
+
+
 def main(event, context):
     """
     CloudBase HTTP 函数入口
@@ -304,7 +325,7 @@ def main(event, context):
                 'items': [{
                     'id': card['id'],
                     'display_name': card['name'],
-                    'image_url': card.get('image_uris', {}).get('border_crop', ''),
+                    'image_url': _get_card_image_url(card),
                     'collector_number': card.get('collector_number', ''),
                     'colors': card.get('colors', []),  # 颜色
                     'cmc': card.get('cmc', 0),  # 转换费用
@@ -387,7 +408,7 @@ def main(event, context):
                     groups[year_month].append({
                         'id': card['id'],
                         'name': card['name'],
-                        'image_url': card.get('image_uris', {}).get('border_crop', ''),
+                        'image_url': _get_card_image_url(card),
                         'released_at': released,
                         'type_line': card.get('type_line', ''),
                         'collector_number': card.get('collector_number', ''),
@@ -456,7 +477,7 @@ def main(event, context):
                     'card': {
                         'id': card['id'],
                         'name': card['name'],
-                        'image_url': card.get('image_uris', {}).get('border_crop', ''),
+                        'image_url': _get_card_image_url(card),
                         'released_at': released_at,
                         'year_month': year_month,
                         'type_line': card.get('type_line', ''),
