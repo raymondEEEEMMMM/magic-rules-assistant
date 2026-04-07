@@ -68,41 +68,17 @@ Page({
   fetchLatestSets() {
     api.request('/api/mtgch/sets', {}).then(sets => {
       if (!sets || !Array.isArray(sets)) return
-
-      const today = new Date().toISOString().split('T')[0]
-
-      // 过滤 token 系列，并分区：未来系列 vs 已发布系列
-      const { futureSets, releasedSets } = sets.reduce((acc, s) => {
-        // 过滤 token 类型
-        if (s.set_type === 'token') return acc
-
-        const releaseDate = s.released_at || ''
-        if (releaseDate > today) {
-          acc.futureSets.push(s)
-        } else {
-          acc.releasedSets.push(s)
-        }
-        return acc
-      }, { futureSets: [], releasedSets: [] })
-
-      // 已发布系列：按发行日期降序，取前 7 个
-      const releasedLatest = releasedSets
+      // 过滤 token 系列，按发行日期降序排列
+      const latest = sets
+        .filter(s => s.set_type !== 'token')
         .sort((a, b) => new Date(b.released_at) - new Date(a.released_at))
-        .slice(0, 6)
-
-      // 未来系列：排在已发布系列之前，按发行日期降序（最新的在前）
-      const futureLatest = futureSets
-        .sort((a, b) => new Date(b.released_at) - new Date(a.released_at))
-        .slice(0, 4)
-
-      // 合并：未来系列 + 已发布系列
-      const latest = [...futureLatest, ...releasedLatest].map(s => ({
-        name: s.translated_name || s.name,
-        code: s.code,
-        iconUrl: s.icon_svg_uri,
-        releasedAt: s.released_at
-      }))
-
+        .slice(0, 10)
+        .map(s => ({
+          name: s.translated_name || s.name,
+          code: s.code,
+          iconUrl: s.icon_svg_uri,
+          releasedAt: s.released_at
+        }))
       this.setData({ latestSets: latest })
     }).catch(err => {
       console.error('获取最新系列失败:', err)
