@@ -143,86 +143,220 @@ page {
 .card-list {
   display: flex;
   flex-direction: column;
-  gap: 24rpx;
+  gap: 2rpx;
 }
 
-.card-item {
+.card-list-item {
   display: flex;
-  background: rgba(31, 43, 77, 0.6);
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 30rpx;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.05);
+}
+
+.card-list-name {
+  font-size: 30rpx;
+  color: #fff;
+  font-weight: 500;
+}
+
+.card-list-type {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* 视图切换 */
+.view-toggle {
+  padding: 8rpx 20rpx;
+  background: rgba(102, 126, 234, 0.2);
   border-radius: 20rpx;
-  overflow: hidden;
-  border: 1rpx solid rgba(255, 215, 0, 0.1);
+  font-size: 24rpx;
+  color: #667eea;
 }
 
-.card-image {
-  width: 160rpx;
-  height: 224rpx;
-  border-radius: 16rpx;
-  margin: 16rpx;
+/* 结果统计 */
+.result-stats {
+  padding: 16rpx 30rpx;
+  background: rgba(102, 126, 234, 0.1);
 }
 
-.card-info {
-  flex: 1;
-  padding: 16rpx 16rpx 16rpx 0;
+.stats-text {
+  font-size: 26rpx;
+  color: #667eea;
+}
+
+/* 卡牌网格视图 */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+  padding: 20rpx 30rpx;
+}
+
+.card-grid-item {
   display: flex;
   flex-direction: column;
+  align-items: center;
+}
+
+.card-grid-image {
+  width: 200rpx;
+  height: 280rpx;
+  border-radius: 12rpx;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.card-grid-name {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 8rpx;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 200rpx;
+}
+
+/* 加载更多 */
+.load-more {
+  display: flex;
   justify-content: center;
+  padding: 30rpx;
 }
 
-.card-name {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #ffd700;
-  margin-bottom: 8rpx;
+.loading-more-btn {
+  padding: 20rpx 60rpx;
+  background: rgba(102, 126, 234, 0.2);
+  border: 1rpx solid rgba(102, 126, 234, 0.4);
+  border-radius: 40rpx;
 }
 
-.card-type {
-  font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 12rpx;
+.load-more-text {
+  font-size: 28rpx;
+  color: #667eea;
 }
 
-.card-meta {
+.loading-more-spinner {
   display: flex;
   align-items: center;
   gap: 16rpx;
 }
 
-.card-mana {
-  font-size: 28rpx;
-  color: #87ceeb;
+.spinner {
+  width: 32rpx;
+  height: 32rpx;
+  border: 3rpx solid rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
-.card-set {
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* 筛选器 */
+.filter-section {
+  padding: 16rpx 20rpx;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1rpx solid rgba(255, 215, 0, 0.1);
+}
+
+.filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.filter-title {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.filter-label {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.toggle-icon {
+  font-size: 20rpx;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.reset-btn {
   font-size: 22rpx;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.card-rarity {
-  font-size: 22rpx;
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-  text-transform: uppercase;
-}
-
-.card-rarity.C {
-  background: rgba(128, 128, 128, 0.3);
-  color: #a0a0a0;
-}
-
-.card-rarity.U {
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
-}
-
-.card-rarity.R {
-  background: rgba(255, 165, 0, 0.3);
-  color: #ffa500;
-}
-
-.card-rarity.M {
-  background: rgba(255, 215, 0, 0.3);
   color: #ffd700;
+  padding: 4rpx 16rpx;
+  border: 1rpx solid #ffd700;
+  border-radius: 16rpx;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.filter-content {
+  margin-top: 16rpx;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 12rpx;
+}
+
+.filter-row:last-child {
+  margin-bottom: 0;
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  flex: 1;
+}
+
+.filter-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8rpx 16rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.8);
+  border: 1rpx solid transparent;
+  min-width: 56rpx;
+}
+
+.filter-chip.active {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: #ffd700;
+}
+
+.mana-icon {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.rarity-chips .filter-chip {
+  min-width: 100rpx;
+  font-size: 20rpx;
+}
+
+.type-chips .filter-chip {
+  min-width: 80rpx;
+  font-size: 20rpx;
 }
 
 /* 无结果 */
@@ -557,6 +691,65 @@ page {
 
 .container.page-light .card-type {
   color: #666666;
+}
+
+.container.page-light .view-toggle {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+}
+
+.container.page-light .stats-text {
+  color: #667eea;
+}
+
+.container.page-light .card-grid-name {
+  color: #333;
+}
+
+.container.page-light .card-list-name {
+  color: #333;
+}
+
+.container.page-light .card-list-type {
+  color: #666;
+}
+
+.container.page-light .card-list-item {
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+.container.page-light .loading-more-btn {
+  background: rgba(102, 126, 234, 0.1);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.container.page-light .filter-section {
+  background: rgba(0, 0, 0, 0.03);
+  border-bottom-color: rgba(102, 126, 234, 0.2);
+}
+
+.container.page-light .filter-label {
+  color: #667eea;
+}
+
+.container.page-light .toggle-icon {
+  color: rgba(102, 126, 234, 0.6);
+}
+
+.container.page-light .reset-btn {
+  color: #667eea;
+  border-color: #667eea;
+}
+
+.container.page-light .filter-chip {
+  background: rgba(0, 0, 0, 0.05);
+  color: #666;
+}
+
+.container.page-light .filter-chip.active {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: #667eea;
 }
 
 .container.page-light .no-results-text {
