@@ -62,16 +62,6 @@
     </view>
   </view>
 
-  <!-- 生命值计数器入口 -->
-  <view class="counter-entry" wx:if="{{!keyword}}" bindtap="goToCounter">
-    <view class="counter-icon">❤️</view>
-    <view class="counter-info">
-      <text class="counter-title">生命值计数器</text>
-      <text class="counter-desc">指挥官 · 2-4人游戏</text>
-    </view>
-    <view class="counter-arrow">›</view>
-  </view>
-
   <!-- 最新系列资讯 -->
   <view class="latest-sets" wx:if="{{latestSets.length > 0 && !keyword}}">
     <view class="sets-header">
@@ -139,16 +129,15 @@
         <view class="section-bar card-bar">
           <text class="section-title">卡牌</text>
         </view>
-        <text class="section-count">{{combinedResults.cards.length}}</text>
+        <view class="section-header-right">
+          <text class="section-count">{{combinedResults.cards.length}}</text>
+          <text class="view-more-link" wx:if="{{combinedResults.cards.length >= 5}}" bindtap="viewMoreCards" data-keyword="{{keyword}}">查看更多 ›</text>
+        </view>
       </view>
       <view class="result-list card-list">
         <view class="card-item" wx:for="{{combinedResults.cards}}" wx:key="index" bindtap="viewCardDetail" data-id="{{item.id}}">
           <view class="card-name">{{item.zhs_name || item.name}}</view>
           <view class="card-type">{{item.type_line}}</view>
-        </view>
-        <!-- 查看更多 -->
-        <view class="view-more-card" wx:if="{{combinedResults.cards.length >= 5}}" bindtap="viewMoreCards" data-keyword="{{keyword}}">
-          <text class="view-more-text">查看更多卡牌 →</text>
         </view>
       </view>
     </view>
@@ -177,6 +166,16 @@
       <text class="no-results-icon">🔎</text>
       <text class="no-results-text">未找到与「{{keyword}}」相关的内容</text>
     </view>
+  </view>
+
+  <!-- 生命值计数器入口 -->
+  <view class="counter-entry" wx:if="{{!keyword}}" bindtap="goToCounter">
+    <view class="counter-icon">❤️</view>
+    <view class="counter-info">
+      <text class="counter-title">生命值计数器</text>
+      <text class="counter-desc">指挥官 · 2-4人游戏</text>
+    </view>
+    <view class="counter-arrow">›</view>
   </view>
 
   <!-- 版本信息 -->
