@@ -147,7 +147,7 @@ Page({
 
   // 同步查询卡牌
   searchCardSync(keyword) {
-    return api.searchCard(keyword, 1, 3).then(res => {
+    return api.searchCard(keyword, 1, 5).then(res => {
       return res.results || res.items || []
     }).catch(() => [])
   },
