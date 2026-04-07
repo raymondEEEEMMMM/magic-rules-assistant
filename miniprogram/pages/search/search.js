@@ -159,7 +159,7 @@ Page({
 
   // 同步查询卡牌
   searchCardSync(keyword) {
-    return api.searchCard(keyword, 1, 3).then(res => {
+    return api.searchCard(keyword, 1, 5).then(res => {
       return res.results || res.items || []
     }).catch(() => [])
   },
@@ -245,6 +245,20 @@ Page({
       url,
       success: () => console.log('CODEBUDDY_DEBUG search viewCardDetail success'),
       fail: (err) => console.log('CODEBUDDY_DEBUG search viewCardDetail fail err=', err)
+    })
+  },
+
+  // 查看更多卡牌（跳转卡牌搜索页）
+  viewMoreCards(e) {
+    const keyword = e.currentTarget.dataset.keyword
+    console.log('CODEBUDDY_DEBUG search viewMoreCards keyword=', keyword)
+    if (!keyword) return
+    const url = `/pages/card/card?id=${encodeURIComponent(keyword)}`
+    console.log('CODEBUDDY_DEBUG search viewMoreCards url=', url)
+    wx.navigateTo({
+      url,
+      success: () => console.log('CODEBUDDY_DEBUG search viewMoreCards success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG search viewMoreCards fail err=', err)
     })
   },
 

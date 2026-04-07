@@ -107,6 +107,10 @@
           <view class="card-name">{{item.zhs_name || item.name}}</view>
           <view class="card-type">{{item.type_line}}</view>
         </view>
+        <!-- 查看更多 -->
+        <view class="view-more-card" wx:if="{{combinedResults.cards.length >= 5}}" bindtap="viewMoreCards" data-keyword="{{keyword}}">
+          <text class="view-more-text">查看更多卡牌 →</text>
+        </view>
       </view>
     </view>
 
