@@ -88,7 +88,7 @@ Page({
       // 已发布系列：按发行日期降序，取前 7 个
       const releasedLatest = releasedSets
         .sort((a, b) => new Date(b.released_at) - new Date(a.released_at))
-        .slice(0, 7)
+        .slice(0, 6)
 
       // 未来系列：排在已发布系列之前，按发行日期降序（最新的在前）
       const futureLatest = futureSets
