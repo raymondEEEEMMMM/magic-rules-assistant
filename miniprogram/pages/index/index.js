@@ -25,7 +25,8 @@ Page({
     console.log('CODEBUDDY_DEBUG index onLoad started')
     this.setData({
       version: app.version || '1.0.0',
-      isLightTheme: app.globalData.isLightTheme
+      isLightTheme: app.globalData.isLightTheme,
+      showAIJudgeCard: app.globalData.showAIJudgeCard
     })
     console.log('CODEBUDDY_DEBUG index setData version=', this.data.version, 'isLightTheme=', this.data.isLightTheme)
     this.loadHistory()

@@ -13,7 +13,8 @@ App({
     // 云函数名称
     functionName: 'mtgAsk',
     userInfo: null,
-    isLightTheme: false
+    isLightTheme: false,
+    showAIJudgeCard: false
   },
 
   // 小程序版本号
