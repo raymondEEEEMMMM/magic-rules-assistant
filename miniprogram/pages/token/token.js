@@ -144,10 +144,16 @@ Page({
 
   // 从 Scryfall 搜索 Token 卡图
   searchTokenCards(token) {
+    // 构建立即查询 - 使用 Oracle Text 搜索衍生物类型
+    const searchName = translateToEn(token.enName)
+    // Scryfall 的 t: 只认标准卡牌类型，不认衍生物类型如 Treasure
+    // 改用 o:"creates a ${searchName}" 或 o:"${searchName} token" 搜索
+    const q = `o:"${searchName} token" is:token -s:fnm`
+
     wx.request({
       url: `https://api.scryfall.com/cards/search`,
       data: {
-        q: `t:${translateToEn(token.enName)} is:token -s:fnm`,
+        q: q,
         unique: 'art',
         order: 'released'
       },
@@ -297,10 +303,13 @@ Page({
 
     this.setData({ isSearching: true, showSearchResults: true })
 
+    const searchName = translateToEn(query)
+    const q = `o:"${searchName} token" is:token -s:fnm`
+
     wx.request({
       url: `https://api.scryfall.com/cards/search`,
       data: {
-        q: `t:${translateToEn(query)} is:token -s:fnm`,
+        q: q,
         unique: 'art',
         order: 'released'
       },
