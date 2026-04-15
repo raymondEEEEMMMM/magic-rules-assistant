@@ -150,6 +150,10 @@ Page({
     wx.request({
       url: `https://api.scryfall.com/cards/search?q=t:${encodedName}%20is:token%20-s:fnm&unique=art&order=released`,
       method: 'GET',
+      header: {
+        'User-Agent': 'mtgAsk-miniprogram/1.0 (https://github.com/raymondEEEEMMMM)',
+        'Accept': 'application/json'
+      },
       success: res => {
         console.log('CODEBUDDY_DEBUG Scryfall response status=', res.statusCode, 'data=', JSON.stringify(res.data).substring(0, 200))
         if (res.statusCode === 404 || res.statusCode === 400 || !res.data || !res.data.data || res.data.data.length === 0) {
@@ -302,6 +306,10 @@ Page({
     wx.request({
       url: `https://api.scryfall.com/cards/search?q=t:${searchName}%20is:token%20-s:fnm&unique=art&order=released`,
       method: 'GET',
+      header: {
+        'User-Agent': 'mtgAsk-miniprogram/1.0 (https://github.com/raymondEEEEMMMM)',
+        'Accept': 'application/json'
+      },
       success: res => {
         console.log('CODEBUDDY_DEBUG token search response status=', res.statusCode)
         if (res.data && res.data.data) {
