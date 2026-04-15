@@ -124,6 +124,12 @@ miniprogram/
 | `/api/rules/status` | GET | Get rule version status |
 | `/api/ai-judge/chat` | POST | AI Judge chat (支持 per-user agent 隔离) |
 | `/api/ai-judge/clear` | POST | Clear AI Judge session |
+| `/api/deck/list` | GET | 获取用户套牌列表 (需 openid) |
+| `/api/deck/add` | POST | 添加套牌 |
+| `/api/deck/:id` | DELETE | 删除套牌 |
+| `/api/deck/:id` | PUT | 更新套牌 |
+| `/api/deck/cmc` | POST | 计算套牌 AVG CMC |
+| `/api/deck/parse-url` | GET | 解析 MTGGoldfish/Moxfield URL |
 
 ### Cloud Function Configuration
 
