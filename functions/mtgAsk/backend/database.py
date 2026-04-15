@@ -553,8 +553,8 @@ class RuleDatabase:
         self.ensure_decks_table()
         import json
         cards_json = json.dumps(cards or [], ensure_ascii=False)
-        sql = """INSERT INTO decks (openid, name, format, commander, cards, total_cards, avg_cmc, _openid)
-                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
+        sql = """INSERT INTO decks (openid, name, format, commander, cards, total_cards, avg_cmc)
+                 VALUES (%s, %s, %s, %s, %s, %s, %s)"""
         # 使用基础 _execute_write_sql_with_params 获取 last insert id
         conn = None
         try:
@@ -572,7 +572,7 @@ class RuleDatabase:
                 connect_timeout=10
             )
             with conn.cursor() as cursor:
-                cursor.execute(sql, (openid, name, format, commander, cards_json, total_cards, avg_cmc, ''))
+                cursor.execute(sql, (openid, name, format, commander, cards_json, total_cards, avg_cmc))
                 conn.commit()
                 return cursor.lastrowid
         except Exception as e:

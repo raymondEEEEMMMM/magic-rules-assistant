@@ -1003,6 +1003,147 @@ def main(event, context):
                     'body': json.dumps({'success': False, 'error': {'code': 'SSH_ERROR', 'message': str(e)}})
                 }
 
+        elif path == '/api/deck/list' and http_method == 'GET':
+            # 获取套牌列表
+            openid = query_params.get('openid') or headers.get('x-wx-openid', None)
+            if not openid:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': '缺少 openid 参数'})
+                }
+
+            from backend.database import RuleDatabase
+            db = RuleDatabase()
+            db.ensure_decks_table()
+            decks = db.get_decks_by_openid(openid)
+
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'success': True, 'decks': decks}, ensure_ascii=False, default=str)
+            }
+
+        elif path == '/api/deck/add' and http_method == 'POST':
+            # 添加套牌
+            try:
+                body_data = json.loads(body) if body else {}
+            except json.JSONDecodeError:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': 'Invalid JSON body'})
+                }
+
+            openid = body_data.get('openid') or headers.get('x-wx-openid', None)
+            if not openid:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': '缺少 openid 参数'})
+                }
+
+            name = body_data.get('name', '')
+            format = body_data.get('format', '其他')
+            commander = body_data.get('commander', '')
+            cards = body_data.get('cards', [])
+            total_cards = body_data.get('total_cards', 0)
+            avg_cmc = body_data.get('avg_cmc', '0.00')
+
+            if not name:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': '套牌名称不能为空'})
+                }
+
+            from backend.database import RuleDatabase
+            db = RuleDatabase()
+            db.ensure_decks_table()
+            deck_id = db.add_deck(openid, name, format, commander, cards, total_cards, avg_cmc)
+
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'success': True, 'deck_id': deck_id}, ensure_ascii=False)
+            }
+
+        elif re.match(r'^/api/deck/([^/]+)$', path) and http_method == 'DELETE':
+            # 删除套牌
+            match = re.match(r'^/api/deck/([^/]+)$', path)
+            deck_id = match.group(1)
+
+            openid = query_params.get('openid') or headers.get('x-wx-openid', None)
+            if not openid:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': '缺少 openid 参数'})
+                }
+
+            from backend.database import RuleDatabase
+            db = RuleDatabase()
+            success = db.delete_deck(deck_id, openid)
+
+            if success:
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': True}, ensure_ascii=False)
+                }
+            else:
+                return {
+                    'statusCode': 404,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': '套牌不存在或无权删除'})
+                }
+
+        elif re.match(r'^/api/deck/([^/]+)$', path) and http_method == 'PUT':
+            # 更新套牌
+            match = re.match(r'^/api/deck/([^/]+)$', path)
+            deck_id = match.group(1)
+
+            try:
+                body_data = json.loads(body) if body else {}
+            except json.JSONDecodeError:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': 'Invalid JSON body'})
+                }
+
+            openid = body_data.get('openid') or headers.get('x-wx-openid', None)
+            if not openid:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': '缺少 openid 参数'})
+                }
+
+            name = body_data.get('name')
+            format = body_data.get('format')
+            commander = body_data.get('commander')
+            cards = body_data.get('cards')
+            total_cards = body_data.get('total_cards')
+            avg_cmc = body_data.get('avg_cmc')
+
+            from backend.database import RuleDatabase
+            db = RuleDatabase()
+            success = db.update_deck(deck_id, openid, name, format, commander, cards, total_cards, avg_cmc)
+
+            if success:
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': True}, ensure_ascii=False)
+                }
+            else:
+                return {
+                    'statusCode': 404,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': '套牌不存在或无权更新'})
+                }
+
         else:
             # 未知路径
             return {
