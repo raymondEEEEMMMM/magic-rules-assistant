@@ -433,20 +433,20 @@ api.KEYWORDS = {
  */
 api.CN_KEYWORDS = {
   '飞行': 'Flying',
-  '触死': 'Deathtouch',
+  '死触': 'Deathtouch',
   '先攻': 'First Strike',
   '警戒': 'Vigilance',
   '闪现': 'Flash',
   '死触': 'Deathtouch',
   '威慑': 'Menace',
-  '祭献': 'Evoke',
+  '呼魂': 'Evoke',
   '践踏': 'Trample',
-  '双重打击': 'Double Strike',
+  '连击': 'Double Strike',
   '辟邪': 'Hexproof',
-  '不可阻挡': 'Indestructible',
+  '不灭': 'Indestructible',
   '守护': 'Ward',
-  '极速': 'Haste',
-  '到达': 'Reach'
+  '敏捷': 'Haste',
+  '延势': 'Reach'
 }
 
 /**

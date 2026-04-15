@@ -1,0 +1,229 @@
+/* pages/odds/odds.wxss */
+page {
+  background-color: #16213e;
+  height: 100%;
+  color: #ffffff;
+}
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 30rpx;
+  padding-top: calc(20rpx + env(safe-area-inset-top));
+  background: #1a1a2e;
+  border-bottom: 1rpx solid rgba(255, 215, 0, 0.15);
+}
+
+.nav-left, .nav-right { min-width: 80rpx; }
+
+.back-btn { font-size: 40rpx; color: #ffd700; }
+
+.nav-title { font-size: 34rpx; font-weight: bold; color: #fff; }
+
+.content {
+  flex: 1;
+  padding: 20rpx;
+}
+
+.section {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #ffd700;
+  margin-bottom: 20rpx;
+}
+
+/* 套牌信息 */
+.deck-info-card {
+  background: rgba(102, 126, 234, 0.15);
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 16rpx;
+}
+
+.deck-info-header {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 8rpx;
+}
+
+.deck-name { font-size: 30rpx; font-weight: bold; color: #fff; }
+.deck-format { font-size: 24rpx; color: #667eea; }
+.deck-meta-text { font-size: 24rpx; color: rgba(255,255,255,0.6); }
+.deck-commander-text { font-size: 24rpx; color: #ffd700; margin-top: 4rpx; }
+
+.pick-deck-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12rpx;
+  padding: 20rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: #667eea;
+  margin-bottom: 16rpx;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.05);
+}
+
+.input-label { font-size: 28rpx; color: rgba(255,255,255,0.7); }
+
+.picker-value, .number-input, .text-input {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8rpx;
+  padding: 12rpx 20rpx;
+  font-size: 28rpx;
+  color: #fff;
+  text-align: right;
+  min-width: 200rpx;
+}
+
+/* 概率结果 */
+.odds-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.odds-item { display: flex; flex-direction: column; gap: 8rpx; }
+
+.odds-bar-wrapper {
+  height: 24rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.odds-bar {
+  height: 100%;
+  border-radius: 12rpx;
+  transition: width 0.3s;
+}
+
+.odds-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 24rpx;
+}
+
+.odds-count { color: rgba(255,255,255,0.6); }
+.odds-pct { color: #fff; font-weight: bold; }
+
+.cumulative-title {
+  font-size: 26rpx;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 12rpx;
+}
+
+.cumulative-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12rpx;
+}
+
+.cumulative-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8rpx;
+  padding: 12rpx 8rpx;
+}
+
+.cumulative-count { font-size: 22rpx; color: rgba(255,255,255,0.5); }
+.cumulative-pct { font-size: 28rpx; font-weight: bold; color: #38ef7d; margin-top: 4rpx; }
+.cumulative-pct.high { color: #ffd700; }
+
+/* 各回合 */
+.turns-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+}
+
+.turn-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.turn-num {
+  font-size: 24rpx;
+  color: #667eea;
+  min-width: 50rpx;
+}
+
+.turn-bar-wrapper {
+  flex: 1;
+  height: 16rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+.turn-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 8rpx;
+}
+
+.turn-pct { font-size: 22rpx; color: #fff; min-width: 60rpx; text-align: right; }
+
+/* Light theme */
+.container.page-light { background-color: #f5f5f5; color: #333; }
+
+.container.page-light .nav-bar {
+  background: #ffffff;
+  border-bottom: 1rpx solid #e0e0e0;
+}
+
+.container.page-light .back-btn { color: #333; }
+.container.page-light .nav-title { color: #333; }
+
+.container.page-light .section { background: rgba(0,0,0,0.04); }
+.container.page-light .section-title { color: #667eea; }
+
+.container.page-light .deck-name { color: #333; }
+.container.page-light .deck-format { color: #667eea; }
+.container.page-light .deck-meta-text { color: #666; }
+.container.page-light .deck-commander-text { color: #d4a017; }
+
+.container.page-light .input-label { color: #666; }
+.container.page-light .picker-value,
+.container.page-light .number-input,
+.container.page-light .text-input {
+  background: rgba(0,0,0,0.05);
+  color: #333;
+}
+
+.container.page-light .odds-count { color: #666; }
+.container.page-light .odds-pct { color: #333; }
+.container.page-light .cumulative-count { color: #999; }
+.container.page-light .cumulative-pct { color: #27ae60; }
+.container.page-light .cumulative-title { color: #666; }
+
+.container.page-light .turn-num { color: #667eea; }
+.container.page-light .turn-pct { color: #333; }
+.container.page-light .turn-bar-wrapper { background: rgba(0,0,0,0.08); }
+
+.container.page-light .odds-bar-wrapper { background: rgba(0,0,0,0.08); }
+.container.page-light .input-row { border-bottom-color: rgba(0,0,0,0.05); }

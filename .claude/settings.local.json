@@ -144,5 +144,9 @@
       "f:\\mtgAsk\\magic-rules-assistant\\deployment\\docs",
       "/dev"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "cloudbase"
+  ],
+  "enableAllProjectMcpServers": true
 }

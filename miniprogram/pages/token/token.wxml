@@ -1,0 +1,169 @@
+<!--pages/token/token.wxml-->
+<view class="container {{isLightTheme ? 'page-light' : ''}}">
+  <!-- 顶部导航栏 -->
+  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
+    <view class="nav-left">
+      <view class="back-btn" bindtap="goBack">←</view>
+    </view>
+    <view class="nav-title">
+      <text>Token 生成器</text>
+    </view>
+    <view class="nav-right"></view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <input
+      class="search-input"
+      placeholder="搜索 Token（如 Soldier, Dragon）"
+      placeholder-class="search-placeholder"
+      bindinput="onTokenSearch"
+      bindconfirm="onTokenSearch"
+      value="{{searchQuery}}"
+    />
+    <view class="search-clear" wx:if="{{searchQuery}}" bindtap="clearSearch">✕</view>
+  </view>
+
+  <!-- 搜索结果 -->
+  <view class="search-results" wx:if="{{showSearchResults}}">
+    <view class="search-loading" wx:if="{{isSearching}}">
+      <text>搜索中...</text>
+    </view>
+    <view class="search-empty" wx:elif="{{searchResults.length === 0}}">
+      <text>未找到相关 Token</text>
+    </view>
+    <view class="search-grid" wx:else>
+      <view
+        class="search-card"
+        wx:for="{{searchResults}}"
+        wx:key="index"
+        bindtap="selectSearchResult"
+        data-item="{{item}}"
+      >
+        <image class="search-card-img" src="{{item.image}}" mode="aspectFit" wx:if="{{item.image}}" />
+        <view class="search-card-placeholder" wx:else>🃏</view>
+        <text class="search-card-name">{{item.name}}</text>
+        <text class="search-card-set">{{item.setName}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Token 网格（九宫格） -->
+  <view class="token-grid">
+    <view
+      class="token-card color-{{token.color}}"
+      wx:for="{{tokens}}"
+      wx:key="index"
+      bindtap="selectToken"
+      data-enname="{{item.enName}}"
+      data-name="{{item.name}}"
+    >
+      <view class="token-icon">{{item.icon}}</view>
+      <view class="token-name">{{item.name}}</view>
+      <view class="token-color-dot color-dot-{{item.color}}"></view>
+    </view>
+  </view>
+
+  <!-- 提示 -->
+  <view class="tip-text">点击 Token 查看详情</view>
+
+  <!-- 详情弹窗 -->
+  <view class="modal {{showModal ? 'show' : ''}}" catchtap="closeModal">
+    <view class="modal-content" catchtap="">
+
+      <!-- Token 卡片展示 -->
+      <view class="token-preview color-{{selectedToken.color}}">
+        <view class="token-preview-bg">
+          <!-- 加载中 -->
+          <view class="token-loading" wx:if="{{isLoadingToken}}">
+            <text>加载中...</text>
+          </view>
+
+          <!-- 无卡图 -->
+          <view class="token-no-image" wx:elif="{{tokenCards.length === 0}}">
+            <view class="token-preview-icon">{{selectedToken.icon}}</view>
+            <view class="token-preview-name">{{selectedToken.name}}</view>
+            <view class="token-preview-type">{{selectedToken.colorName}} · {{selectedToken.power}}/{{selectedToken.toughness}}</view>
+          </view>
+
+          <!-- 有卡图 -->
+          <view class="token-with-image" wx:else>
+            <image
+              class="token-card-image"
+              src="{{tokenCards[selectedCardIndex].image_uris.normal || tokenCards[selectedCardIndex].image_uris.small}}"
+              mode="aspectFit"
+              bindtap="saveToken"
+            />
+            <!-- 图片指示器 -->
+            <view class="image-indicators" wx:if="{{tokenCards.length > 1}}">
+              <view class="indicator {{selectedCardIndex === index ? 'active' : ''}}" wx:for="{{tokenCards}}" wx:key="index"></view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 图片切换箭头 + 系列选择 -->
+      <view class="image-nav" wx:if="{{tokenCards.length > 0}}">
+        <view class="nav-arrow left {{selectedCardIndex === 0 ? 'disabled' : ''}}" bindtap="prevCard">&lt;</view>
+        <view class="set-picker-trigger" bindtap="toggleSetPicker">
+          <text class="nav-count">{{selectedCardIndex + 1}} / {{tokenCards.length}}</text>
+          <text class="set-picker-arrow {{showSetPicker ? 'up' : ''}}">▼</text>
+        </view>
+      </view>
+
+      <!-- 系列下拉选择器 -->
+      <view class="set-picker-dropdown {{showSetPicker ? 'show' : ''}}" wx:if="{{availableSets.length > 1}}" catchtap>
+        <scroll-view class="set-picker-scroll" scroll-y>
+          <view
+            class="set-picker-item {{selectedSetCode === item.code ? 'active' : ''}}"
+            wx:for="{{availableSets}}"
+            wx:key="index"
+            bindtap="selectSet"
+            data-code="{{item.code}}"
+          >
+            {{item.name}}
+          </view>
+        </scroll-view>
+      </view>
+
+      <!-- Token 信息 -->
+      <view class="token-info-section" catchtap="toggleSetPicker">
+        <view class="info-row">
+          <text class="info-label">名称</text>
+          <text class="info-value">{{selectedToken.name}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">系列</text>
+          <view class="info-value set-name">
+            <text>{{tokenCards[selectedCardIndex].set_name}}</text>
+            <text class="set-arrow {{showSetPicker ? 'up' : ''}}">▼</text>
+          </view>
+        </view>
+        <view class="info-row">
+          <text class="info-label">颜色</text>
+          <text class="info-value">{{selectedToken.colorName}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">攻击/防御</text>
+          <text class="info-value">{{selectedToken.power}} / {{selectedToken.toughness}}</text>
+        </view>
+        <view class="info-row" wx:if="{{selectedToken.abilities}}">
+          <text class="info-label">异能</text>
+          <text class="info-value">{{selectedToken.abilities}}</text>
+        </view>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="modal-actions">
+        <view class="action-btn copy-btn" bindtap="copyTokenName">
+          <text>复制名称</text>
+        </view>
+        <view class="action-btn save-btn" bindtap="goToGenerate" wx:if="{{tokenCards.length > 0}}">
+          <text>生成Token</text>
+        </view>
+      </view>
+
+      <view class="modal-close" bindtap="closeModal">✕</view>
+    </view>
+  </view>
+</view>

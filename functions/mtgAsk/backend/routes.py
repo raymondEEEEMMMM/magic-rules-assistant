@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
 from fastapi.responses import XMLResponse, StreamingResponse, PlainTextResponse
 from typing import Optional
 import hashlib
+import re
+import requests
 from database import RuleDatabase
 from services import RuleService
 from wechat import MessageHandler
@@ -581,6 +583,75 @@ async def get_ai_judge_history(
         return {"success": False, "error": {"code": "SSH_ERROR", "message": str(e)}}
 
 
+@app.post("/api/ai-judge/history")
+async def post_ai_judge_history(request: Request):
+    """
+    获取 AI 裁判会话历史 - POST 版本（小程序客户端用）
+
+    请求体 (JSON):
+    - openid (必填): 用户 openid
+    - limit (可选, 默认10): 会话数量上限
+    - offset (可选, 默认0): 分页偏移
+    - session_id (可选): 指定会话 ID
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        return {"success": False, "error": {"code": "INVALID_JSON", "message": "请求体必须是有效 JSON"}}
+
+    openid = body.get("openid")
+    limit = body.get("limit", 10)
+    offset = body.get("offset", 0)
+    session_id = body.get("session_id")
+
+    if not openid:
+        return {"success": False, "error": {"code": "MISSING_OPENID", "message": "openid 参数必填"}}
+
+    try:
+        from services.agent_pool_manager import AgentPoolManager
+        from services.openclaw_client import OpenCLAWClient
+
+        agent_manager = AgentPoolManager()
+        agent_info = agent_manager.db.get_agent_by_openid(openid)
+
+        if not agent_info:
+            return {"success": False, "error": {"code": "AGENT_NOT_FOUND", "message": "未找到该用户的会话记录"}}
+
+        agent_name = agent_info["agent_name"]
+
+    except Exception as e:
+        return {"success": False, "error": {"code": "DB_ERROR", "message": str(e)}}
+
+    try:
+        client = OpenCLAWClient()
+
+        if session_id:
+            messages = client.get_session_messages(agent_name, session_id, limit=limit)
+            user_count = sum(1 for m in messages if m.get("role") == "user")
+            assistant_count = sum(1 for m in messages if m.get("role") == "assistant")
+            return {
+                "success": True,
+                "data": {
+                    "sessionId": session_id,
+                    "messages": messages,
+                    "summary": {
+                        "totalMessages": len(messages),
+                        "userMessages": user_count,
+                        "assistantMessages": assistant_count
+                    }
+                }
+            }
+        else:
+            result = client.get_sessions(agent_name, limit=limit, offset=offset)
+            return {
+                "success": True,
+                "data": result
+            }
+
+    except Exception as e:
+        return {"success": False, "error": {"code": "SSH_ERROR", "message": str(e)}}
+
+
 # ==================== 微信 HTTP 访问路径 AI 裁判 API ====================
 
 @app.post("/api/feedback")
@@ -643,6 +714,171 @@ async def admin_agent_pool_stats():
     manager = AgentPoolManager()
     stats = manager.get_pool_stats()
     return {"success": True, "stats": stats}
+
+
+# ==================== 套牌 API ====================
+
+import httpx
+
+
+async def fetch_cmc_batch(names: list[str]) -> dict[str, float]:
+    """批量查询 Scryfall 获取 CMC"""
+    results = {}
+    chunk_size = 75
+    for i in range(0, len(names), chunk_size):
+        chunk = names[i:i + chunk_size]
+        identifiers = [{"name": n} for n in chunk]
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                resp = await client.post(
+                    "https://api.scryfall.com/cards/collection",
+                    json={"identifiers": identifiers}
+                )
+                data = resp.json()
+                if data.get("data"):
+                    for card in data["data"]:
+                        key = card.get("name", "").lower()
+                        results[key] = card.get("cmc") or 0
+        except Exception as e:
+            print(f"Scryfall batch query failed: {e}")
+    return results
+
+
+@app.post("/api/deck/cmc")
+async def calc_deck_cmc(request: Request):
+    """
+    计算套牌 AVG CMC
+
+    Body: {"cards": [{"name": "Lightning Bolt", "count": 4}, ...]}
+    Returns: {"avgCMC": "3.24", "cmcMap": {"lightning bolt": 1.0, ...}}
+    """
+    body = await request.json()
+    cards = body.get("cards", [])
+    if not cards:
+        return {"avgCMC": "0.00", "cmcMap": {}}
+
+    names = [c["name"] for c in cards]
+    cmc_map = await fetch_cmc_batch(names)
+
+    total_cmc = 0.0
+    total_cards = 0
+    for card in cards:
+        mv = cmc_map.get(card["name"].lower(), 0)
+        total_cmc += mv * card["count"]
+        total_cards += card["count"]
+
+    avg_cmc = f"{total_cmc / total_cards:.2f}" if total_cards > 0 else "0.00"
+    return {"avgCMC": avg_cmc, "cmcMap": cmc_map}
+
+
+@app.get("/api/deck/parse-url")
+async def parse_deck_url(request: Request):
+    """
+    从 MTGGoldfish 或 Moxfield URL 解析套牌
+
+    Query: url=https://www.mtggoldfish.com/deck/xxx
+    Returns: {"success": true, "name": "Deck Name", "cards": [{"name": "Card", "count": 4}, ...]}
+    """
+    url = request.query_params.get("url", "")
+    if not url:
+        return {"success": False, "error": "缺少 URL 参数"}
+
+    try:
+        if "mtggoldfish" in url.lower():
+            return parse_mtggoldfish(url)
+        elif "moxfield" in url.lower():
+            return parse_moxfield(url)
+        else:
+            return {"success": False, "error": "暂不支持该 URL 类型"}
+    except Exception as e:
+        return {"success": False, "error": f"解析失败: {str(e)}"}
+
+
+def parse_mtggoldfish(url: str):
+    """解析 MTGGoldfish 页面"""
+    import html as html_module  # 用标准库解码 HTML 实体
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+    }
+    resp = requests.get(url, headers=headers, timeout=30)
+    resp.raise_for_status()
+    html = resp.text
+
+    # 从页面提取套牌名称
+    name_match = re.search(r'<h1[^>]*class="deck-view-title"[^>]*>([^<]+)', html)
+    name = name_match.group(1).strip() if name_match else ""
+
+    # MTGGoldfish 把套牌藏在隐藏字段 deck_input[deck] 里
+    # 格式: "2 CardName\n4 CardName\n--\n2 SideboardCard"
+    deck_input_match = re.search(r'name="deck_input\[deck\]"[^>]*value="([^"]+)"', html)
+    if not deck_input_match:
+        return {"success": False, "error": "未能解析到套牌数据"}
+
+    deck_text = deck_input_match.group(1)
+    # 解码 HTML 实体 (&#39; -> ', &amp; -> &, etc.)
+    deck_text = html_module.unescape(deck_text)
+
+    cards = []
+    seen = {}
+    current_section = "main"
+
+    for line in deck_text.split('\n'):
+        line = line.strip()
+        if not line:
+            continue
+        if line == '--':
+            current_section = "sideboard"
+            continue
+        if current_section == "sideboard":
+            # 备牌暂不处理（可扩展）
+            continue
+        # 解析格式: "4 CardName" 或 "4x CardName"
+        match = re.match(r'^(\d+)[xX]?\s+(.+)$', line)
+        if match:
+            qty = int(match.group(1))
+            card_name = match.group(2).strip()
+            if card_name and qty > 0:
+                key = card_name.lower()
+                if key not in seen:
+                    seen[key] = True
+                    cards.append({"name": card_name, "count": qty})
+
+    if not cards:
+        return {"success": False, "error": "未能解析到套牌列表"}
+
+    return {"success": True, "name": name, "cards": cards}
+
+
+def parse_moxfield(url: str) -> dict:
+    """解析 Moxfield 页面"""
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+    }
+    resp = requests.get(url, headers=headers, timeout=30)
+    resp.raise_for_status()
+    html = resp.text
+
+    # 从页面提取标题
+    name_match = re.search(r'<h2[^>]*class="deck-view-info-name"[^>]*>([^<]+)', html)
+    name = name_match.group(1).strip() if name_match else ""
+
+    # Moxfield 格式: <span class="card-view-quantity">4</span>...<span class="card-view-name">Card Name</span>
+    cards = []
+    seen = {}
+    card_matches = re.findall(r'card-view-quantity">(\d+)</span>.*?card-view-name">([^<]+)', html, re.DOTALL)
+    for qty, card_name in card_matches:
+        card_name = card_name.strip()
+        if card_name:
+            key = card_name.lower()
+            if key not in seen:
+                seen[key] = True
+                cards.append({"name": card_name, "count": int(qty)})
+
+    if not cards:
+        return {"success": False, "error": "未能解析到套牌列表"}
+
+    return {"success": True, "name": "Moxfield Deck", "cards": cards}
 
 
 if __name__ == "__main__":

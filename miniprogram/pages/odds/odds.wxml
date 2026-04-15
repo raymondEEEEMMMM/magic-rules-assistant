@@ -1,0 +1,123 @@
+<!--pages/odds/odds.wxml-->
+<view class="container {{isLightTheme ? 'page-light' : ''}}">
+  <!-- 顶部导航栏 -->
+  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
+    <view class="nav-left">
+      <view class="back-btn" bindtap="goBack">←</view>
+    </view>
+    <view class="nav-title">
+      <text>Odds 计算器</text>
+    </view>
+    <view class="nav-right"></view>
+  </view>
+
+  <scroll-view class="content" scroll-y>
+    <!-- 套牌信息 -->
+    <view class="section">
+      <view class="section-title">套牌信息</view>
+
+      <!-- 已选套牌 -->
+      <view class="deck-info-card" wx:if="{{selectedDeck}}">
+        <view class="deck-info-header">
+          <text class="deck-name">{{selectedDeck.name}}</text>
+          <text class="deck-format">{{selectedDeck.format}}</text>
+        </view>
+        <text class="deck-meta-text">{{selectedDeck.totalCards}} 张 · 平均法术力费用 {{selectedDeck.avgCMC}}</text>
+        <text class="deck-commander-text" wx:if="{{selectedDeck.commander}}">指挥官：{{selectedDeck.commander}}</text>
+      </view>
+
+      <!-- 选择套牌按钮 -->
+      <view class="pick-deck-btn" bindtap="pickDeck">
+        <text>{{selectedDeck ? '更换套牌' : '选择已有套牌'}}</text>
+      </view>
+
+      <!-- 赛制选择 -->
+      <view class="input-row">
+        <text class="input-label">赛制</text>
+        <picker mode="selector" range="{{formatNames}}" bindchange="selectFormat">
+          <view class="picker-value">{{selectedFormat}}</view>
+        </picker>
+      </view>
+
+      <!-- 套牌张数 -->
+      <view class="input-row">
+        <text class="input-label">套牌张数</text>
+        <input
+          class="number-input"
+          type="number"
+          value="{{deckSize}}"
+          bindinput="setDeckSize"
+        />
+      </view>
+    </view>
+
+    <!-- 目标牌设置 -->
+    <view class="section">
+      <view class="section-title">目标牌</view>
+
+      <view class="input-row">
+        <text class="input-label">牌名</text>
+        <input
+          class="text-input"
+          placeholder="输入牌名"
+          value="{{targetName}}"
+          bindinput="setTargetName"
+        />
+      </view>
+
+      <view class="input-row">
+        <text class="input-label">套牌中数量</text>
+        <input
+          class="number-input"
+          type="number"
+          value="{{targetCount}}"
+          bindinput="setTargetCount"
+        />
+      </view>
+    </view>
+
+    <!-- 概率结果 -->
+    <view class="section" wx:if="{{odds.opening[0] !== undefined}}">
+      <view class="section-title">起手概率（手牌 {{handSize}} 张）</view>
+
+      <!-- 进度条概率 -->
+      <view class="odds-grid">
+        <view class="odds-item" wx:for="{{[0,1,2,3]}}" wx:key="k">
+          <view class="odds-bar-wrapper">
+            <view
+              class="odds-bar"
+              style="width: {{oddsPct[item]}}%; background: {{item === 0 ? '#f5576c' : item === 1 ? '#667eea' : item === 2 ? '#11998e' : '#ffd700'}}"
+            ></view>
+          </view>
+          <view class="odds-label">
+            <text class="odds-count">{{item}} 张</text>
+            <text class="odds-pct">{{oddsPct[item]}}%</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 累积概率 -->
+      <view class="cumulative-title">累积概率（至少抽到）</view>
+      <view class="cumulative-grid">
+        <view class="cumulative-item" wx:for="{{[1,2,3,4]}}" wx:key="k">
+          <text class="cumulative-count">{{item}}+ 张</text>
+          <text class="cumulative-pct {{oddsCumHigh[item] ? 'high' : ''}}">{{oddsCumPct[item]}}%</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 各回合抽到概率 -->
+    <view class="section" wx:if="{{targetDraws.length > 0}}">
+      <view class="section-title">各回合至少抽到 1 张的概率</view>
+      <view class="turns-grid">
+        <view class="turn-item" wx:for="{{targetDraws}}" wx:key="turn">
+          <text class="turn-num">T{{item.turn}}</text>
+          <view class="turn-bar-wrapper">
+            <view class="turn-bar" style="width: {{item.barWidth}}%"></view>
+          </view>
+          <text class="turn-pct">{{item.pct}}%</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

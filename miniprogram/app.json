@@ -1,6 +1,12 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/dice/dice",
+    "pages/token/token",
+    "pages/token-generate/token-generate",
+    "pages/decks/decks",
+    "pages/deck-detail/deck-detail",
+    "pages/odds/odds",
     "pages/counter/counter",
     "pages/card/card",
     "pages/keyword/keyword",

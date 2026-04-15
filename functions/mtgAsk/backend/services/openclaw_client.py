@@ -319,21 +319,36 @@ class OpenCLAWClient:
         effective_agent = agent_name or self.agent
 
         try:
+            import time
+            t0 = time.time()
             client = self._get_ssh_client()
+            print(f"[get_sessions] SSH connected, executing command for agent={effective_agent}")
             # 使用 openclaw sessions 命令获取会话列表
             cmd = f'bash -i -c "openclaw sessions --agent {effective_agent} --json"'
             stdin, stdout, stderr = client.exec_command(cmd, timeout=30)
+            print(f"[get_sessions] exec_command done, reading stdout...")
             output = stdout.read().decode().strip()
+            print(f"[get_sessions] read stdout done, {len(output)} chars, took {time.time()-t0:.1f}s")
+            print(f"[get_sessions] stdout preview: {output[:200]}")
 
             if not output:
                 return {"sessions": [], "pagination": {"total": 0, "limit": limit, "offset": offset, "hasMore": False}}
 
             result = json.loads(output)
             sessions = result.get("sessions", [])
+            print(f"[get_sessions] got {len(sessions)} sessions, counting messages...")
 
-            # 统计消息数量
+            # 统计消息数量（可能慢，单独计时）
             for session in sessions:
-                session["messageCount"] = self._count_session_messages(effective_agent, session.get("sessionId"))
+                t1 = time.time()
+                sid = session.get("sessionId", "")
+                # 只对 UUID 格式的 sessionId 统计，避免递归调用 get_sessions
+                if sid and self._is_uuid(sid):
+                    session["messageCount"] = self._count_session_messages(effective_agent, sid)
+                    print(f"[get_sessions] counted session {sid[:20]}... in {time.time()-t1:.1f}s")
+                else:
+                    session["messageCount"] = 0
+                    print(f"[get_sessions] skip non-UUID sessionId: {sid}")
 
             # 处理分页
             total = len(sessions)

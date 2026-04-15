@@ -258,6 +258,36 @@ Page({
     })
   },
 
+  // 跳转骰子 & 随机页面
+  goToDice() {
+    console.log('CODEBUDDY_DEBUG index goToDice called url=/pages/dice/dice')
+    wx.navigateTo({
+      url: '/pages/dice/dice',
+      success: () => console.log('CODEBUDDY_DEBUG index goToDice success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG index goToDice fail err=', err)
+    })
+  },
+
+  // 跳转 Token 生成器页面
+  goToToken() {
+    console.log('CODEBUDDY_DEBUG index goToToken called url=/pages/token/token')
+    wx.navigateTo({
+      url: '/pages/token/token',
+      success: () => console.log('CODEBUDDY_DEBUG index goToToken success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG index goToToken fail err=', err)
+    })
+  },
+
+  // 跳转我的套牌页面
+  goToDecks() {
+    console.log('CODEBUDDY_DEBUG index goToDecks called url=/pages/decks/decks')
+    wx.navigateTo({
+      url: '/pages/decks/decks',
+      success: () => console.log('CODEBUDDY_DEBUG index goToDecks success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG index goToDecks fail err=', err)
+    })
+  },
+
   // 跳转生命值计数器页面
   goToCounter() {
     console.log('CODEBUDDY_DEBUG index goToCounter called url=/pages/counter/counter')

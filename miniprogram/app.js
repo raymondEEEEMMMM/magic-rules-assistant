@@ -8,12 +8,17 @@ wx.cloud.init({
   traceUser: true
 })
 
+// 云数据库
+const db = wx.cloud.database()
+
 App({
   globalData: {
     // 云函数名称
     functionName: 'mtgAsk',
     userInfo: null,
-    isLightTheme: false
+    isLightTheme: false,
+    showAIJudgeCard: false,
+    db
   },
 
   // 小程序版本号

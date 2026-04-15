@@ -269,6 +269,17 @@ page {
   margin-bottom: 8rpx;
 }
 
+/* 查看更多 */
+.section-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.view-more-link {
+  font-size: 24rpx;
+  color: #667eea;
+}
 /* 无结果 */
 .no-results {
   display: flex;
@@ -439,6 +450,183 @@ page {
 .counter-arrow {
   font-size: 48rpx;
   color: rgba(74, 222, 128, 0.6);
+  font-weight: 300;
+}
+
+/* 骰子 & 随机入口 */
+.dice-entry {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #2d1f4e 0%, #1a1a2e 100%);
+  border-radius: 24rpx;
+  padding: 28rpx 32rpx;
+  margin: 0 30rpx 20rpx;
+  border: 2rpx solid rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(102, 126, 234, 0.15);
+}
+
+.dice-entry:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.dice-icon {
+  font-size: 52rpx;
+  margin-right: 24rpx;
+}
+
+.dice-info {
+  flex: 1;
+}
+
+.dice-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 6rpx;
+}
+
+.dice-desc {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.dice-arrow {
+  font-size: 48rpx;
+  color: rgba(102, 126, 234, 0.6);
+  font-weight: 300;
+}
+
+/* Token 生成器入口 */
+.token-entry {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #1a3a2e 0%, #1a1a2e 100%);
+  border-radius: 24rpx;
+  padding: 28rpx 32rpx;
+  margin: 0 30rpx 20rpx;
+  border: 2rpx solid rgba(74, 222, 128, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(74, 222, 128, 0.1);
+}
+
+.token-entry:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.token-icon {
+  font-size: 52rpx;
+  margin-right: 24rpx;
+}
+
+.token-info {
+  flex: 1;
+}
+
+.token-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 6rpx;
+}
+
+.token-desc {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.token-arrow {
+  font-size: 48rpx;
+  color: rgba(74, 222, 128, 0.6);
+  font-weight: 300;
+}
+
+/* 套牌Odds入口 */
+.odds-entry {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #2e1f4e 0%, #1a1a2e 100%);
+  border-radius: 24rpx;
+  padding: 28rpx 32rpx;
+  margin: 0 30rpx 20rpx;
+  border: 2rpx solid rgba(155, 93, 229, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(155, 93, 229, 0.15);
+}
+
+.odds-entry:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.odds-icon {
+  font-size: 52rpx;
+  margin-right: 24rpx;
+}
+
+.odds-info {
+  flex: 1;
+}
+
+.odds-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 6rpx;
+}
+
+.odds-desc {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.deck-entry {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #1f2e4e 0%, #1a1a2e 100%);
+  border-radius: 24rpx;
+  padding: 28rpx 32rpx;
+  margin: 0 30rpx 20rpx;
+  border: 2rpx solid rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(102, 126, 234, 0.1);
+}
+
+.deck-entry:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.deck-icon {
+  font-size: 52rpx;
+  margin-right: 24rpx;
+}
+
+.deck-info {
+  flex: 1;
+}
+
+.deck-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 6rpx;
+}
+
+.deck-desc {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.deck-arrow {
+  font-size: 48rpx;
+  color: rgba(102, 126, 234, 0.6);
   font-weight: 300;
 }
 
@@ -736,6 +924,61 @@ page {
 
 .container.page-light .counter-arrow {
   color: #22c55e;
+}
+
+.container.page-light .dice-entry {
+  background: #ffffff;
+  border-color: rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.container.page-light .dice-title {
+  color: #333333;
+}
+
+.container.page-light .dice-desc {
+  color: #666666;
+}
+
+.container.page-light .dice-arrow {
+  color: #667eea;
+}
+
+.container.page-light .token-entry {
+  background: #ffffff;
+  border-color: rgba(74, 222, 128, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.container.page-light .token-title {
+  color: #333333;
+}
+
+.container.page-light .token-desc {
+  color: #666666;
+}
+
+.container.page-light .token-arrow {
+  color: #22c55e;
+}
+
+
+.container.page-light .deck-entry {
+  background: #ffffff;
+  border-color: rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.container.page-light .deck-title {
+  color: #333333;
+}
+
+.container.page-light .deck-desc {
+  color: #666666;
+}
+
+.container.page-light .deck-arrow {
+  color: #667eea;
 }
 
 .container.page-light .latest-sets {

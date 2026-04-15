@@ -81,15 +81,14 @@ Page({
       loadingText: 'agent 知识库加载中...'
     })
 
-    // 并行：获取会话列表 + 预热 Agent
-    const historyPromise = api.aiJudgeHistory(openid)
-    // 预热 Agent（不等待，只管发送）
-    api.aiJudgeInit(openid).catch(err => {
+    // 先初始化 Agent，等完成后再获取历史（避免 history 超时）
+    api.aiJudgeInit(openid).then(() => {
+      return api.aiJudgeHistory(openid)
+    }).catch(err => {
       console.log('initAgent failed:', err)
-    })
-
-    // 先获取会话列表
-    historyPromise.then(res => {
+      // init 失败也尝试获取历史
+      return api.aiJudgeHistory(openid)
+    }).then(res => {
       console.log('loadHistory sessions response:', JSON.stringify(res, null, 2))
       // 步骤2: 知识库列表已加载
       that.setData({
@@ -187,7 +186,12 @@ Page({
     // 移除 [[reply_to_current]] 标记
     cleaned = cleaned.replace(/\[\[reply_to_current\]\]/g, '')
     // 匹配 [星期 YYYY-MM-DD HH:MM GMT+8] 格式的前缀
-    return cleaned.replace(/^\[([A-Za-z]{3}\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+GMT[+-]\d+)\]\s*/, '')
+    cleaned = cleaned.replace(/^\[([A-Za-z]{3}\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+GMT[+-]\d+)\]\s*/, '')
+    // 移除 OpenCLAW 内部日志行（如 [agents/model-providers] [xai-auth] bootstrap config...）
+    cleaned = cleaned.replace(/\[agents\/[^\]]+\]\s*/g, '')
+    // 移除连续的空行
+    cleaned = cleaned.replace(/\n{3,}/g, '\n\n')
+    return cleaned.trim()
   },
 
   // 格式化时间戳

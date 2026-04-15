@@ -51,6 +51,29 @@
           <view class="life-btn minus-small" bindtap="adjustLife" data-index="0" data-delta="{{-5}}">-5</view>
           <view class="life-btn plus-small" bindtap="adjustLife" data-index="0" data-delta="{{5}}">+5</view>
         </view>
+
+        <!-- Mana Bar (默认收起) -->
+        <view class="mana-section">
+          <view class="mana-header" bindtap="toggleMana">
+            <text class="mana-title">法力池</text>
+            <text class="mana-toggle">{{showMana ? '▼' : '▶'}}</text>
+          </view>
+          <view class="mana-content" wx:if="{{showMana}}">
+            <view class="mana-row">
+              <view class="mana-item" wx:for="{{manaColors}}" wx:key="index">
+                <view class="mana-icon-wrapper">
+                  <image class="mana-icon" src="https://svgs.scryfall.io/card-symbols/{{item}}.svg" mode="aspectFit" />
+                </view>
+                <view class="mana-value">{{manaPool[item]}}</view>
+                <view class="mana-controls">
+                  <view class="mana-btn minus" bindtap="adjustMana" data-color="{{item}}" data-delta="{{-1}}">-</view>
+                  <view class="mana-btn plus" bindtap="adjustMana" data-color="{{item}}" data-delta="{{1}}">+</view>
+                </view>
+              </view>
+            </view>
+            <view class="mana-reset-btn" bindtap="resetMana">重置法力</view>
+          </view>
+        </view>
       </view>
     </view>
 

@@ -1,0 +1,98 @@
+<!--pages/dice/dice.wxml-->
+<view class="container {{isLightTheme ? 'page-light' : ''}}">
+  <!-- 顶部导航栏 -->
+  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
+    <view class="nav-left">
+      <view class="back-btn" bindtap="goBack">←</view>
+    </view>
+    <view class="nav-title">
+      <text>骰子 & 随机</text>
+    </view>
+    <view class="nav-right"></view>
+  </view>
+
+  <!-- 骰子区域 -->
+  <view class="section dice-section">
+    <view class="section-title">🎲 掷骰子</view>
+
+    <!-- 骰子选项 -->
+    <view class="dice-options">
+      <view
+        class="dice-option {{selectedDice == item.value && !isCustom ? 'active' : ''}}"
+        wx:for="{{diceOptions}}"
+        wx:key="value"
+        bindtap="selectDice"
+        data-value="{{item.value}}"
+      >
+        {{item.label}}
+      </view>
+      <view class="dice-option {{isCustom ? 'active' : ''}}" bindtap="toggleCustom">自定义</view>
+    </view>
+
+    <!-- 自定义输入 -->
+    <view class="custom-input" wx:if="{{isCustom}}">
+      <text>面数：</text>
+      <input type="number" value="{{customSides}}" bindinput="inputCustomSides" min="2" />
+    </view>
+
+    <!-- 掷骰按钮 -->
+    <view class="roll-btn {{isRolling ? 'rolling' : ''}}" bindtap="rollDice">
+      <text>{{isRolling ? '掷骰中...' : '掷骰'}}</text>
+    </view>
+
+    <!-- 骰子结果 -->
+    <view class="dice-result" wx:if="{{diceResult !== null}}">
+      <text class="dice-number {{isRolling ? 'rolling-text' : ''}}">{{diceResult}}</text>
+      <text class="dice-label">/ {{isCustom ? customSides : selectedDice}}</text>
+    </view>
+  </view>
+
+  <!-- 分割线 -->
+  <view class="divider"></view>
+
+  <!-- 丢硬币区域 -->
+  <view class="section coin-section">
+    <view class="section-title">🪙 丢硬币</view>
+
+    <!-- 丢硬币按钮 -->
+    <view class="coin-btn {{coinAnimating ? 'flipping' : ''}}" bindtap="flipCoin">
+      <text>{{coinAnimating ? '翻转中...' : '丢硬币'}}</text>
+    </view>
+
+    <!-- 硬币结果 -->
+    <view class="coin-result" wx:if="{{coinResult}}">
+      <text class="coin-face {{coinAnimating ? 'coin-flip-anim' : ''}}">{{coinResult === '正面' ? '🌝' : '🌚'}}</text>
+    </view>
+  </view>
+
+  <!-- 分割线 -->
+  <view class="divider"></view>
+
+  <!-- 随机选卡区域 -->
+  <view class="section card-section">
+    <view class="section-title">🎴 随机选卡</view>
+
+    <!-- 抽卡数量 -->
+    <view class="draw-count">
+      <view class="count-btn minus" bindtap="minusDrawCount">-</view>
+      <input type="number" class="count-input" value="{{drawCount}}" bindinput="setDrawCount" />
+      <view class="count-btn plus" bindtap="plusDrawCount">+</view>
+      <text class="count-label">张</text>
+    </view>
+
+    <!-- 抽卡按钮 -->
+    <view class="draw-btn {{isDrawing ? 'drawing' : ''}}" bindtap="drawCards">
+      <text>{{isDrawing ? '抽卡中...' : '随机抽卡'}}</text>
+    </view>
+
+    <!-- 抽卡结果 -->
+    <view class="cards-result" wx:if="{{drawnCards.length > 0}}">
+      <view class="card-item" wx:for="{{drawnCards}}" wx:key="name">
+        <image class="card-image" src="{{item.image}}" mode="aspectFit" bindtap="previewCard" data-url="{{item.image}}" />
+        <text class="card-name">{{item.name}}</text>
+        <text class="card-set">{{item.set}}</text>
+      </view>
+    </view>
+  </view>
+
+  </view>

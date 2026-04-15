@@ -15,7 +15,11 @@ Page({
     players: [],
     coinResult: null,
     coinAnimating: false,
-    isLightTheme: true
+    isLightTheme: true,
+    // Mana tracking (solo mode)
+    manaColors: ['W', 'U', 'B', 'R', 'G', 'C'],
+    manaPool: { W: 0, U: 0, B: 0, R: 0, G: 0, C: 0 },
+    showMana: false
   },
 
   onLoad() {
@@ -130,5 +134,25 @@ Page({
   // 返回
   goBack() {
     wx.navigateBack()
+  },
+
+  // 切换 Mana Bar 显示
+  toggleMana() {
+    this.setData({ showMana: !this.data.showMana })
+  },
+
+  // 调整法力值
+  adjustMana(e) {
+    const { color, delta } = e.currentTarget.dataset
+    const manaPool = this.data.manaPool
+    manaPool[color] += delta
+    if (manaPool[color] < 0) manaPool[color] = 0
+    this.setData({ manaPool })
+  },
+
+  // 重置法力池
+  resetMana() {
+    const manaPool = { W: 0, U: 0, B: 0, R: 0, G: 0, C: 0 }
+    this.setData({ manaPool })
   }
 })
