@@ -144,16 +144,9 @@ Page({
 
   // 从 Scryfall 搜索 Token 卡图
   searchTokenCards(token) {
+    const searchName = encodeURIComponent(translateToEn(token.enName))
     wx.request({
-      url: `https://api.scryfall.com/cards/search`,
-      data: {
-        q: `t:${translateToEn(token.enName)} is:token -s:fnm`,
-        unique: 'art',
-        order: 'released'
-      },
-      header: {
-        'User-Agent': 'mtgAsk-miniprogram/1.0'
-      },
+      url: `https://api.scryfall.com/cards/search?q=t:${searchName}%20is:token%20-s:fnm&unique=art&order=released`,
       success: res => {
         if (res.statusCode === 404 || !res.data || !res.data.data || res.data.data.length === 0) {
           this.setData({ isLoadingToken: false, tokenCards: [], availableSets: [{ code: 'all', name: '全部' }] })
@@ -300,16 +293,9 @@ Page({
 
     this.setData({ isSearching: true, showSearchResults: true })
 
+    const searchName = encodeURIComponent(translateToEn(query))
     wx.request({
-      url: `https://api.scryfall.com/cards/search`,
-      data: {
-        q: `t:${translateToEn(query)} is:token -s:fnm`,
-        unique: 'art',
-        order: 'released'
-      },
-      header: {
-        'User-Agent': 'mtgAsk-miniprogram/1.0'
-      },
+      url: `https://api.scryfall.com/cards/search?q=t:${searchName}%20is:token%20-s:fnm&unique=art&order=released`,
       success: res => {
         if (res.data && res.data.data) {
           const results = res.data.data.slice(0, 9).map(card => ({
