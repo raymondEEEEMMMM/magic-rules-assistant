@@ -10,7 +10,7 @@
   </view>
 
   <!-- AI 裁判入口 -->
-  <view class="ai-judge-section" bindtap="goToAIJudge">
+  <view class="ai-judge-section" wx:if="{{showAIJudgeCard}}" bindtap="goToAIJudge">
     <view class="ai-judge-badge">
       <image class="ai-badge-icon" src="/images/mtgask_logo.png" mode="aspectFit"></image>
       <view class="ai-badge-glow"></view>

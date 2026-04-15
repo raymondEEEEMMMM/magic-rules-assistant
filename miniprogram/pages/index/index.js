@@ -8,6 +8,7 @@ Page({
   data: {
     version: '',
     isLightTheme: true,
+    showAIJudgeCard: false,
     keyword: '',
     combinedResults: {
       keywords: [],
@@ -25,7 +26,8 @@ Page({
     console.log('CODEBUDDY_DEBUG index onLoad started')
     this.setData({
       version: app.version || '1.0.0',
-      isLightTheme: app.globalData.isLightTheme
+      isLightTheme: app.globalData.isLightTheme,
+      showAIJudgeCard: app.globalData.showAIJudgeCard
     })
     console.log('CODEBUDDY_DEBUG index setData version=', this.data.version, 'isLightTheme=', this.data.isLightTheme)
     this.loadHistory()
@@ -36,7 +38,8 @@ Page({
   onShow() {
     console.log('CODEBUDDY_DEBUG index onShow isLightTheme=', app.globalData.isLightTheme)
     this.setData({
-      isLightTheme: app.globalData.isLightTheme
+      isLightTheme: app.globalData.isLightTheme,
+      showAIJudgeCard: app.globalData.showAIJudgeCard
     })
     console.log('CODEBUDDY_DEBUG index onShow completed')
   },
