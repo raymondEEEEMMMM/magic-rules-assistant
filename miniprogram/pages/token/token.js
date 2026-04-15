@@ -144,11 +144,15 @@ Page({
 
   // 从 Scryfall 搜索 Token 卡图
   searchTokenCards(token) {
-    const searchName = encodeURIComponent(translateToEn(token.enName))
+    const searchName = translateToEn(token.enName)
+    const encodedName = encodeURIComponent(searchName)
+    console.log('CODEBUDDY_DEBUG searchTokenCards searchName=', searchName, 'encoded=', encodedName)
     wx.request({
-      url: `https://api.scryfall.com/cards/search?q=t:${searchName}%20is:token%20-s:fnm&unique=art&order=released`,
+      url: `https://api.scryfall.com/cards/search?q=t:${encodedName}%20is:token%20-s:fnm&unique=art&order=released`,
+      method: 'GET',
       success: res => {
-        if (res.statusCode === 404 || !res.data || !res.data.data || res.data.data.length === 0) {
+        console.log('CODEBUDDY_DEBUG Scryfall response status=', res.statusCode, 'data=', JSON.stringify(res.data).substring(0, 200))
+        if (res.statusCode === 404 || res.statusCode === 400 || !res.data || !res.data.data || res.data.data.length === 0) {
           this.setData({ isLoadingToken: false, tokenCards: [], availableSets: [{ code: 'all', name: '全部' }] })
           wx.showToast({ title: '未找到该 Token，请尝试英文搜索', icon: 'none', duration: 2000 })
           return
@@ -188,7 +192,8 @@ Page({
           wx.showToast({ title: '未找到卡图', icon: 'none' })
         }
       },
-      fail: () => {
+      fail: (err) => {
+        console.log('CODEBUDDY_DEBUG Scryfall request failed', err)
         this.setData({ isLoadingToken: false })
         wx.showToast({ title: '网络错误，请稍后重试', icon: 'none' })
       }
@@ -296,7 +301,9 @@ Page({
     const searchName = encodeURIComponent(translateToEn(query))
     wx.request({
       url: `https://api.scryfall.com/cards/search?q=t:${searchName}%20is:token%20-s:fnm&unique=art&order=released`,
+      method: 'GET',
       success: res => {
+        console.log('CODEBUDDY_DEBUG token search response status=', res.statusCode)
         if (res.data && res.data.data) {
           const results = res.data.data.slice(0, 9).map(card => ({
             name: card.name,
