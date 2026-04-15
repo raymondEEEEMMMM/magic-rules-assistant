@@ -72,6 +72,36 @@
     <view class="counter-arrow">›</view>
   </view>
 
+  <!-- 骰子 & 随机入口 -->
+  <view class="dice-entry" bindtap="goToDice">
+    <view class="dice-icon">🎲</view>
+    <view class="dice-info">
+      <text class="dice-title">骰子 & 随机</text>
+      <text class="dice-desc">掷骰子 · 随机抽卡</text>
+    </view>
+    <view class="dice-arrow">›</view>
+  </view>
+
+  <!-- Token 生成器入口 -->
+  <view class="token-entry" bindtap="goToToken">
+    <view class="token-icon">🎴</view>
+    <view class="token-info">
+      <text class="token-title">Token 生成器</text>
+      <text class="token-desc">衍生物卡片速查</text>
+    </view>
+    <view class="token-arrow">›</view>
+  </view>
+
+  <!-- 我的套牌入口 -->
+  <view class="deck-entry" bindtap="goToDecks">
+    <view class="deck-icon">📚</view>
+    <view class="deck-info">
+      <text class="deck-title">我的套牌</text>
+      <text class="deck-desc">导入导出 · 增删改查</text>
+    </view>
+    <view class="deck-arrow">›</view>
+  </view>
+
   <!-- 最新系列资讯 -->
   <view class="latest-sets" wx:if="{{latestSets.length > 0 && !keyword}}">
     <view class="sets-header">
