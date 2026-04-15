@@ -953,6 +953,144 @@ def parse_moxfield(url: str) -> dict:
     return {"success": True, "name": "Moxfield Deck", "cards": cards}
 
 
+# ==================== 套牌管理 API ====================
+
+@app.get("/api/deck/list")
+async def get_deck_list(request: Request):
+    """
+    获取用户套牌列表
+
+    Query参数:
+    - openid (必填): 用户 openid
+
+    返回: {"success": True, "decks": [...]}
+    """
+    openid = request.query_params.get("openid")
+    if not openid:
+        return {"success": False, "error": "openid 参数必填"}
+
+    try:
+        decks = db.get_decks_by_openid(openid)
+        return {"success": True, "decks": decks}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.post("/api/deck/add")
+async def add_deck(request: Request):
+    """
+    添加套牌
+
+    Body:
+    - openid (必填): 用户 openid
+    - name (必填): 套牌名称
+    - format: 赛制
+    - commander: 指挥官
+    - cards: 卡牌列表 [{"name": "xxx", "count": 4}, ...]
+    - totalCards: 总张数
+    - avgCMC: 平均CMC
+
+    返回: {"success": True, "deck": {...}}
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        return {"success": False, "error": "请求体必须是有效 JSON"}
+
+    openid = body.get("openid")
+    name = body.get("name")
+    if not openid or not name:
+        return {"success": False, "error": "openid 和 name 参数必填"}
+
+    try:
+        deck_id = db.add_deck(
+            openid=openid,
+            name=name,
+            format=body.get("format", "其他"),
+            commander=body.get("commander", ""),
+            cards=body.get("cards", []),
+            total_cards=body.get("totalCards", 0),
+            avg_cmc=body.get("avgCMC", "0.00")
+        )
+        return {"success": True, "deck_id": deck_id}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.delete("/api/deck/{deck_id}")
+async def delete_deck(deck_id: str, request: Request):
+    """
+    删除套牌
+
+    Path参数:
+    - deck_id: 套牌 ID
+
+    Query参数:
+    - openid (必填): 用户 openid (用于验证所有权)
+
+    返回: {"success": True}
+    """
+    openid = request.query_params.get("openid")
+    if not openid:
+        return {"success": False, "error": "openid 参数必填"}
+
+    try:
+        success = db.delete_deck(deck_id, openid)
+        if success:
+            return {"success": True}
+        else:
+            return {"success": False, "error": "删除失败或无权限"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.put("/api/deck/{deck_id}")
+async def update_deck(deck_id: str, request: Request):
+    """
+    更新套牌
+
+    Path参数:
+    - deck_id: 套牌 ID
+
+    Body:
+    - openid (必填): 用户 openid (用于验证所有权)
+    - name: 套牌名称
+    - format: 赛制
+    - commander: 指挥官
+    - cards: 卡牌列表
+    - totalCards: 总张数
+    - avgCMC: 平均CMC
+
+    返回: {"success": True}
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        return {"success": False, "error": "请求体必须是有效 JSON"}
+
+    openid = body.get("openid")
+    if not openid:
+        return {"success": False, "error": "openid 参数必填"}
+
+    try:
+        success = db.update_deck(
+            deck_id=deck_id,
+            openid=openid,
+            name=body.get("name"),
+            format=body.get("format"),
+            commander=body.get("commander"),
+            cards=body.get("cards"),
+            total_cards=body.get("totalCards"),
+            avg_cmc=body.get("avgCMC")
+        )
+        if success:
+            return {"success": True}
+        else:
+            return {"success": False, "error": "更新失败或无权限"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host=Config.API_HOST, port=Config.API_PORT)
+    uvicorn.run(app, host=Config.API_PORT, port=Config.API_PORT)

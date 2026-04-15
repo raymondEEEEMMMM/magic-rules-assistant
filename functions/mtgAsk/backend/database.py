@@ -511,3 +511,112 @@ class RuleDatabase:
         except Exception as e:
             print(f"Database write error: {e}")
             return False
+
+    # ==================== 套牌管理 ====================
+
+    def ensure_decks_table(self) -> bool:
+        """确保 decks 表存在"""
+        sql = """CREATE TABLE IF NOT EXISTS decks (
+            id              INT AUTO_INCREMENT PRIMARY KEY,
+            openid          VARCHAR(128) NOT NULL COMMENT '微信 openid',
+            name            VARCHAR(255) NOT NULL COMMENT '套牌名称',
+            format          VARCHAR(64) DEFAULT '其他' COMMENT '赛制',
+            commander       VARCHAR(255) DEFAULT '' COMMENT '指挥官',
+            cards           TEXT COMMENT '卡牌列表 JSON',
+            total_cards     INT UNSIGNED DEFAULT 0 COMMENT '总张数',
+            avg_cmc         VARCHAR(10) DEFAULT '0.00' COMMENT '平均CMC',
+            created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_openid (openid),
+            INDEX idx_created (created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"""
+        return self._execute_write_sql(sql)
+
+    def get_decks_by_openid(self, openid: str) -> List[Dict]:
+        """获取用户的所有套牌"""
+        self.ensure_decks_table()
+        sql = "SELECT * FROM decks WHERE openid = %s ORDER BY created_at DESC"
+        results = self._execute_read_sql_with_params(sql, (openid,))
+        # 解析 cards JSON
+        for deck in results:
+            if deck.get('cards') and isinstance(deck['cards'], str):
+                try:
+                    import json
+                    deck['cards'] = json.loads(deck['cards'])
+                except:
+                    deck['cards'] = []
+        return results
+
+    def add_deck(self, openid: str, name: str, format: str = '其他', commander: str = '',
+                 cards: List = None, total_cards: int = 0, avg_cmc: str = '0.00') -> int:
+        """添加套牌，返回新记录的 ID"""
+        self.ensure_decks_table()
+        import json
+        cards_json = json.dumps(cards or [], ensure_ascii=False)
+        sql = """INSERT INTO decks (openid, name, format, commander, cards, total_cards, avg_cmc, _openid)
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
+        # 使用基础 _execute_write_sql_with_params 获取 last insert id
+        conn = None
+        try:
+            if not self.mysql_password:
+                return 0
+            import pymysql
+            conn = pymysql.connect(
+                host=self.mysql_host,
+                port=self.mysql_port,
+                user=self.mysql_user,
+                password=self.mysql_password,
+                database=self.mysql_database,
+                charset='utf8mb4',
+                use_unicode=True,
+                connect_timeout=10
+            )
+            with conn.cursor() as cursor:
+                cursor.execute(sql, (openid, name, format, commander, cards_json, total_cards, avg_cmc, ''))
+                conn.commit()
+                return cursor.lastrowid
+        except Exception as e:
+            print(f"Database add_deck error: {e}")
+            return 0
+        finally:
+            if conn:
+                conn.close()
+
+    def delete_deck(self, deck_id: str, openid: str) -> bool:
+        """删除套牌（仅能删除自己的套牌）"""
+        sql = "DELETE FROM decks WHERE id = %s AND openid = %s"
+        return self._execute_write_sql_with_params(sql, (deck_id, openid))
+
+    def update_deck(self, deck_id: str, openid: str, name: str = None, format: str = None,
+                    commander: str = None, cards: List = None, total_cards: int = None,
+                    avg_cmc: str = None) -> bool:
+        """更新套牌（仅能更新自己的套牌）"""
+        import json
+        updates = []
+        params = []
+
+        if name is not None:
+            updates.append("name = %s")
+            params.append(name)
+        if format is not None:
+            updates.append("format = %s")
+            params.append(format)
+        if commander is not None:
+            updates.append("commander = %s")
+            params.append(commander)
+        if cards is not None:
+            updates.append("cards = %s")
+            params.append(json.dumps(cards, ensure_ascii=False))
+        if total_cards is not None:
+            updates.append("total_cards = %s")
+            params.append(total_cards)
+        if avg_cmc is not None:
+            updates.append("avg_cmc = %s")
+            params.append(avg_cmc)
+
+        if not updates:
+            return False
+
+        params.extend([deck_id, openid])
+        sql = f"UPDATE decks SET {', '.join(updates)} WHERE id = %s AND openid = %s"
+        return self._execute_write_sql_with_params(sql, tuple(params))

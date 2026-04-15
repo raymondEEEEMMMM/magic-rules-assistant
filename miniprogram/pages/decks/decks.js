@@ -253,15 +253,30 @@ Page({
     this.setData({ importText: e.detail.value })
   },
 
-  // 加载套牌列表（从云数据库）
+  // 加载套牌列表（通过云函数API）
   loadDecks() {
     console.log('CODEBUDDY_DEBUG loadDecks called')
-    const db = app.globalData.db
-    db.collection('decks').orderBy('createdAt', 'desc').get().then(res => {
-      const decks = res.data || []
-      // 本地也缓存一份
-      wx.setStorageSync('mtg_decks', decks)
-      this.setData({ decks })
+    const openid = app.globalData.userInfo?.openid || wx.getStorageSync('user_openid') || ''
+    wx.cloud.callFunction({
+      name: 'mtgAsk',
+      data: {
+        httpMethod: 'GET',
+        path: '/api/deck/list',
+        queryString: `openid=${encodeURIComponent(openid)}`
+      }
+    }).then(res => {
+      const result = res.result
+      if (result && result.success) {
+        const decks = result.decks || []
+        // 本地也缓存一份
+        wx.setStorageSync('mtg_decks', decks)
+        this.setData({ decks })
+      } else {
+        console.error('loadDecks error', result?.error)
+        // 失败时读本地
+        const decks = wx.getStorageSync('mtg_decks') || []
+        this.setData({ decks })
+      }
     }).catch(err => {
       console.error('loadDecks error', err)
       // 失败时读本地
@@ -270,16 +285,38 @@ Page({
     })
   },
 
-  // 保存单条套牌到云数据库
+  // 保存单条套牌到云函数API
   saveDeckToCloud(deck) {
-    const db = app.globalData.db
-    return db.collection('decks').add({ data: deck })
+    const openid = app.globalData.userInfo?.openid || wx.getStorageSync('user_openid') || ''
+    return wx.cloud.callFunction({
+      name: 'mtgAsk',
+      data: {
+        httpMethod: 'POST',
+        path: '/api/deck/add',
+        body: JSON.stringify({
+          openid,
+          name: deck.name,
+          format: deck.format,
+          commander: deck.commander,
+          cards: deck.cards,
+          totalCards: deck.totalCards,
+          avgCMC: deck.avgCMC
+        })
+      }
+    })
   },
 
-  // 从云数据库删除
+  // 从云函数API删除
   deleteDeckFromCloud(id) {
-    const db = app.globalData.db
-    return db.collection('decks').doc(id).remove()
+    const openid = app.globalData.userInfo?.openid || wx.getStorageSync('user_openid') || ''
+    return wx.cloud.callFunction({
+      name: 'mtgAsk',
+      data: {
+        httpMethod: 'DELETE',
+        path: `/api/deck/${id}`,
+        queryString: `openid=${encodeURIComponent(openid)}`
+      }
+    })
   },
 
   // 打开导入弹窗
@@ -445,13 +482,18 @@ Page({
 
     wx.showLoading({ title: '保存中...', mask: true })
     this.saveDeckToCloud(newDeck).then(res => {
-      newDeck._id = res._id
-      const decks = [newDeck, ...this.data.decks]
-      wx.setStorageSync('mtg_decks', decks)
-      this.setData({ decks })
-      this.closeImport()
-      wx.hideLoading()
-      wx.showToast({ title: '导入成功', icon: 'success' })
+      const result = res.result
+      if (result && result.success) {
+        newDeck._id = result.deck_id
+        const decks = [newDeck, ...this.data.decks]
+        wx.setStorageSync('mtg_decks', decks)
+        this.setData({ decks })
+        this.closeImport()
+        wx.hideLoading()
+        wx.showToast({ title: '导入成功', icon: 'success' })
+      } else {
+        throw new Error(result?.error || '保存失败')
+      }
     }).catch(err => {
       wx.hideLoading()
       console.error('saveDeckToCloud error', err)
@@ -461,25 +503,46 @@ Page({
 
   // 覆盖同名套牌
   async overwriteDeck(nameToOverwrite, deckData) {
-    const db = app.globalData.db
     wx.showLoading({ title: '覆盖中...', mask: true })
     try {
+      const openid = app.globalData.userInfo?.openid || wx.getStorageSync('user_openid') || ''
       // 先查询要删除的套牌
-      const res = await db.collection('decks').where({ name: nameToOverwrite }).get()
-      if (res.data && res.data.length > 0) {
-        const oldDeck = res.data[0]
-        await db.collection('decks').doc(oldDeck._id).remove()
+      const listRes = await wx.cloud.callFunction({
+        name: 'mtgAsk',
+        data: {
+          httpMethod: 'GET',
+          path: '/api/deck/list',
+          queryString: `openid=${encodeURIComponent(openid)}`
+        }
+      })
+      if (listRes.result && listRes.result.success) {
+        const decks = listRes.result.decks || []
+        const oldDeck = decks.find(d => d.name === nameToOverwrite)
+        if (oldDeck && oldDeck.id) {
+          await wx.cloud.callFunction({
+            name: 'mtgAsk',
+            data: {
+              httpMethod: 'DELETE',
+              path: `/api/deck/${oldDeck.id}`,
+              queryString: `openid=${encodeURIComponent(openid)}`
+            }
+          })
+        }
       }
       // 保存新套牌
       deckData.createdAt = new Date().toISOString()
       const saveRes = await this.saveDeckToCloud(deckData)
-      deckData._id = saveRes._id
-      const decks = [deckData, ...this.data.decks.filter(d => d.name !== nameToOverwrite)]
-      wx.setStorageSync('mtg_decks', decks)
-      this.setData({ decks })
-      this.closeImport()
-      wx.hideLoading()
-      wx.showToast({ title: '已覆盖', icon: 'success' })
+      if (saveRes.result && saveRes.result.success) {
+        deckData._id = saveRes.result.deck_id
+        const updatedDecks = [deckData, ...this.data.decks.filter(d => d.name !== nameToOverwrite)]
+        wx.setStorageSync('mtg_decks', updatedDecks)
+        this.setData({ decks: updatedDecks })
+        this.closeImport()
+        wx.hideLoading()
+        wx.showToast({ title: '已覆盖', icon: 'success' })
+      } else {
+        throw new Error(saveRes.result?.error || '保存失败')
+      }
     } catch (e) {
       wx.hideLoading()
       console.error('overwriteDeck error', e)
