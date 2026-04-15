@@ -251,7 +251,7 @@ Page({
       return
     }
 
-    const { cards, commander } = parseDeckText(importText, editingCardFormat)
+    const { cards, errors, commander } = parseDeckText(importText, editingCardFormat)
 
     if (cards.length === 0) {
       wx.showToast({ title: '未识别到有效卡牌', icon: 'none' })
@@ -519,11 +519,6 @@ Page({
     wx.navigateTo({
       url: `/pages/deck-detail/deck-detail?deck=${deckStr}`
     })
-  },
-
-  // 关闭预览
-  closeDeckPreview() {
-    this.setData({ showDeckModal: false, selectedDeck: null })
   },
 
   // 删除套牌
