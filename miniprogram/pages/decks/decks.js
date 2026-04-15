@@ -104,12 +104,38 @@ function calcTotalCards(cards) {
 // 批量查询 Scryfall 获取 CMC（用于 AVG CMC 计算）
 // 每次最多 75 张，分批查询
 async function fetchCMCFromScryfall(cards) {
-  const identifiers = cards.map(c => ({ name: c.name }))
-  const results = {}
+  // 尝试从本地缓存读取
+  const cacheKey = 'mtg_cmc_cache'
+  const cache = wx.getStorageSync(cacheKey) || {}
+  const now = Date.now()
+  const CACHE_TTL = 7 * 24 * 60 * 60 * 1000 // 7天
 
+  // 清理过期缓存
+  for (const k in cache) {
+    if (now - cache[k].ts > CACHE_TTL) delete cache[k]
+  }
+
+  const results = {}
+  const toFetch = []
+  const nameToCardName = {} // 映射: 英文名 -> 原始名(可能是中文)
+
+  for (const card of cards) {
+    const enName = translateToEn(card.name)
+    nameToCardName[enName.toLowerCase()] = card.name
+
+    // 先从缓存读取
+    const cached = cache[enName.toLowerCase()]
+    if (cached && now - cached.ts < CACHE_TTL) {
+      results[enName.toLowerCase()] = cached.cmc
+    } else {
+      toFetch.push({ name: enName })
+    }
+  }
+
+  // 批量获取缺失的 CMC
   const chunkSize = 75
-  for (let i = 0; i < identifiers.length; i += chunkSize) {
-    const chunk = identifiers.slice(i, i + chunkSize)
+  for (let i = 0; i < toFetch.length; i += chunkSize) {
+    const chunk = toFetch.slice(i, i + chunkSize)
     try {
       const resp = await wx.request({
         url: 'https://api.scryfall.com/cards/collection',
@@ -122,14 +148,48 @@ async function fetchCMCFromScryfall(cards) {
       if (data && data.data) {
         for (const card of data.data) {
           const key = card.name.toLowerCase()
-          results[key] = card.cmc || 0
+          const cmc = card.cmc || 0
+          results[key] = cmc
+          // 更新缓存
+          cache[key] = { cmc, ts: now }
         }
       }
     } catch (e) {
       console.error('Scryfall batch query failed', e)
     }
   }
+
+  // 保存缓存
+  wx.setStorageSync(cacheKey, cache)
   return results
+}
+
+// 使用 MTGCH API 翻译中文卡名为英文
+async function translateNameViaMTGCH(cnName) {
+  if (!cnName || cnName === translateToEn(cnName)) {
+    return cnName // 已经是英文或找不到
+  }
+
+  try {
+    const res = await wx.cloud.callFunction({
+      name: 'mtgAsk',
+      data: {
+        httpMethod: 'GET',
+        path: '/api/mtgch/autocomplete',
+        queryString: `q=${encodeURIComponent(cnName)}&size=1`
+      }
+    })
+    const result = res.result
+    if (result && result.items && result.items.length > 0) {
+      const enName = result.items[0].name_en || result.items[0].name
+      if (enName && enName !== cnName) {
+        return enName
+      }
+    }
+  } catch (e) {
+    console.error('MTGCH translate failed', e)
+  }
+  return cnName
 }
 
 // 计算 AVG CMC

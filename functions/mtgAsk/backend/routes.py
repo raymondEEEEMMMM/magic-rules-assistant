@@ -719,16 +719,57 @@ async def admin_agent_pool_stats():
 # ==================== 套牌 API ====================
 
 import httpx
+import time
+
+# 简单的内存缓存 (key: card_name_lower, value: (cmc, timestamp))
+_cmc_cache: dict[str, tuple[float, float]] = {}
+_CACHE_TTL = 7 * 24 * 60 * 60  # 7天过期
+_LAST_REQUEST_TIME = 0.0
+_MIN_REQUEST_INTERVAL = 0.1  # 最小请求间隔 100ms (10 req/s)
+
+
+def _clean_expired_cache():
+    """清理过期缓存"""
+    global _cmc_cache
+    now = time.time()
+    expired = [k for k, v in _cmc_cache.items() if now - v[1] > _CACHE_TTL]
+    for k in expired:
+        del _cmc_cache[k]
+
+
+def _rate_limit():
+    """简单的速率限制"""
+    global _LAST_REQUEST_TIME
+    now = time.time()
+    elapsed = now - _LAST_REQUEST_TIME
+    if elapsed < _MIN_REQUEST_INTERVAL:
+        time.sleep(_MIN_REQUEST_INTERVAL - elapsed)
+    _LAST_REQUEST_TIME = time.time()
 
 
 async def fetch_cmc_batch(names: list[str]) -> dict[str, float]:
-    """批量查询 Scryfall 获取 CMC"""
+    """批量查询 Scryfall 获取 CMC（带缓存和限流）"""
+    _clean_expired_cache()
+
     results = {}
+    to_fetch = []
+
+    for name in names:
+        key = name.lower()
+        if key in _cmc_cache:
+            results[key] = _cmc_cache[key][0]
+        else:
+            to_fetch.append(name)
+
+    if not to_fetch:
+        return results
+
     chunk_size = 75
-    for i in range(0, len(names), chunk_size):
-        chunk = names[i:i + chunk_size]
+    for i in range(0, len(to_fetch), chunk_size):
+        chunk = to_fetch[i:i + chunk_size]
         identifiers = [{"name": n} for n in chunk]
         try:
+            _rate_limit()
             async with httpx.AsyncClient(timeout=30.0) as client:
                 resp = await client.post(
                     "https://api.scryfall.com/cards/collection",
@@ -736,12 +777,31 @@ async def fetch_cmc_batch(names: list[str]) -> dict[str, float]:
                 )
                 data = resp.json()
                 if data.get("data"):
+                    now = time.time()
                     for card in data["data"]:
                         key = card.get("name", "").lower()
-                        results[key] = card.get("cmc") or 0
+                        cmc = card.get("cmc") or 0
+                        results[key] = cmc
+                        _cmc_cache[key] = (cmc, now)
         except Exception as e:
             print(f"Scryfall batch query failed: {e}")
     return results
+
+
+async def translate_name_to_en(cn_name: str) -> str:
+    """使用 MTGCH API 将中文卡名翻译为英文"""
+    try:
+        from services.mtgch_api import MTGCHAPIClient
+        client = MTGCHAPIClient(timeout=10)
+        result = client.autocomplete(cn_name, size=1)
+        client.close()
+        if result.get("items"):
+            item = result["items"][0]
+            # 优先使用 name_en，否则使用 name
+            return item.get("name_en") or item.get("name") or cn_name
+    except Exception as e:
+        print(f"MTGCH translate failed for {cn_name}: {e}")
+    return cn_name
 
 
 @app.post("/api/deck/cmc")
@@ -757,13 +817,25 @@ async def calc_deck_cmc(request: Request):
     if not cards:
         return {"avgCMC": "0.00", "cmcMap": {}}
 
-    names = [c["name"] for c in cards]
+    # 翻译中文卡名为英文
+    names = []
+    for c in cards:
+        name = c["name"]
+        # 简单的中文检测 (Unicode 范围)
+        if any('\u4e00' <= ch <= '\u9fff' for ch in name):
+            # 使用 MTGCH API 翻译
+            en_name = await translate_name_to_en(name)
+            names.append(en_name)
+        else:
+            names.append(name)
+
     cmc_map = await fetch_cmc_batch(names)
 
     total_cmc = 0.0
     total_cards = 0
-    for card in cards:
-        mv = cmc_map.get(card["name"].lower(), 0)
+    for i, card in enumerate(cards):
+        name = names[i]
+        mv = cmc_map.get(name.lower(), 0)
         total_cmc += mv * card["count"]
         total_cards += card["count"]
 
