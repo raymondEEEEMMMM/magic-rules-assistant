@@ -21,19 +21,11 @@
         <view class="picker-value">{{currentFormatName}}</view>
       </picker>
     </view>
-    <view class="coin-btn" bindtap="flipCoin" wx:if="{{playerCount === 2}}">
-      <text>🎲 掷硬币</text>
-    </view>
   </view>
 
   <!-- 赛制信息 -->
   <view class="format-info">
     <text class="format-desc">{{playerCount}}人游戏 · 起始生命 {{initialLife}}</text>
-  </view>
-
-  <!-- 硬币结果 -->
-  <view class="coin-result" wx:if="{{coinResult && playerCount === 2}}">
-    <text class="coin-text {{coinAnimating ? 'coin-flip' : ''}}">{{coinResult}}</text>
   </view>
 
   <!-- 玩家区域 -->

@@ -88,35 +88,6 @@ page {
   font-weight: bold;
 }
 
-.coin-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 16rpx 32rpx;
-  border-radius: 50rpx;
-  font-size: 28rpx;
-  color: #fff;
-}
-
-/* 硬币结果 */
-.coin-result {
-  text-align: center;
-  padding: 40rpx;
-}
-
-.coin-text {
-  font-size: 48rpx;
-  font-weight: bold;
-  color: #ffd700;
-}
-
-.coin-flip {
-  animation: flip 0.1s infinite;
-}
-
-@keyframes flip {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
 /* 玩家区域 */
 .players-area {
   flex: 1;

@@ -881,6 +881,24 @@ def parse_mtggoldfish(url: str):
     name_match = re.search(r'<h1[^>]*class="deck-view-title"[^>]*>([^<]+)', html)
     name = name_match.group(1).strip() if name_match else ""
 
+    # 提取 Format（赛制）
+    format_match = re.search(r'Format:\s*(\w+)', html)
+    mtg_format = format_match.group(1).strip() if format_match else ''
+    # 映射到中文赛制名称
+    format_map = {
+        'Standard': '标准',
+        'Modern': '摩登',
+        'Legacy': 'Legacy',
+        'Vintage': 'Vintage',
+        'Pauper': 'Pauper',
+        'Commander': '指挥官',
+        'Pioneer': '先驱',
+        'Historic': 'Historic',
+        'Explorer': 'Explorer',
+        'Gladiator': 'Gladiator',
+    }
+    format = format_map.get(mtg_format, mtg_format or '标准')
+
     # MTGGoldfish 把套牌藏在隐藏字段 deck_input[deck] 里
     # 格式: "2 CardName\n4 CardName\n--\n2 SideboardCard"
     deck_input_match = re.search(r'name="deck_input\[deck\]"[^>]*value="([^"]+)"', html)
@@ -919,7 +937,7 @@ def parse_mtggoldfish(url: str):
     if not cards:
         return {"success": False, "error": "未能解析到套牌列表"}
 
-    return {"success": True, "name": name, "cards": cards}
+    return {"success": True, "name": name, "cards": cards, "format": format}
 
 
 def parse_moxfield(url: str) -> dict:

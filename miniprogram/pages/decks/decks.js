@@ -749,11 +749,16 @@ Page({
       wx.hideLoading()
       const result = res.result
       if (result && result.success && result.cards) {
-        this.setData({
+        const setData = {
           importText: result.cards.map(c => `${c.count} ${c.name}`).join('\n'),
           editingName: result.name || '',
           importUrl: ''
-        })
+        }
+        // URL 导入时回填 format（手动导入时 format 用默认值）
+        if (result.format) {
+          setData.editingFormat = result.format
+        }
+        this.setData(setData)
         wx.showToast({ title: '导入成功', icon: 'success' })
       } else {
         wx.showToast({ title: result.error || '解析失败', icon: 'none' })

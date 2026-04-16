@@ -13,8 +13,6 @@ Page({
     playerCount: 2,
     initialLife: 20,
     players: [],
-    coinResult: null,
-    coinAnimating: false,
     isLightTheme: true,
     // Mana tracking (solo mode)
     manaColors: ['W', 'U', 'B', 'R', 'G', 'C'],
@@ -93,42 +91,10 @@ Page({
       success: (res) => {
         if (res.confirm) {
           this.initPlayers()
-          this.setData({ coinResult: null })
           wx.showToast({ title: '已重置', icon: 'success' })
         }
       }
     })
-  },
-
-  // 投掷硬币
-  flipCoin() {
-    if (this.data.coinAnimating) return
-
-    this.setData({ coinAnimating: true, coinResult: null })
-
-    // 模拟硬币翻转动画
-    let flips = 0
-    const maxFlips = 10
-    const flipInterval = setInterval(() => {
-      flips++
-      // 随机显示正面或反面
-      const result = Math.random() > 0.5 ? '正面' : '反面'
-      this.setData({ coinResult: result })
-
-      if (flips >= maxFlips) {
-        clearInterval(flipInterval)
-        // 最终结果
-        const finalResult = Math.random() > 0.5 ? '正面' : '反面'
-        this.setData({ coinResult: finalResult, coinAnimating: false })
-
-        // 显示最终结果
-        wx.showToast({
-          title: `硬币: ${finalResult}`,
-          icon: 'none',
-          duration: 2000
-        })
-      }
-    }, 100)
   },
 
   // 返回
