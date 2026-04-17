@@ -718,8 +718,15 @@ def main(event, context):
             # 去掉 URL 中的锚点 (#paper 等)
             url = url.split('#')[0]
 
+            # 验证 URL 域名，防止 SSRF 攻击
+            from urllib.parse import urlparse
+            parsed = urlparse(url)
+            allowed_hosts = ['www.mtggoldfish.com', 'mtggoldfish.com']
+            if parsed.netloc.lower() not in allowed_hosts:
+                return {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': json.dumps({'success': False, 'error': '不支持该 URL 类型'})}
+
             try:
-                if 'mtggoldfish' in url.lower():
+                if parsed.netloc.lower() in allowed_hosts:
                     # MTGGoldfish 解析
                     resp = requests.get(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', 'Accept': 'text/html'}, timeout=30)
                     resp.raise_for_status()
