@@ -44,7 +44,7 @@ Page({
   },
 
   // 返回
-  goBack() {
+  goToIndex() {
     console.log('CODEBUDDY_DEBUG search goBack called')
     wx.navigateBack({
       success: () => console.log('CODEBUDDY_DEBUG search goBack success'),

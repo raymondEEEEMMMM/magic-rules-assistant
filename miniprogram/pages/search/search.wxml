@@ -3,7 +3,7 @@
   <!-- 导航栏 -->
   <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
     <view class="nav-left">
-      <view class="back-btn" bindtap="goBack">←</view>
+      <view class="back-btn" bindtap="goToIndex">🏠</view>
     </view>
     <view class="nav-title">
       <text>{{setName || '搜索'}}</text>

@@ -1151,6 +1151,98 @@ def main(event, context):
                     'body': json.dumps({'success': False, 'error': '套牌不存在或无权更新'})
                 }
 
+        elif path == '/api/promos' and http_method == 'GET':
+            # Promo 卡查询
+            import requests
+            from datetime import datetime
+
+            # 获取方式中英文映射表
+            acquisition_method_map = {
+                'promopack': '补充包促销',
+                'stamped': '印戳卡',
+                'storechampionship': '店冠军赛',
+                'standardshowdown': '标准对决',
+                'wizardsplaynetwork': 'WPN促销',
+                'bundle': '捆绑包促销',
+                'mediainsert': '杂志附赠卡',
+                'poster': '海报促销',
+                'universesbeyond': '宇宙系列',
+                'sourcematerial': '素材卡',
+                'ffvii': '最终幻想VII',
+            }
+
+            # 支持 year 参数筛选，默认当前年份
+            year = query_params.get('year', datetime.today().strftime('%Y'))
+
+            all_cards = []
+            seen = {}  # 用于去重 (name + set)
+
+            def fetch_with_retry(url, max_retries=3):
+                for attempt in range(max_retries):
+                    try:
+                        resp = requests.get(url, timeout=30, headers={
+                            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+                            'Accept': 'application/json'
+                        })
+                        return resp.json()
+                    except requests.exceptions.RequestException as e:
+                        if attempt == max_retries - 1:
+                            raise
+                        import time
+                        time.sleep(1)
+
+            # 查询 promo 卡 (排除 MTGO)
+            page = 1
+            while True:
+                query = f'is:promo year:{year}'
+                url = f"https://api.scryfall.com/cards/search?q={query}&page={page}"
+                result = fetch_with_retry(url)
+                cards = result.get('data', [])
+                for card in cards:
+                    # 排除 Magic Online Promos
+                    if card.get('digital', False):
+                        continue
+                    # 排除重复卡 (按 name + set_code 去重，保留第一个)
+                    key = (card.get('name', '').lower(), card.get('set', '').lower())
+                    if key in seen:
+                        continue
+                    seen[key] = True
+
+                    # 获取主要获取方式
+                    promo_types = card.get('promo_types', [])
+                    acquisition = promo_types[0] if promo_types else ''
+                    acquisition_cn = acquisition_method_map.get(acquisition, acquisition)
+
+                    all_cards.append({
+                        'name': card.get('name', ''),
+                        'set_name': card.get('set_name', ''),
+                        'set_code': card.get('set', ''),
+                        'released_at': card.get('released_at', ''),
+                        'image_url': card.get('image_uris', {}).get('border_crop', '') or card.get('image_uris', {}).get('normal', ''),
+                        'type_line': card.get('type_line', ''),
+                        'colors': card.get('colors', []),
+                        'rarity': card.get('rarity', ''),
+                        'acquisition_method': acquisition,
+                        'acquisition_method_cn': acquisition_cn,
+                        'security_stamp': card.get('security_stamp', ''),
+                    })
+
+                if not result.get('has_more'):
+                    break
+                page += 1
+                if page > 10:  # 防止过多请求
+                    break
+
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'success': True,
+                    'total': len(all_cards),
+                    'cards': all_cards
+                }, ensure_ascii=False)
+            }
+
         else:
             # 未知路径
             return {
@@ -1174,7 +1266,8 @@ def main(event, context):
                         '/api/admin/cleanup-sessions',
                         '/api/admin/agent-pool/stats',
                         '/api/admin/import-rules',
-                        '/api/feedback'
+                        '/api/feedback',
+                        '/api/promos'
                     ]
                 })
             }

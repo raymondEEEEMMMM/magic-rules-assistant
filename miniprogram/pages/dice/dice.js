@@ -36,8 +36,8 @@ Page({
   },
 
   // 返回
-  goBack() {
-    wx.navigateBack()
+  goToIndex() {
+    wx.redirectTo({ url: '/pages/index/index' })
   },
 
   // 选择骰子类型

@@ -234,8 +234,8 @@ Page({
     })
   },
 
-  goBack() {
-    wx.navigateBack()
+  goToIndex() {
+    wx.redirectTo({ url: '/pages/index/index' })
   },
 
   // 计算Odds

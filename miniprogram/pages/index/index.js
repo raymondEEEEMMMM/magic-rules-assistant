@@ -311,6 +311,16 @@ Page({
     })
   },
 
+  // 跳转 Promo 卡快讯页面
+  goToPromos() {
+    console.log('CODEBUDDY_DEBUG index goToPromos called url=/pages/promos/promos')
+    wx.navigateTo({
+      url: '/pages/promos/promos',
+      success: () => console.log('CODEBUDDY_DEBUG index goToPromos success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG index goToPromos fail err=', err)
+    })
+  },
+
   // 跳转 Secret Lair 专区页面
   goToSldCards() {
     console.log('CODEBUDDY_DEBUG index goToSldCards called url=/pages/sldcards/sldcards')

@@ -29,7 +29,7 @@ Page({
   },
 
   // 返回
-  goBack() {
+  goToIndex() {
     wx.redirectTo({
       url: '/pages/index/index'
     })

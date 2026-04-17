@@ -88,7 +88,7 @@ Page({
           selectedType: 'suggestion'
         })
         setTimeout(() => {
-          wx.navigateBack()
+          wx.redirectTo({ url: '/pages/index/index' })
         }, 1500)
       } else {
         wx.showToast({ title: res.message || '提交失败', icon: 'none' })
@@ -102,7 +102,7 @@ Page({
   },
 
   // 返回
-  goBack() {
-    wx.navigateBack()
+  goToIndex() {
+    wx.redirectTo({ url: '/pages/index/index' })
   }
 })

@@ -3,7 +3,7 @@
   <!-- 导航栏 -->
   <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
     <view class="nav-left">
-      <view class="back-btn" bindtap="goBack">←</view>
+      <view class="back-btn" bindtap="goToIndex">🏠</view>
     </view>
     <view class="nav-title">
       <text>卡牌查询</text>
@@ -125,6 +125,10 @@
       <view class="info-row" wx:if="{{currentCard.setName}}">
         <text class="info-label">所属系列</text>
         <text class="info-value">{{currentCard.setName}}</text>
+      </view>
+      <view class="info-row" wx:if="{{currentCard.acquisition_method_cn}}">
+        <text class="info-label">获取方式</text>
+        <text class="info-value">{{currentCard.acquisition_method_cn}}</text>
       </view>
     </view>
 

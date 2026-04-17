@@ -102,8 +102,18 @@
     </scroll-view>
   </view>
 
+  <!-- Promo 卡快讯入口 -->
+  <view class="promo-entry" wx:if="{{!keyword}}" bindtap="goToPromos">
+    <view class="promo-icon">🎴</view>
+    <view class="promo-info">
+      <text class="promo-title">Promo 卡快讯</text>
+      <text class="promo-desc">最新促销卡牌 · 获取方式</text>
+    </view>
+    <view class="promo-arrow">›</view>
+  </view>
+
   <!-- 我的套牌入口 -->
-  <view class="deck-entry" wx:if="{{!keyword}}" bindtap="goToDecks">
+  <view class="deck-entry" wx:if="{{false && !keyword}}" bindtap="goToDecks">
     <view class="deck-icon">📚</view>
     <view class="deck-info">
       <text class="deck-title">我的套牌</text>

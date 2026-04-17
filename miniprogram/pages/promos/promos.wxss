@@ -1,0 +1,242 @@
+/* pages/promos/promos.wxss */
+page {
+  background-color: #16213e;
+  color: #ffffff;
+  height: 100%;
+}
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 导航栏 */
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 30rpx;
+  padding-top: calc(20rpx + env(safe-area-inset-top));
+  background: #1a1a2e;
+  border-bottom: 1rpx solid rgba(255, 215, 0, 0.15);
+}
+
+.nav-left, .nav-right {
+  min-width: 80rpx;
+}
+
+.back-btn {
+  font-size: 40rpx;
+  color: #ffd700;
+}
+
+.nav-title text {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #ffd700;
+}
+
+.nav-bar-light {
+  background: #ffffff;
+  border-bottom: 1rpx solid #e0e0e0;
+}
+
+.nav-bar-light .back-btn,
+.nav-bar-light .nav-title text {
+  color: #333333;
+}
+
+/* 年份筛选 */
+.year-filter {
+  padding: 16rpx 30rpx;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1rpx solid rgba(255, 215, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.filter-toggle {
+  font-size: 36rpx;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 8rpx;
+}
+
+.year-value {
+  font-size: 28rpx;
+  color: #ffd700;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 12rpx 32rpx;
+  border-radius: 30rpx;
+}
+
+/* 显示筛选按钮 */
+.show-filter-btn {
+  padding: 16rpx 30rpx;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1rpx solid rgba(255, 215, 0, 0.1);
+}
+
+.show-filter-btn text {
+  font-size: 26rpx;
+  color: rgba(102, 126, 234, 0.8);
+}
+
+/* 卡牌滚动区 */
+.cards-scroll {
+  flex: 1;
+  padding: 20rpx;
+}
+
+/* 卡牌列表 */
+.cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+/* Promo 单条 */
+.promo-item {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 16rpx;
+  padding: 24rpx;
+  gap: 20rpx;
+  border: 2rpx solid rgba(255, 255, 255, 0.05);
+}
+
+.promo-item:active {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+
+.promo-item-image {
+  width: 96rpx;
+  height: 134rpx;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}
+
+.promo-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  min-width: 0;
+}
+
+.promo-item-name {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.promo-item-set {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.6);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.promo-item-date {
+  font-size: 20rpx;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* 加载更多 */
+.load-more {
+  text-align: center;
+  padding: 30rpx;
+  color: #ffd700;
+  font-size: 26rpx;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ==================== */
+/* 日间主题 (Light Mode) */
+/* ==================== */
+.container.page-light {
+  background-color: #f5f5f5;
+}
+
+.page-light .nav-bar {
+  background: #ffffff;
+  border-bottom-color: #e0e0e0;
+}
+
+.page-light .nav-title text {
+  color: #333333;
+}
+
+.page-light .back-btn {
+  color: #667eea;
+}
+
+.page-light .year-filter {
+  background: rgba(0, 0, 0, 0.03);
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+.page-light .year-value {
+  color: #667eea;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.page-light .show-filter-btn text {
+  color: #667eea;
+}
+
+.page-light .filter-toggle {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.page-light .cards-scroll {
+  background: #f5f5f5;
+}
+
+.page-light .promo-item {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+}
+
+.page-light .promo-item-name {
+  color: #333;
+}
+
+.page-light .promo-item-set {
+  color: #999;
+}
+
+.page-light .promo-item-date {
+  color: #bbb;
+}
+
+.page-light .load-more {
+  color: #667eea;
+}

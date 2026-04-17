@@ -16,7 +16,8 @@
     "pages/feedback/feedback",
     "pages/search/search",
     "pages/setcards/setcards",
-    "pages/sldcards/sldcards"
+    "pages/sldcards/sldcards",
+    "pages/promos/promos"
   ],
   "window": {
     "backgroundTextStyle": "light",

@@ -241,8 +241,8 @@ Page({
     this.loadDecks()
   },
 
-  goBack() {
-    wx.navigateBack()
+  goToIndex() {
+    wx.redirectTo({ url: '/pages/index/index' })
   },
 
   // 阻止事件冒泡（阻止弹窗关闭）

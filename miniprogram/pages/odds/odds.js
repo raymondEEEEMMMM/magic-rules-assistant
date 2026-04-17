@@ -215,7 +215,7 @@ Page({
     wx.navigateTo({ url: '/pages/decks/decks' })
   },
 
-  goBack() {
-    wx.navigateBack()
+  goToIndex() {
+    wx.redirectTo({ url: '/pages/index/index' })
   }
 })

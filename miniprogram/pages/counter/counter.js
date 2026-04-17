@@ -98,8 +98,8 @@ Page({
   },
 
   // 返回
-  goBack() {
-    wx.navigateBack()
+  goToIndex() {
+    wx.redirectTo({ url: '/pages/index/index' })
   },
 
   // 切换 Mana Bar 显示

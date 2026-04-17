@@ -37,8 +37,8 @@ Page({
   },
 
   // 返回
-  goBack() {
-    wx.navigateBack()
+  goToIndex() {
+    wx.redirectTo({ url: '/pages/index/index' })
   },
 
   // 初始化 openid

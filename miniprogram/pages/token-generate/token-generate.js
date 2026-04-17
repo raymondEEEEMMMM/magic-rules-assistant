@@ -26,8 +26,8 @@ Page({
     this.setData({ isLightTheme: app.globalData.isLightTheme })
   },
 
-  goBack() {
-    wx.navigateBack()
+  goToIndex() {
+    wx.redirectTo({ url: '/pages/index/index' })
   },
 
   minusCount() {
