@@ -268,6 +268,62 @@ class TestMTGCHAPIClient:
         with MTGCHAPIClient() as client:
             assert client is not None
 
+    def test_search_cards_returns_has_more_and_total(self, mock_session):
+        """测试搜索卡牌返回 has_more 和 total_cards 用于分页判断"""
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "items": [
+                {"name": "闪电击", "name_en": "Lightning Bolt"}
+            ] * 5,
+            "total_cards": 20,
+            "has_more": True
+        }
+        mock_session.get.return_value = mock_response
+
+        client = MTGCHAPIClient()
+        result = client.search_cards("闪电击", page_size=5)
+
+        assert result.get("has_more") is True
+        assert result.get("total_cards") == 20
+
+    def test_search_cards_no_more_results(self, mock_session):
+        """测试搜索卡牌没有更多结果"""
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "items": [{"name": "Lightning Bolt"}],
+            "total_cards": 1,
+            "has_more": False
+        }
+        mock_session.get.return_value = mock_response
+
+        client = MTGCHAPIClient()
+        result = client.search_cards("Lightning Bolt")
+
+        assert result.get("has_more") is False
+        assert result.get("total_cards") == 1
+
+    def test_search_cards_page_2_has_more(self, mock_session):
+        """测试第二页搜索仍有更多结果"""
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "items": [{"name": "Card"}] * 5,
+            "total_cards": 15,
+            "has_more": True
+        }
+        mock_session.get.return_value = mock_response
+
+        client = MTGCHAPIClient()
+        result = client.search_cards("test", page=2, page_size=5)
+
+        call_args = mock_session.get.call_args
+        params = call_args.kwargs.get('params', {})
+        assert params['page'] == 2
+        assert params['page_size'] == 5
+        assert result.get("has_more") is True
+
 
 # ==================== format_card_info 测试 ====================
 
