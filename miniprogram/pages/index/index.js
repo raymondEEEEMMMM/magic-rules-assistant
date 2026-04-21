@@ -15,6 +15,8 @@ Page({
       cards: [],
       rules: []
     },
+    hasMoreCards: false,
+    hasMoreRules: false,
     history: [],
     searchDone: false,
     latestSets: [],
@@ -123,14 +125,16 @@ Page({
       this.searchKeywordSync(keyword),
       this.searchCardSync(keyword),
       this.searchRulesSync(keyword)
-    ]).then(([keywords, cards, rules]) => {
+    ]).then(([keywords, cardResult, ruleResult]) => {
       this.setData({
         searchDone: true,
         combinedResults: {
           keywords: keywords || [],
-          cards: cards || [],
-          rules: rules || []
-        }
+          cards: cardResult?.items || [],
+          rules: ruleResult?.rules || []
+        },
+        hasMoreCards: cardResult?.hasMore || false,
+        hasMoreRules: ruleResult?.hasMore || false
       })
     }).catch(err => {
       console.error('组合查询失败:', err)
@@ -148,16 +152,19 @@ Page({
 
   // 同步查询卡牌
   searchCardSync(keyword) {
-    return api.searchCard(keyword, 1, 3).then(res => {
-      return res.results || res.items || []
-    }).catch(() => [])
+    return api.searchCard(keyword, 1, 6).then(res => {
+      const items = res.results || res.items || []
+      const hasMore = res.has_more === true || (res.total_cards > 5 && items.length >= 5)
+      return { items: items.slice(0, 5), hasMore }
+    }).catch(() => ({ items: [], hasMore: false }))
   },
 
   // 同步查询规则
   searchRulesSync(keyword) {
     return api.searchRules(keyword).then(res => {
-      return (res.results || []).rules || []
-    }).catch(() => [])
+      const rules = (res.results || []).rules || []
+      return { rules: rules.slice(0, 5), hasMore: rules.length >= 5 }
+    }).catch(() => ({ rules: [], hasMore: false }))
   },
 
   // 保存到历史
@@ -188,8 +195,24 @@ Page({
     this.setData({
       keyword: '',
       combinedResults: { keywords: [], cards: [], rules: [] },
+      hasMoreCards: false,
+      hasMoreRules: false,
       searchDone: false
     })
+  },
+
+  // 查看更多结果
+  goToMoreResults(e) {
+    const type = e.currentTarget.dataset.type
+    const keyword = this.data.keyword.trim()
+    if (!keyword) return
+    if (type === 'cards') {
+      wx.navigateTo({ url: `/pages/search/search?keyword=${encodeURIComponent(keyword)}&tab=cards` })
+    } else if (type === 'rules') {
+      wx.navigateTo({ url: `/pages/search/search?keyword=${encodeURIComponent(keyword)}&tab=rules` })
+    } else if (type === 'keywords') {
+      wx.navigateTo({ url: `/pages/search/search?keyword=${encodeURIComponent(keyword)}&tab=keywords` })
+    }
   },
 
   // 查看规则详情
@@ -308,6 +331,16 @@ Page({
       url: '/pages/feedback/feedback',
       success: () => console.log('CODEBUDDY_DEBUG index goToFeedback success'),
       fail: (err) => console.log('CODEBUDDY_DEBUG index goToFeedback fail err=', err)
+    })
+  },
+
+  // 跳转开发日志
+  goToDevLog() {
+    console.log('CODEBUDDY_DEBUG index goToDevLog called url=/pages/devlog/devlog')
+    wx.navigateTo({
+      url: '/pages/devlog/devlog',
+      success: () => console.log('CODEBUDDY_DEBUG index goToDevLog success'),
+      fail: (err) => console.log('CODEBUDDY_DEBUG index goToDevLog fail err=', err)
     })
   },
 

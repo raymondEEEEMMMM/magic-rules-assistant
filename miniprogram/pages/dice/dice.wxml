@@ -65,34 +65,4 @@
     </view>
   </view>
 
-  <!-- 分割线 -->
-  <view class="divider"></view>
-
-  <!-- 随机选卡区域 -->
-  <view class="section card-section">
-    <view class="section-title">🎴 随机选卡</view>
-
-    <!-- 抽卡数量 -->
-    <view class="draw-count">
-      <view class="count-btn minus" bindtap="minusDrawCount">-</view>
-      <input type="number" class="count-input" value="{{drawCount}}" bindinput="setDrawCount" />
-      <view class="count-btn plus" bindtap="plusDrawCount">+</view>
-      <text class="count-label">张</text>
-    </view>
-
-    <!-- 抽卡按钮 -->
-    <view class="draw-btn {{isDrawing ? 'drawing' : ''}}" bindtap="drawCards">
-      <text>{{isDrawing ? '抽卡中...' : '随机抽卡'}}</text>
-    </view>
-
-    <!-- 抽卡结果 -->
-    <view class="cards-result" wx:if="{{drawnCards.length > 0}}">
-      <view class="card-item" wx:for="{{drawnCards}}" wx:key="name">
-        <image class="card-image" src="{{item.image}}" mode="aspectFit" bindtap="previewCard" data-url="{{item.image}}" />
-        <text class="card-name">{{item.name}}</text>
-        <text class="card-set">{{item.set}}</text>
-      </view>
-    </view>
-  </view>
-
   </view>

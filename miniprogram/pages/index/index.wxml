@@ -163,7 +163,7 @@
         <text class="section-count">{{combinedResults.keywords.length}}</text>
       </view>
       <view class="result-list">
-        <view class="result-card keyword-card" wx:for="{{combinedResults.keywords}}" wx:key="index" bindtap="viewKeywordDetail" data-keyword="{{item.keyword_name}}">
+        <view class="result-card keyword-card" wx:for="{{combinedResults.keywords}}" wx:key="index" wx:if="{{index < 5}}" bindtap="viewKeywordDetail" data-keyword="{{item.keyword_name}}">
           <view class="result-header">
             <text class="result-number">{{item.keyword_en}}</text>
             <text class="result-title">{{item.keyword_name}}</text>
@@ -179,10 +179,13 @@
         <view class="section-bar card-bar">
           <text class="section-title">卡牌</text>
         </view>
-        <text class="section-count">{{combinedResults.cards.length}}</text>
+        <text class="section-count">{{combinedResults.cards.length}}{{hasMoreCards ? '+' : ''}}</text>
+        <view class="section-more" wx:if="{{hasMoreCards}}" bindtap="goToMoreResults" data-type="cards">
+          <text>查看更多 ›</text>
+        </view>
       </view>
       <view class="result-list card-list">
-        <view class="card-item" wx:for="{{combinedResults.cards}}" wx:key="index" bindtap="viewCardDetail" data-id="{{item.id}}">
+        <view class="card-item" wx:for="{{combinedResults.cards}}" wx:key="index" wx:if="{{index < 5}}" bindtap="viewCardDetail" data-id="{{item.id}}">
           <view class="card-name">{{item.zhs_name || item.name}}</view>
           <view class="card-type">{{item.type_line}}</view>
         </view>
@@ -195,10 +198,13 @@
         <view class="section-bar rule-bar">
           <text class="section-title">规则</text>
         </view>
-        <text class="section-count">{{combinedResults.rules.length}}</text>
+        <text class="section-count">{{combinedResults.rules.length}}{{hasMoreRules ? '+' : ''}}</text>
+        <view class="section-more" wx:if="{{hasMoreRules}}" bindtap="goToMoreResults" data-type="rules">
+          <text>查看更多 ›</text>
+        </view>
       </view>
       <view class="result-list">
-        <view class="result-card" wx:for="{{combinedResults.rules}}" wx:key="index" bindtap="viewRuleDetail" data-rule="{{item.rule_number}}">
+        <view class="result-card" wx:for="{{combinedResults.rules}}" wx:key="index" wx:if="{{index < 5}}" bindtap="viewRuleDetail" data-rule="{{item.rule_number}}">
           <view class="result-header">
             <text class="result-number">{{item.rule_number}}</text>
             <text class="result-title">{{item.rule_title}}</text>
@@ -220,5 +226,7 @@
     <text class="version-text">v{{version}}</text>
     <text class="version-divider">·</text>
     <text class="feedback-link" bindtap="goToFeedback">意见反馈</text>
+    <text class="version-divider">·</text>
+    <text class="feedback-link" bindtap="goToDevLog">开发日志</text>
   </view>
 </view>

@@ -195,6 +195,13 @@ page {
   border-radius: 20rpx;
 }
 
+.section-more {
+  font-size: 24rpx;
+  color: #667eea;
+  padding: 6rpx 0;
+  margin-left: 16rpx;
+}
+
 .result-list {
   display: flex;
   flex-direction: column;
@@ -888,6 +895,10 @@ page {
 .container.page-light .section-count {
   background: rgba(0, 0, 0, 0.05);
   color: #999;
+}
+
+.container.page-light .section-more {
+  color: #667eea;
 }
 
 .container.page-light .ai-judge-section {

@@ -18,10 +18,6 @@ Page({
     isCustom: false,
     diceResult: null,
     isRolling: false,
-    // 随机选卡
-    drawCount: 1,
-    drawnCards: [],
-    isDrawing: false,
     // 丢硬币
     coinResult: null,
     coinAnimating: false
@@ -91,53 +87,6 @@ Page({
         wx.vibrateShort({ type: 'heavy' })
       }
     }, 80)
-  },
-
-  // 设置抽卡数量
-  setDrawCount(e) {
-    const count = parseInt(e.detail.value) || 1
-    this.setData({ drawCount: Math.max(1, Math.min(count, 20)) })
-  },
-
-  minusDrawCount() {
-    this.setData({ drawCount: Math.max(1, this.data.drawCount - 1) })
-  },
-
-  plusDrawCount() {
-    this.setData({ drawCount: Math.min(20, this.data.drawCount + 1) })
-  },
-
-  // 随机选卡（从 Scryfall 抽卡包）
-  drawCards() {
-    if (this.data.isDrawing) return
-
-    this.setData({ isDrawing: true, drawnCards: [] })
-
-    // 随机选一个系列
-    const sets = ['znr', 'mid', 'vow', 'neo', 'snc', 'dmu', 'bro', 'one', 'mom', 'mat']
-    const randomSet = sets[Math.floor(Math.random() * sets.length)]
-    const count = this.data.drawCount
-
-    wx.request({
-      url: `https://api.scryfall.com/cards/random`,
-      success: res => {
-        if (res.data && res.data.image_uris) {
-          const cards = [{
-            name: res.data.name,
-            image: res.data.image_uris.normal || res.data.image_uris.small,
-            set: res.data.set_name
-          }]
-          this.setData({ drawnCards: cards, isDrawing: false })
-        } else {
-          this.setData({ isDrawing: false })
-          wx.showToast({ title: '获取失败', icon: 'none' })
-        }
-      },
-      fail: () => {
-        this.setData({ isDrawing: false })
-        wx.showToast({ title: '网络错误', icon: 'none' })
-      }
-    })
   },
 
   // 丢硬币

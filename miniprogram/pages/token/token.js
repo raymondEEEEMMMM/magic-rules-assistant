@@ -1,5 +1,6 @@
 // pages/token/token.js
 const app = getApp()
+const api = require('../../utils/api.js')
 
 // 中英对照表
 const cnToEnMap = {
@@ -66,6 +67,7 @@ Page({
     tokens: [
       // Treasure (首位)
       { name: '珍宝', enName: 'Treasure', color: 'C', icon: '💎', colorName: '无色' },
+      { name: '复制品', enName: 'Copy', color: 'C', icon: '🔄', colorName: '任意', type: 'copy' },
 
       // White
       { name: '士兵', enName: 'Soldier', color: 'W', power: 1, toughness: 1, icon: '⚔️', colorName: '白' },
@@ -104,9 +106,14 @@ Page({
       { name: '精怪', enName: 'Shapeshifter', color: 'C', power: 3, toughness: 3, icon: '👹', colorName: '无色' },
       { name: '组构体', enName: 'Construct', color: 'C', power: 4, toughness: 4, icon: '🤖', colorName: '无色' },
       { name: '皮托斯', enName: 'Myr', color: 'C', power: 0, toughness: 0, icon: '🗿', colorName: '无色' },
+      { name: 'Marit Lage', enName: 'Marit Lage', color: 'B', power: 20, toughness: 20, icon: '🌊', colorName: '黑', abilities: '飞行，不灭' },
     ],
     selectedToken: null,
     showModal: false,
+    showCopyModal: false,
+    copySearchQuery: '',
+    copySearchResults: [],
+    isCopySearching: false,
     allCards: [],
     tokenCards: [],
     availableSets: [],  // [{code, name}, ...]  '全部'用code='all'表示
@@ -132,6 +139,10 @@ Page({
     const { enname, name } = e.currentTarget.dataset
     // 从 tokens 数组中找到完整 token 对象
     const token = this.data.tokens.find(t => t.enName === enname) || { name, enName: enname, color: 'C', icon: '🃏', colorName: '无色' }
+    if (token.type === 'copy') {
+      this.setData({ showCopyModal: true, copySearchQuery: '', copySearchResults: [] })
+      return
+    }
     this.setData({
       selectedToken: token,
       showModal: true,
@@ -371,5 +382,42 @@ Page({
   // 清除搜索
   clearSearch() {
     this.setData({ searchQuery: '', searchResults: [], showSearchResults: false })
+  },
+
+  onCopySearch(e) {
+    const query = e.detail.value.trim()
+    this.setData({ copySearchQuery: query })
+    if (!query) {
+      this.setData({ copySearchResults: [] })
+      return
+    }
+    this.setData({ isCopySearching: true })
+    api.searchCard(query, 1, 8).then(res => {
+      const cards = (res && res.items) ? res.items : []
+      this.setData({ copySearchResults: cards, isCopySearching: false })
+    }).catch(() => {
+      this.setData({ isCopySearching: false })
+      wx.showToast({ title: '搜索失败，请重试', icon: 'none' })
+    })
+  },
+
+  selectCopyCard(e) {
+    const card = e.currentTarget.dataset.card
+    const imageNormal = card.zhs_image_uris?.normal || card.image_uris?.normal || ''
+    const imageSmall = card.zhs_image_uris?.small || card.image_uris?.small || imageNormal
+    const cardData = {
+      name: card.name,
+      set: card.set,
+      set_name: card.set_name,
+      image_uris: { normal: imageNormal, small: imageSmall },
+      isCopy: true
+    }
+    const cardStr = encodeURIComponent(JSON.stringify(cardData))
+    this.setData({ showCopyModal: false, copySearchQuery: '', copySearchResults: [] })
+    wx.navigateTo({ url: '/pages/token-generate/token-generate?card=' + cardStr })
+  },
+
+  closeCopyModal() {
+    this.setData({ showCopyModal: false, copySearchQuery: '', copySearchResults: [] })
   }
 })

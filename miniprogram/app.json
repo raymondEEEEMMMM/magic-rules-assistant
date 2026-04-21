@@ -17,7 +17,8 @@
     "pages/search/search",
     "pages/setcards/setcards",
     "pages/sldcards/sldcards",
-    "pages/promos/promos"
+    "pages/promos/promos",
+    "pages/devlog/devlog"
   ],
   "window": {
     "backgroundTextStyle": "light",

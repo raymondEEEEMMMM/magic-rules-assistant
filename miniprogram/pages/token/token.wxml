@@ -166,4 +166,41 @@
       <view class="modal-close" bindtap="closeModal">✕</view>
     </view>
   </view>
+
+  <!-- 复制品选牌弹窗 -->
+  <view class="modal {{showCopyModal ? 'show' : ''}}" catchtap="closeCopyModal">
+    <view class="modal-content copy-modal" catchtap="">
+      <view class="copy-modal-title">选择要复制的卡牌</view>
+      <input
+        class="copy-search-input"
+        placeholder="输入卡牌名称（支持中文）"
+        placeholder-class="search-placeholder"
+        bindinput="onCopySearch"
+        value="{{copySearchQuery}}"
+      />
+      <view class="copy-search-loading" wx:if="{{isCopySearching}}">
+        <text>搜索中...</text>
+      </view>
+      <view class="copy-empty" wx:elif="{{copySearchQuery && !isCopySearching && copySearchResults.length === 0}}">
+        <text>未找到卡牌，请换个关键词</text>
+      </view>
+      <scroll-view class="copy-search-results" scroll-y wx:if="{{copySearchResults.length > 0}}">
+        <view
+          class="copy-result-item"
+          wx:for="{{copySearchResults}}"
+          wx:key="index"
+          bindtap="selectCopyCard"
+          data-card="{{item}}"
+        >
+          <image class="copy-result-img" src="{{item.zhs_image_uris.small || item.image_uris.small}}" mode="aspectFit" wx:if="{{item.zhs_image_uris || item.image_uris}}" />
+          <view class="copy-result-placeholder" wx:else>🃏</view>
+          <view class="copy-result-info">
+            <text class="copy-result-name">{{item.name}}</text>
+            <text class="copy-result-set">{{item.set_name}}</text>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="modal-close" bindtap="closeCopyModal">✕</view>
+    </view>
+  </view>
 </view>
