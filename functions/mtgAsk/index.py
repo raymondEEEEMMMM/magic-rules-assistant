@@ -1174,6 +1174,7 @@ def main(event, context):
                 {"name": "鬼怪", "enName": "Goblin", "color": "R", "icon": "👺", "colorName": "红", "power": 1, "toughness": 1},
                 {"name": "元素", "enName": "Elemental", "color": "R", "icon": "🔥", "colorName": "红", "power": 1, "toughness": 1},
                 {"name": "龙兽", "enName": "Drake", "color": "R", "icon": "🦅", "colorName": "红", "power": 2, "toughness": 2, "abilities": "飞行"},
+                {"name": "战士", "enName": "Warrior", "color": "R", "icon": "⚔️", "colorName": "红", "power": 1, "toughness": 1},
                 {"name": "妖精", "enName": "Elf", "color": "G", "icon": "🧝", "colorName": "绿", "power": 1, "toughness": 1},
                 {"name": "狼", "enName": "Wolf", "color": "G", "icon": "🐺", "colorName": "绿", "power": 2, "toughness": 2},
                 {"name": "巨魔", "enName": "Troll", "color": "G", "icon": "🧌", "colorName": "绿", "power": 3, "toughness": 3},
