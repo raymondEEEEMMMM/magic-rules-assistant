@@ -48,19 +48,25 @@
     </view>
   </view>
 
-  <!-- Token 网格（九宫格） -->
-  <view class="token-grid">
-    <view
-      class="token-card color-{{token.color}}"
-      wx:for="{{tokens}}"
-      wx:key="index"
-      bindtap="selectToken"
-      data-enname="{{item.enName}}"
-      data-name="{{item.name}}"
-    >
-      <view class="token-icon">{{item.icon}}</view>
-      <view class="token-name">{{item.name}}</view>
-      <view class="token-color-dot color-dot-{{item.color}}"></view>
+  <!-- Token 分组网格 -->
+  <view class="token-section" wx:for="{{tokenGroups}}" wx:for-item="group" wx:for-key="color">
+    <view class="token-section-header">
+      <text class="token-section-title">{{group.name}}</text>
+      <image
+        class="token-section-symbol"
+        src="https://svgs.scryfall.io/card-symbols/{{group.symbol}}.svg"
+        mode="aspectFit"
+      />
+      <view class="token-section-line"></view>
+    </view>
+    <view class="token-grid">
+      <token-card
+        wx:for="{{group.tokens}}"
+        wx:key="index"
+        token="{{item}}"
+        isLightTheme="{{isLightTheme}}"
+        bind:tokenTap="selectToken"
+      />
     </view>
   </view>
 
@@ -171,13 +177,16 @@
   <view class="modal {{showCopyModal ? 'show' : ''}}" catchtap="closeCopyModal">
     <view class="modal-content copy-modal" catchtap="">
       <view class="copy-modal-title">选择要复制的卡牌</view>
-      <input
-        class="copy-search-input"
-        placeholder="输入卡牌名称（支持中文）"
-        placeholder-class="search-placeholder"
-        bindinput="onCopySearch"
-        value="{{copySearchQuery}}"
-      />
+      <view class="copy-search-wrapper">
+        <input
+          class="copy-search-input"
+          placeholder="输入卡牌名称（支持中文）"
+          placeholder-class="search-placeholder"
+          bindinput="onCopySearch"
+          value="{{copySearchQuery}}"
+          catchtap="noop"
+        />
+      </view>
       <view class="copy-search-loading" wx:if="{{isCopySearching}}">
         <text>搜索中...</text>
       </view>

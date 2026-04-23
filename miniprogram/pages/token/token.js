@@ -13,32 +13,29 @@ const cnToEnMap = {
   '鸟': 'Bird',
   '海洋幻惑': 'Kraken',
   '元素': 'Elemental',
-  '虚影': 'Spirit',
+  '虚影': 'Illusion',
   '灵俑': 'Zombie',
   '吸血鬼': 'Vampire',
   '蝙蝠': 'Bat',
   '恶魔': 'Demon',
-  '妖精': 'Fae',
   '龙': 'Dragon',
   '鬼怪': 'Goblin',
   '龙兽': 'Drake',
   '巨魔': 'Troll',
   '蜈蚣': 'Squirrel',
-  '精怪': 'Shapeshifter',
+  '变形兽': 'Shapeshifter',
   '组构体': 'Construct',
-  '皮托斯': 'Myr',
   '武士': 'Samurai',
   '狼': 'Wolf',
-  '老虎': 'Cat',
+  '老虎': 'Tiger',
   '蜜蜂': 'Insect',
   '蝴蝶': 'Butterfly',
   '蛇': 'Snake',
   '螃蟹': 'Crab',
   '蛤蟆': 'Frog',
-  '豹': 'Cat',
+  '豹': 'Leopard',
   '大象': 'Elephant',
-  '老鹰': 'Bird',
-  '老虎': 'Cat',
+  '老鹰': 'Eagle',
   '犀牛': 'Rhino',
   '海龟': 'Turtle',
   '骷髅': 'Skeleton',
@@ -49,7 +46,10 @@ const cnToEnMap = {
   '祭师': 'Cleric',
   '法师': 'Wizard',
   '游侠': 'Ranger',
-  '浪人': 'Rogue'
+  '浪客': 'Rogue',
+  '精怪': 'Spirit',
+  '鹰': 'Bird',
+  '玛莉雷基': 'Marit Lage'
 }
 
 // 翻译为英文（优先从映射表查，查不到返回原值）
@@ -64,50 +64,8 @@ Page({
     searchResults: [],
     isSearching: false,
     showSearchResults: false,
-    tokens: [
-      // Treasure (首位)
-      { name: '珍宝', enName: 'Treasure', color: 'C', icon: '💎', colorName: '无色' },
-      { name: '复制品', enName: 'Copy', color: 'C', icon: '🔄', colorName: '任意', type: 'copy' },
-
-      // White
-      { name: '士兵', enName: 'Soldier', color: 'W', power: 1, toughness: 1, icon: '⚔️', colorName: '白' },
-      { name: '天使', enName: 'Angel', color: 'W', power: 3, toughness: 3, icon: '👼', colorName: '白', abilities: '飞行' },
-      { name: '精灵', enName: 'Elf', color: 'W', power: 1, toughness: 1, icon: '🧝', colorName: '白', abilities: '飞行' },
-      { name: '野狼', enName: 'Wolf', color: 'W', power: 2, toughness: 2, icon: '🐺', colorName: '白' },
-      { name: '猫', enName: 'Cat', color: 'W', power: 2, toughness: 2, icon: '🐱', colorName: '白' },
-
-      // Blue
-      { name: '鸟', enName: 'Bird', color: 'U', power: 1, toughness: 1, icon: '🐦', colorName: '蓝', abilities: '飞行' },
-      { name: '海洋幻惑', enName: 'Kraken', color: 'U', power: 0, toughness: 0, icon: '🦑', colorName: '蓝' },
-      { name: '元素', enName: 'Elemental', color: 'U', power: 0, toughness: 0, icon: '🌊', colorName: '蓝' },
-      { name: '虚影', enName: 'Spirit', color: 'U', power: 2, toughness: 2, icon: '👤', colorName: '蓝', abilities: '飞行' },
-
-      // Black
-      { name: '灵俑', enName: 'Zombie', color: 'B', power: 2, toughness: 2, icon: '💀', colorName: '黑' },
-      { name: '吸血鬼', enName: 'Vampire', color: 'B', power: 1, toughness: 1, icon: '🧛', colorName: '黑' },
-      { name: '蝙蝠', enName: 'Bat', color: 'B', power: 1, toughness: 1, icon: '🦇', colorName: '黑', abilities: '飞行' },
-      { name: '恶魔', enName: 'Demon', color: 'B', power: 5, toughness: 5, icon: '😈', colorName: '黑', abilities: '飞行' },
-      { name: '妖精', enName: 'Fae', color: 'B', power: 0, toughness: 1, icon: '🧚', colorName: '黑' },
-
-      // Red
-      { name: '龙', enName: 'Dragon', color: 'R', power: 2, toughness: 2, icon: '🐉', colorName: '红', abilities: '飞行' },
-      { name: '鬼怪', enName: 'Goblin', color: 'R', power: 1, toughness: 1, icon: '👺', colorName: '红' },
-      { name: '元素', enName: 'Elemental', color: 'R', power: 1, toughness: 1, icon: '🔥', colorName: '红' },
-      { name: '龙兽', enName: 'Drake', color: 'R', power: 2, toughness: 2, icon: '🦅', colorName: '红', abilities: '飞行' },
-
-      // Green
-      { name: '妖精', enName: 'Elf', color: 'G', power: 1, toughness: 1, icon: '🧝', colorName: '绿' },
-      { name: '狼', enName: 'Wolf', color: 'G', power: 2, toughness: 2, icon: '🐺', colorName: '绿' },
-      { name: '巨魔', enName: 'Troll', color: 'G', power: 3, toughness: 3, icon: '🧌', colorName: '绿' },
-      { name: '蜈蚣', enName: 'Squirrel', color: 'G', power: 1, toughness: 1, icon: '🐿', colorName: '绿' },
-      { name: '猫', enName: 'Cat', color: 'G', power: 2, toughness: 1, icon: '🐱', colorName: '绿' },
-
-      // Multicolor / Other
-      { name: '精怪', enName: 'Shapeshifter', color: 'C', power: 3, toughness: 3, icon: '👹', colorName: '无色' },
-      { name: '组构体', enName: 'Construct', color: 'C', power: 4, toughness: 4, icon: '🤖', colorName: '无色' },
-      { name: '皮托斯', enName: 'Myr', color: 'C', power: 0, toughness: 0, icon: '🗿', colorName: '无色' },
-      { name: 'Marit Lage', enName: 'Marit Lage', color: 'B', power: 20, toughness: 20, icon: '🌊', colorName: '黑', abilities: '飞行，不灭' },
-    ],
+    tokens: [],
+    tokenGroups: {},
     selectedToken: null,
     showModal: false,
     showCopyModal: false,
@@ -125,6 +83,43 @@ Page({
 
   onLoad() {
     this.setData({ isLightTheme: app.globalData.isLightTheme })
+    this.fetchTokenList()
+  },
+
+  onUnload() {
+    this._pageActive = false
+  },
+
+  fetchTokenList() {
+    this._pageActive = true
+    api.request('/api/token/list', {}).then(res => {
+      if (!this._pageActive) return
+      if (res && res.tokens) {
+        // 按颜色分组
+        const colorOrder = ['C', 'W', 'U', 'B', 'R', 'G']
+        const colorInfo = {
+          'C': { name: '无色', symbol: 'C' },
+          'W': { name: '白', symbol: 'W' },
+          'U': { name: '蓝', symbol: 'U' },
+          'B': { name: '黑', symbol: 'B' },
+          'R': { name: '红', symbol: 'R' },
+          'G': { name: '绿', symbol: 'G' }
+        }
+        const groups = {}
+        colorOrder.forEach(color => {
+          groups[color] = { name: colorInfo[color].name, symbol: colorInfo[color].symbol, tokens: [] }
+        })
+        res.tokens.forEach(token => {
+          const color = token.color || 'C'
+          if (groups[color]) {
+            groups[color].tokens.push(token)
+          }
+        })
+        this.setData({ tokens: res.tokens, tokenGroups: groups })
+      }
+    }).catch(err => {
+      console.error('CODEBUDDY_DEBUG fetchTokenList error', err)
+    })
   },
 
   onShow() {
@@ -136,9 +131,8 @@ Page({
   },
 
   selectToken(e) {
-    const { enname, name } = e.currentTarget.dataset
-    // 从 tokens 数组中找到完整 token 对象
-    const token = this.data.tokens.find(t => t.enName === enname) || { name, enName: enname, color: 'C', icon: '🃏', colorName: '无色' }
+    const token = e.detail.token
+    if (!token) return
     if (token.type === 'copy') {
       this.setData({ showCopyModal: true, copySearchQuery: '', copySearchResults: [] })
       return
@@ -158,54 +152,61 @@ Page({
     const searchName = translateToEn(token.enName)
     const encodedName = encodeURIComponent(searchName)
     console.log('CODEBUDDY_DEBUG searchTokenCards searchName=', searchName, 'encoded=', encodedName)
+
+    const processCards = (cards, isFallback = false) => {
+      if (!cards || cards.length === 0) {
+        if (isFallback) {
+          this.setData({ isLoadingToken: false, tokenCards: [], availableSets: [{ code: 'all', name: '全部' }] })
+          wx.showToast({ title: '未找到该 Token，请尝试英文搜索', icon: 'none', duration: 2000 })
+        }
+        return
+      }
+      // 只保存必要字段，减小数据量
+      const allCards = cards.map(card => ({
+        name: card.name,
+        set: card.set,
+        set_name: card.set_name,
+        image_uris: card.image_uris,
+        power: card.power,
+        toughness: card.toughness
+      }))
+      // 提取唯一系列
+      const setMap = {}
+      allCards.forEach(card => {
+        if (card.set_name && card.set) {
+          setMap[card.set] = card.set_name
+        }
+      })
+      const availableSets = [{ code: 'all', name: '全部' }]
+      Object.keys(setMap).forEach(code => {
+        availableSets.push({ code, name: setMap[code] })
+      })
+
+      this.setData({
+        allCards: allCards,
+        tokenCards: allCards,
+        availableSets: availableSets,
+        selectedSetCode: 'all',
+        selectedCardIndex: 0,
+        isLoadingToken: false
+      })
+    }
+
     wx.request({
-      url: `https://api.scryfall.com/cards/search?q=t:${encodedName}%20is:token%20-s:fnm&unique=art&order=released`,
+      url: `https://api.scryfall.com/cards/search?q=name:${encodedName}%20is:token&unique=art&order=released`,
       method: 'GET',
       header: {
         'User-Agent': 'mtgAsk-miniprogram/1.0 (https://github.com/raymondEEEEMMMM)',
         'Accept': 'application/json'
       },
       success: res => {
-        console.log('CODEBUDDY_DEBUG Scryfall response status=', res.statusCode, 'data=', JSON.stringify(res.data).substring(0, 200))
+        console.log('CODEBUDDY_DEBUG Scryfall token response status=', res.statusCode, 'data=', JSON.stringify(res.data).substring(0, 200))
         if (res.statusCode === 404 || res.statusCode === 400 || !res.data || !res.data.data || res.data.data.length === 0) {
           this.setData({ isLoadingToken: false, tokenCards: [], availableSets: [{ code: 'all', name: '全部' }] })
           wx.showToast({ title: '未找到该 Token，请尝试英文搜索', icon: 'none', duration: 2000 })
           return
         }
-        if (res.data && res.data.data && res.data.data.length > 0) {
-          // 只保存必要字段，减小数据量
-          const allCards = res.data.data.map(card => ({
-            name: card.name,
-            set: card.set,
-            set_name: card.set_name,
-            image_uris: card.image_uris,
-            power: card.power,
-            toughness: card.toughness
-          }))
-          // 提取唯一系列
-          const setMap = {}
-          allCards.forEach(card => {
-            if (card.set_name && card.set) {
-              setMap[card.set] = card.set_name
-            }
-          })
-          const availableSets = [{ code: 'all', name: '全部' }]
-          Object.keys(setMap).forEach(code => {
-            availableSets.push({ code, name: setMap[code] })
-          })
-
-          this.setData({
-            allCards: allCards,
-            tokenCards: allCards,
-            availableSets: availableSets,
-            selectedSetCode: 'all',
-            selectedCardIndex: 0,
-            isLoadingToken: false
-          })
-        } else {
-          this.setData({ isLoadingToken: false, tokenCards: [], availableSets: [{ code: 'all', name: '全部' }] })
-          wx.showToast({ title: '未找到卡图', icon: 'none' })
-        }
+        processCards(res.data.data)
       },
       fail: (err) => {
         console.log('CODEBUDDY_DEBUG Scryfall request failed', err)
@@ -392,10 +393,12 @@ Page({
       return
     }
     this.setData({ isCopySearching: true })
-    api.searchCard(query, 1, 8).then(res => {
-      const cards = (res && res.items) ? res.items : []
+    api.searchCard(query, 1, 10).then(res => {
+      if (!this._pageActive) return
+      const cards = ((res && res.items) ? res.items : []).slice(0, 9)
       this.setData({ copySearchResults: cards, isCopySearching: false })
     }).catch(() => {
+      if (!this._pageActive) return
       this.setData({ isCopySearching: false })
       wx.showToast({ title: '搜索失败，请重试', icon: 'none' })
     })
@@ -419,5 +422,7 @@ Page({
 
   closeCopyModal() {
     this.setData({ showCopyModal: false, copySearchQuery: '', copySearchResults: [] })
-  }
+  },
+
+  noop() {}
 })

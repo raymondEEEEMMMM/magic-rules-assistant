@@ -1151,6 +1151,45 @@ def main(event, context):
                     'body': json.dumps({'success': False, 'error': '套牌不存在或无权更新'})
                 }
 
+        elif path == '/api/token/list':
+            # Token 列表
+            tokens = [
+                {"name": "珍宝", "enName": "Treasure", "color": "C", "icon": "💎", "colorName": "无色", "power": 0, "toughness": 0},
+                {"name": "复制品", "enName": "Copy", "color": "C", "icon": "🔄", "colorName": "任意", "type": "copy", "power": 0, "toughness": 0},
+                {"name": "士兵", "enName": "Soldier", "color": "W", "icon": "⚔️", "colorName": "白", "power": 1, "toughness": 1},
+                {"name": "天使", "enName": "Angel", "color": "W", "icon": "👼", "colorName": "白", "power": 3, "toughness": 3, "abilities": "飞行"},
+                {"name": "精灵", "enName": "Elf", "color": "W", "icon": "🧝", "colorName": "白", "power": 1, "toughness": 1},
+                {"name": "野狼", "enName": "Wolf", "color": "W", "icon": "🐺", "colorName": "白", "power": 2, "toughness": 2},
+                {"name": "猫", "enName": "Cat", "color": "W", "icon": "🐱", "colorName": "白", "power": 2, "toughness": 2},
+                {"name": "鸟", "enName": "Bird", "color": "U", "icon": "🐦", "colorName": "蓝", "power": 1, "toughness": 1, "abilities": "飞行"},
+                {"name": "海洋幻惑", "enName": "Kraken", "color": "U", "icon": "🦑", "colorName": "蓝", "power": 0, "toughness": 0},
+                {"name": "元素", "enName": "Elemental", "color": "U", "icon": "🌊", "colorName": "蓝", "power": 0, "toughness": 0},
+                {"name": "虚影", "enName": "Illusion", "color": "U", "icon": "👤", "colorName": "蓝", "power": 1, "toughness": 1, "abilities": "飞行"},
+                {"name": "灵俑", "enName": "Zombie", "color": "B", "icon": "💀", "colorName": "黑", "power": 2, "toughness": 2},
+                {"name": "吸血鬼", "enName": "Vampire", "color": "B", "icon": "🧛", "colorName": "黑", "power": 1, "toughness": 1},
+                {"name": "蝙蝠", "enName": "Bat", "color": "B", "icon": "🦇", "colorName": "黑", "power": 1, "toughness": 1, "abilities": "飞行"},
+                {"name": "恶魔", "enName": "Demon", "color": "B", "icon": "😈", "colorName": "黑", "power": 5, "toughness": 5, "abilities": "飞行"},
+                {"name": "妖精", "enName": "Fae", "color": "B", "icon": "🧚", "colorName": "黑", "power": 0, "toughness": 1},
+                {"name": "龙", "enName": "Dragon", "color": "R", "icon": "🐉", "colorName": "红", "power": 2, "toughness": 2, "abilities": "飞行"},
+                {"name": "鬼怪", "enName": "Goblin", "color": "R", "icon": "👺", "colorName": "红", "power": 1, "toughness": 1},
+                {"name": "元素", "enName": "Elemental", "color": "R", "icon": "🔥", "colorName": "红", "power": 1, "toughness": 1},
+                {"name": "龙兽", "enName": "Drake", "color": "R", "icon": "🦅", "colorName": "红", "power": 2, "toughness": 2, "abilities": "飞行"},
+                {"name": "妖精", "enName": "Elf", "color": "G", "icon": "🧝", "colorName": "绿", "power": 1, "toughness": 1},
+                {"name": "狼", "enName": "Wolf", "color": "G", "icon": "🐺", "colorName": "绿", "power": 2, "toughness": 2},
+                {"name": "巨魔", "enName": "Troll", "color": "G", "icon": "🧌", "colorName": "绿", "power": 3, "toughness": 3},
+                {"name": "蜈蚣", "enName": "Squirrel", "color": "G", "icon": "🐿", "colorName": "绿", "power": 1, "toughness": 1},
+                {"name": "猫", "enName": "Cat", "color": "G", "icon": "🐱", "colorName": "绿", "power": 2, "toughness": 1},
+                {"name": "变形兽", "enName": "Shapeshifter", "color": "C", "icon": "👹", "colorName": "无色", "power": 3, "toughness": 3},
+                {"name": "组构体", "enName": "Construct", "color": "C", "icon": "🤖", "colorName": "无色", "power": 4, "toughness": 4},
+                {"name": "皮托斯", "enName": "Myr", "color": "C", "icon": "🗿", "colorName": "无色", "power": 0, "toughness": 0},
+                {"name": "Marit Lage", "enName": "Marit Lage", "color": "B", "icon": "🌊", "colorName": "黑", "power": 20, "toughness": 20, "abilities": "飞行，不灭"},
+            ]
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'tokens': tokens}, ensure_ascii=False)
+            }
+
         elif path == '/api/promos' and http_method == 'GET':
             # Promo 卡查询
             import requests
@@ -1267,7 +1306,8 @@ def main(event, context):
                         '/api/admin/agent-pool/stats',
                         '/api/admin/import-rules',
                         '/api/feedback',
-                        '/api/promos'
+                        '/api/promos',
+                        '/api/token/list'
                     ]
                 })
             }
