@@ -1,4 +1,7 @@
 {
-  "usingComponents": {},
-  "navigationStyle": "custom"
+  "navigationBarTitleText": "关键词异能",
+  "usingComponents": {
+    "empty-state": "/components/empty-state/empty-state",
+    "tag-chip": "/components/tag-chip/tag-chip"
+  }
 }

@@ -1,146 +1,89 @@
-<!--pages/keyword/keyword.wxml-->
-<view class="container {{isLightTheme ? 'page-light' : ''}}">
-  <!-- 导航栏 -->
-  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
-    <view class="nav-left">
-      <view class="back-btn" bindtap="goToIndex">🏠</view>
-    </view>
-    <view class="nav-title">
-      <text>关键词</text>
-    </view>
-    <view class="nav-right"></view>
+<view class="container">
+  <view class="nav-bar">
+    <view class="back-btn" bindtap="goBack">‹</view>
+    <text class="nav-title">关键词异能</text>
   </view>
 
-  <!-- 搜索框 -->
-  <view class="search-section">
-    <view class="search-box">
-      <view class="search-icon">🔍</view>
+  <view class="search-bar">
+    <view class="search-row">
+      <text class="search-icon">🔍</text>
       <input
         class="search-input"
-        placeholder="输入关键词查询 (如 Flying, Trample)..."
-        placeholder-class="search-placeholder"
+        placeholder="输入关键词（如 飞行、Trample）"
+        value="{{keyword}}"
         bindinput="onInput"
         bindconfirm="onSearch"
         confirm-type="search"
-        value="{{keyword}}"
       />
-      <view class="search-clear" wx:if="{{keyword}}" bindtap="clearSearch">
-        <text>✕</text>
-      </view>
-    </view>
-    <view class="search-btn" bindtap="onSearch">搜索</view>
-  </view>
-
-  <!-- 搜索提示 -->
-  <view class="search-tips" wx:if="{{!keyword && !searching}}">
-    <text class="tips-title">热门关键词</text>
-    <view class="tips-grid">
-      <view
-        class="tip-item"
-        wx:for="{{commonKeywords}}"
-        wx:key="index"
-        bindtap="searchKeyword"
-        data-keyword="{{item}}"
-      >
-        {{item}}
-      </view>
     </view>
   </view>
 
-  <!-- 搜索中 -->
-  <view class="loading" wx:if="{{searching}}">
+  <view wx:if="{{searching}}" class="loading">
     <view class="loading-spinner"></view>
     <text class="loading-text">搜索中...</text>
   </view>
 
-  <!-- 搜索结果 -->
-  <view class="results-section" wx:if="{{searching === false && (keywordResults.length > 0 || ruleResults.length > 0)}}">
-    <view class="results-header">
-      <text class="results-count">找到 {{keywordResults.length + ruleResults.length}} 个结果</text>
-    </view>
+  <view wx:elif="{{searchDone && !showDetail && keywordResults.length === 0 && ruleResults.length === 0}}" class="empty-state-wrap">
+    <empty-state icon="search" title="未找到结果" desc="试试其他关键词" />
+  </view>
 
-    <!-- 关键词结果 -->
-    <view class="result-group" wx:if="{{keywordResults.length > 0}}">
-      <view class="group-title">关键词异能</view>
-      <view class="keyword-list">
-        <view
-          class="keyword-item"
-          wx:for="{{keywordResults}}"
-          wx:key="keyword_name"
-          bindtap="viewKeywordDetail"
-          data-keyword="{{item.keyword_name}}"
-        >
-          <view class="keyword-icon">📖</view>
-          <view class="keyword-info">
-            <text class="keyword-name">{{item.keyword_name}}</text>
-            <text class="keyword-brief">{{item.description || item.full_text}}</text>
+  <view wx:elif="{{searchDone && !showDetail}}" class="results">
+    <view wx:if="{{keywordResults.length > 0}}" class="result-section">
+      <view class="section-title-wrap">
+        <text class="section-title">关键词</text>
+      </view>
+      <view class="result-list">
+        <view class="result-card" wx:for="{{keywordResults}}" wx:key="keyword_name" bindtap="viewKeywordDetail" data-keyword="{{item.keyword_name}}">
+          <view class="result-header">
+            <text class="result-title">{{item.keyword_name}}</text>
+            <text class="result-en">{{item.keyword_en}}</text>
           </view>
-          <view class="keyword-arrow">›</view>
+          <text class="result-desc">{{item.description}}</text>
         </view>
       </view>
     </view>
 
-    <!-- 规则结果 -->
-    <view class="result-group" wx:if="{{ruleResults.length > 0}}">
-      <view class="group-title">相关规则</view>
-      <view class="rule-list">
-        <view
-          class="rule-item"
-          wx:for="{{ruleResults}}"
-          wx:key="rule_number"
-        >
-          <view class="rule-number">{{item.rule_number}}</view>
-          <view class="rule-content">
-            <text class="rule-text">{{item.rule_content}}</text>
+    <view wx:if="{{ruleResults.length > 0}}" class="result-section">
+      <view class="section-title-wrap">
+        <text class="section-title">相关规则</text>
+      </view>
+      <view class="result-list">
+        <view class="result-card" wx:for="{{ruleResults}}" wx:key="rule_number" bindtap="onRuleTap" data-rule="{{item.rule_number}}">
+          <view class="result-header">
+            <text class="result-number">{{item.rule_number}}</text>
+            <text class="result-title">{{item.rule_title}}</text>
           </view>
         </view>
       </view>
     </view>
   </view>
 
-  <!-- 无结果 -->
-  <view class="no-results" wx:if="{{searching === false && searchDone && keyword && keywordResults.length === 0 && ruleResults.length === 0}}">
-    <text class="no-results-icon">📖</text>
-    <text class="no-results-text">未找到「{{keyword}}」相关的关键词</text>
-    <text class="no-results-hint">试试其他常用关键词</text>
-  </view>
+  <view wx:if="{{showDetail && keywordDetail}}" class="detail">
+    <view class="detail-header">
+      <text class="detail-title">{{currentKeyword}}</text>
+      <text wx:if="{{keywordDetail.keyword_en}}" class="detail-en">{{keywordDetail.keyword_en}}</text>
+    </view>
 
-  <!-- 关键词详情弹窗 -->
-  <view class="detail-modal" wx:if="{{showDetail}}" bindtap="closeDetail">
-    <view class="detail-content" catchtap="preventClose">
-      <view class="detail-header">
-        <text class="detail-title">{{currentKeyword}}</text>
-        <view class="close-btn" bindtap="closeDetail">✕</view>
+    <view class="detail-body">
+      <view class="detail-text">
+        <text>{{keywordDetail.description || keywordDetail.definition}}</text>
       </view>
 
-      <scroll-view class="detail-body" scroll-y>
-        <!-- 简要说明 -->
-        <view class="detail-section" wx:if="{{keywordDetail}}">
-          <view class="section-label">规则说明</view>
-          <view class="section-content">
-            <text class="rule-text">{{keywordDetail.description || keywordDetail.full_text}}</text>
-          </view>
+      <view wx:if="{{relatedRules.length > 0}}" class="related-rules">
+        <view class="section-title-wrap">
+          <text class="section-title">相关规则</text>
         </view>
-
-        <!-- 完整规则 -->
-        <view class="detail-section" wx:if="{{keywordDetail && keywordDetail.full_text}}">
-          <view class="section-label">完整规则 (CR)</view>
-          <view class="section-content rule-full">
-            <text class="rule-text">{{keywordDetail.full_text}}</text>
-          </view>
-        </view>
-
-        <!-- 相关规则 -->
-        <view class="detail-section" wx:if="{{relatedRules.length > 0}}">
-          <view class="section-label">相关规则</view>
-          <view class="related-rules">
-            <view class="related-rule" wx:for="{{relatedRules}}" wx:key="rule_number">
-              <text class="related-rule-number">{{item.rule_number}}</text>
-              <text class="related-rule-content">{{item.rule_content}}</text>
+        <view class="result-list">
+          <view class="result-card" wx:for="{{relatedRules}}" wx:key="rule_number" bindtap="onRuleTap" data-rule="{{item.rule_number}}">
+            <view class="result-header">
+              <text class="result-number">{{item.rule_number}}</text>
+              <text class="result-title">{{item.rule_title}}</text>
             </view>
           </view>
         </view>
-      </scroll-view>
+      </view>
     </view>
+
+    <view class="back-to-list" bindtap="closeDetail">‹ 返回列表</view>
   </view>
 </view>

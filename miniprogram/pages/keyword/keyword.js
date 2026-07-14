@@ -24,18 +24,13 @@ Page({
   },
 
   onLoad(options) {
-    console.log('CODEBUDDY_DEBUG keyword onLoad options=', options)
     this.setData({ isLightTheme: true })
     if (options.keyword) {
-      console.log('CODEBUDDY_DEBUG keyword onLoad keyword found, searching')
       this.setData({
         keyword: decodeURIComponent(options.keyword)
       })
       this.onSearch()
-    } else {
-      console.log('CODEBUDDY_DEBUG keyword onLoad no keyword parameter')
     }
-    console.log('CODEBUDDY_DEBUG keyword onLoad completed')
   },
 
   onShow() {
@@ -47,6 +42,17 @@ Page({
     wx.redirectTo({
       url: '/pages/index/index'
     })
+  },
+
+  goBack() {
+    wx.navigateBack({ fail: () => wx.redirectTo({ url: '/pages/index/index' }) })
+  },
+
+  onRuleTap(e) {
+    const rule = e.currentTarget.dataset.rule
+    if (rule) {
+      wx.navigateTo({ url: `/pages/rule/rule?rule=${encodeURIComponent(rule)}` })
+    }
   },
 
   onInput(e) {
