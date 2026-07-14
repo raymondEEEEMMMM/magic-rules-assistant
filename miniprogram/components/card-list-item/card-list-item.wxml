@@ -1,0 +1,10 @@
+<view class="list-item {{withDivider ? 'with-divider' : ''}}" bindtap="onTap">
+  <view wx:if="{{icon}}" class="icon-block" style="background-color: {{iconColor}};">
+    <image class="icon-img" src="{{iconDataUrl}}" mode="aspectFit"></image>
+  </view>
+  <view class="content">
+    <view class="title">{{title}}</view>
+    <view wx:if="{{desc}}" class="desc">{{desc}}</view>
+  </view>
+  <image wx:if="{{arrow}}" class="chevron" src="{{chevronDataUrl}}"></image>
+</view>

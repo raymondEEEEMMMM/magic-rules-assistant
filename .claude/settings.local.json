@@ -138,11 +138,17 @@
       "Read(//tmp/**)",
       "Bash(unzip -l /tmp/mtgAsk_deploy.zip)",
       "Bash(rm -f /tmp/mtgAsk_deploy.zip /tmp/mtgAsk_deploy.zip.b64)",
-      "Bash(rm -f /tmp/mtgAsk_deploy.zip)"
+      "Bash(rm -f /tmp/mtgAsk_deploy.zip)",
+      "WebFetch(domain:api.scryfall.com)",
+      "Bash(mkdir *)"
     ],
     "additionalDirectories": [
       "f:\\mtgAsk\\magic-rules-assistant\\deployment\\docs",
       "/dev"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "cloudbase"
+  ]
 }

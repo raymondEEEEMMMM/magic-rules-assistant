@@ -34,7 +34,26 @@ Page({
   onLoad(options) {
     console.log('CODEBUDDY_DEBUG card onLoad options=', options)
     this.setData({ isLightTheme: true })
-    // 如果有 id 参数
+
+    // 如果来自 promo 页面，从本地存储读取卡牌数据
+    if (options.from === 'promo') {
+      console.log('CODEBUDDY_DEBUG card onLoad from promo')
+      try {
+        const promoCard = wx.getStorageSync('promoCardData')
+        if (promoCard && promoCard.name) {
+          this.setData({
+            currentCard: this.formatPromoCard(promoCard),
+            showDetail: true
+          })
+          wx.removeStorageSync('promoCardData')
+          return
+        }
+      } catch (e) {
+        console.error('读取 promo 卡牌数据失败:', e)
+      }
+    }
+
+    // 如果有 id 参数，直接加载卡牌详情
     if (options.id) {
       const id = decodeURIComponent(options.id)
       this.setData({ keyword: id })
@@ -65,11 +84,9 @@ Page({
   },
 
   // 返回
-  goBack() {
-    wx.navigateBack({
-      fail: () => {
-        wx.switchTab({ url: '/pages/index/index' })
-      }
+  goToIndex() {
+    wx.redirectTo({
+      url: '/pages/index/index'
     })
   },
 
@@ -345,6 +362,35 @@ Page({
   convertNewlines(text) {
     if (!text) return ''
     return text.replace(/\\n/g, '\n')
+  },
+
+  // 格式化 Promo 卡牌数据
+  formatPromoCard(card) {
+    const oracleText = this.convertNewlines(card.oracle_text || '')
+    const manaCost = card.mana_cost || ''
+    const manaSymbols = this.getManaSymbols(manaCost)
+    return {
+      id: card.id || '',
+      name: card.name || '',
+      display_name: card.name || '',
+      zhs_name: card.name || '',
+      imageUrl: card.image_url || '',
+      type: card.type_line || '',
+      type_line: card.type_line || '',
+      mana_cost: manaCost,
+      manaCost: manaCost,
+      text: oracleText,
+      enText: oracleText,
+      manaSymbols: manaSymbols,
+      colors: card.colors || [],
+      rarity: card.rarity || '',
+      setName: card.set_name || '',
+      set_name: card.set_name || '',
+      released_at: card.released_at || '',
+      acquisition_method: card.acquisition_method || '',
+      acquisition_method_cn: card.acquisition_method_cn || card.acquisition_method || '',
+      security_stamp: card.security_stamp || ''
+    }
   },
 
   // 格式化法力费用（转换为纯文本）

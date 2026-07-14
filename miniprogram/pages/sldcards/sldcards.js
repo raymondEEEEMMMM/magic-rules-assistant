@@ -34,7 +34,7 @@ Page({
   },
 
   // 返回
-  goBack() {
+  goToIndex() {
     console.log('CODEBUDDY_DEBUG sldcards goBack called')
     wx.navigateBack({
       fail: () => wx.switchTab({ url: '/pages/index/index' })

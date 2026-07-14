@@ -13,5 +13,9 @@
       "Bash(findstr :8000)",
       "Bash(taskkill /F /PID 10588)"
     ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true
   }
 }

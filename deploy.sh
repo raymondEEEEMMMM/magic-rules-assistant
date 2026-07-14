@@ -32,7 +32,7 @@ fi
 echo ""
 echo "步骤 2: 部署云函数"
 cd functions/mtgAsk
-tcb fn deploy mtgAsk
+tcb fn deploy mtgAsk --dir .
 
 # 部署静态网站（如果需要）
 echo ""

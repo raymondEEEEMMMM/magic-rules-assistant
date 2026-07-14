@@ -1,0 +1,9 @@
+<!--components/token-card/token-card.wxml-->
+<view
+  class="token-card color-{{token.color}} {{isLightTheme ? 'page-light' : ''}}"
+  bindtap="onTap"
+>
+  <view class="token-icon">{{token.icon}}</view>
+  <view class="token-name">{{token.name}}</view>
+  <view class="token-color-dot color-dot-{{token.color}}"></view>
+</view>

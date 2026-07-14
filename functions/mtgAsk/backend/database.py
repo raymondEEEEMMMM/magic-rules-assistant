@@ -15,8 +15,8 @@ class RuleDatabase:
         self.db_type = 'mysql'
         self.env_id = os.environ.get('TCB_ENV_ID', 'magic-rules-assistant-0a1904c329')
         
-        # 本地调试时加载 .env.local
-        if not self._is_cloud_function():
+        # 本地调试时加载 .env.local（docker 环境跳过，使用环境变量）
+        if not self._is_cloud_function() and os.environ.get('ENVIRONMENT') != 'docker':
             self._load_local_env()
         
         # 检测运行环境
@@ -511,3 +511,166 @@ class RuleDatabase:
         except Exception as e:
             print(f"Database write error: {e}")
             return False
+
+    # ==================== 套牌管理 ====================
+
+    def ensure_decks_table(self) -> bool:
+        """确保 decks 表存在"""
+        sql = """CREATE TABLE IF NOT EXISTS decks (
+            id              INT AUTO_INCREMENT PRIMARY KEY,
+            openid          VARCHAR(128) NOT NULL COMMENT '微信 openid',
+            name            VARCHAR(255) NOT NULL COMMENT '套牌名称',
+            format          VARCHAR(64) DEFAULT '其他' COMMENT '赛制',
+            commander       VARCHAR(255) DEFAULT '' COMMENT '指挥官',
+            cards           TEXT COMMENT '卡牌列表 JSON',
+            total_cards     INT UNSIGNED DEFAULT 0 COMMENT '总张数',
+            avg_cmc         VARCHAR(10) DEFAULT '0.00' COMMENT '平均CMC',
+            created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_openid (openid),
+            INDEX idx_created (created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"""
+        return self._execute_write_sql(sql)
+
+    def get_decks_by_openid(self, openid: str) -> List[Dict]:
+        """获取用户的所有套牌"""
+        self.ensure_decks_table()
+        sql = "SELECT * FROM decks WHERE openid = %s ORDER BY created_at DESC"
+        results = self._execute_read_sql_with_params(sql, (openid,))
+        # 解析 cards JSON
+        for deck in results:
+            if deck.get('cards') and isinstance(deck['cards'], str):
+                try:
+                    import json
+                    deck['cards'] = json.loads(deck['cards'])
+                except:
+                    deck['cards'] = []
+        return results
+
+    def add_deck(self, openid: str, name: str, format: str = '其他', commander: str = '',
+                 cards: List = None, total_cards: int = 0, avg_cmc: str = '0.00') -> int:
+        """添加套牌，返回新记录的 ID"""
+        self.ensure_decks_table()
+        import json
+        cards_json = json.dumps(cards or [], ensure_ascii=False)
+        sql = """INSERT INTO decks (openid, name, format, commander, cards, total_cards, avg_cmc)
+                 VALUES (%s, %s, %s, %s, %s, %s, %s)"""
+        # 使用基础 _execute_write_sql_with_params 获取 last insert id
+        conn = None
+        try:
+            if not self.mysql_password:
+                return 0
+            import pymysql
+            conn = pymysql.connect(
+                host=self.mysql_host,
+                port=self.mysql_port,
+                user=self.mysql_user,
+                password=self.mysql_password,
+                database=self.mysql_database,
+                charset='utf8mb4',
+                use_unicode=True,
+                connect_timeout=10
+            )
+            with conn.cursor() as cursor:
+                cursor.execute(sql, (openid, name, format, commander, cards_json, total_cards, avg_cmc))
+                conn.commit()
+                return cursor.lastrowid
+        except Exception as e:
+            print(f"Database add_deck error: {e}")
+            return 0
+        finally:
+            if conn:
+                conn.close()
+
+    def delete_deck(self, deck_id: str, openid: str) -> bool:
+        """删除套牌（仅能删除自己的套牌）"""
+        sql = "DELETE FROM decks WHERE id = %s AND openid = %s"
+        return self._execute_write_sql_with_params(sql, (deck_id, openid))
+
+    def update_deck(self, deck_id: str, openid: str, name: str = None, format: str = None,
+                    commander: str = None, cards: List = None, total_cards: int = None,
+                    avg_cmc: str = None) -> bool:
+        """更新套牌（仅能更新自己的套牌）"""
+        import json
+        updates = []
+        params = []
+
+        if name is not None:
+            updates.append("name = %s")
+            params.append(name)
+        if format is not None:
+            updates.append("format = %s")
+            params.append(format)
+        if commander is not None:
+            updates.append("commander = %s")
+            params.append(commander)
+        if cards is not None:
+            updates.append("cards = %s")
+            params.append(json.dumps(cards, ensure_ascii=False))
+        if total_cards is not None:
+            updates.append("total_cards = %s")
+            params.append(total_cards)
+        if avg_cmc is not None:
+            updates.append("avg_cmc = %s")
+            params.append(avg_cmc)
+
+        if not updates:
+            return False
+
+        params.extend([deck_id, openid])
+        sql = f"UPDATE decks SET {', '.join(updates)} WHERE id = %s AND openid = %s"
+        return self._execute_write_sql_with_params(sql, tuple(params))
+
+    # ==================== 首页卡片配置 ====================
+
+    DEFAULT_HOMEPAGE_CARDS = [
+        {'key': 'ai_judge', 'name': 'AI 裁判', 'hidden': False, 'sort_order': 1},
+        {'key': 'token', 'name': 'Token 生成器', 'hidden': False, 'sort_order': 2},
+        {'key': 'promos', 'name': 'Promo 卡快讯', 'hidden': False, 'sort_order': 3},
+        {'key': 'counter', 'name': '生命值计数器', 'hidden': False, 'sort_order': 4},
+        {'key': 'dice', 'name': '骰子 & 随机', 'hidden': False, 'sort_order': 5},
+        {'key': 'deck', 'name': '我的套牌', 'hidden': False, 'sort_order': 6},
+    ]
+
+    def ensure_homepage_card_config_table(self) -> bool:
+        """确保 homepage_card_config 表存在"""
+        sql = """CREATE TABLE IF NOT EXISTS homepage_card_config (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            card_key VARCHAR(50) NOT NULL UNIQUE COMMENT '卡片标识',
+            card_name VARCHAR(100) COMMENT '卡片名称',
+            hidden BOOLEAN DEFAULT FALSE COMMENT '是否隐藏',
+            sort_order INT DEFAULT 0 COMMENT '排序顺序',
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"""
+        if self._execute_write_sql(sql):
+            # 首次创建时插入默认配置
+            self._init_homepage_card_defaults()
+            return True
+        return False
+
+    def _init_homepage_card_defaults(self):
+        """初始化默认卡片配置（仅当表为空时）"""
+        existing = self._execute_read_sql("SELECT COUNT(*) as cnt FROM homepage_card_config")
+        if existing and existing[0]['cnt'] > 0:
+            return
+        for card in self.DEFAULT_HOMEPAGE_CARDS:
+            self._execute_write_sql_with_params(
+                "INSERT IGNORE INTO homepage_card_config (card_key, card_name, hidden, sort_order) VALUES (%s, %s, %s, %s)",
+                (card['key'], card['name'], card['hidden'], card['sort_order'])
+            )
+
+    def get_homepage_card_configs(self) -> List[Dict]:
+        """获取所有首页卡片配置"""
+        self.ensure_homepage_card_config_table()
+        sql = "SELECT card_key, card_name, hidden, sort_order FROM homepage_card_config ORDER BY sort_order"
+        results = self._execute_read_sql(sql)
+        # 如果数据库为空，返回默认配置
+        if not results:
+            return self.DEFAULT_HOMEPAGE_CARDS
+        return results
+
+    def update_homepage_card_hidden(self, card_key: str, hidden: bool) -> bool:
+        """更新卡片隐藏状态"""
+        self.ensure_homepage_card_config_table()
+        sql = "UPDATE homepage_card_config SET hidden = %s WHERE card_key = %s"
+        return self._execute_write_sql_with_params(sql, (hidden, card_key))

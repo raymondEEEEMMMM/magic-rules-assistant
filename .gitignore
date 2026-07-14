@@ -62,3 +62,10 @@ logo/
 cloudbaserc.json
 .secret.yaml
 .secrets.json
+
+# Docker
+docker-compose.yml
+Dockerfile
+
+# 头脑风暴会话产物
+.superpowers/

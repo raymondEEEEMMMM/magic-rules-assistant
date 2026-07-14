@@ -1,0 +1,33 @@
+<!--pages/devlog/devlog.wxml-->
+<view class="container {{isLightTheme ? 'page-light' : ''}}">
+  <!-- 顶部导航栏 -->
+  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
+    <view class="nav-left">
+      <view class="back-btn" bindtap="goToIndex">🏠</view>
+    </view>
+    <view class="nav-title">
+      <text>开发日志</text>
+    </view>
+    <view class="nav-right"></view>
+  </view>
+
+  <!-- 版本列表 -->
+  <scroll-view class="version-list" scroll-y>
+    <view class="version-item" wx:for="{{devlogData}}" wx:key="version">
+      <view class="version-header">
+        <text class="version-number">{{item.version}}</text>
+        <text class="version-date">{{item.date}}</text>
+      </view>
+      <view class="version-items">
+        <view class="log-item" wx:for="{{item.items}}" wx:for-item="logItem" wx:key="index">
+          <view class="log-tag log-tag-{{logItem.type}}">
+            <text wx:if="{{logItem.type === 'feat'}}">新功能</text>
+            <text wx:elif="{{logItem.type === 'fix'}}">修复</text>
+            <text wx:elif="{{logItem.type === 'perf'}}">优化</text>
+          </view>
+          <text class="log-content">{{logItem.content}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

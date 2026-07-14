@@ -1,0 +1,9 @@
+<view class="section-header">
+  <view class="left">
+    <text class="title">{{title}}</text>
+    <text wx:if="{{count !== null}}" class="count">{{count}}</text>
+  </view>
+  <view wx:if="{{moreText}}" class="more" bindtap="onMore">
+    <text>{{moreText}}</text>
+  </view>
+</view>

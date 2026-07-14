@@ -1,0 +1,63 @@
+<!--pages/token-generate/token-generate.wxml-->
+<view class="container {{isLightTheme ? 'page-light' : ''}}">
+  <!-- 顶部导航栏 -->
+  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
+    <view class="nav-left">
+      <view class="back-btn" bindtap="goToIndex">🏠</view>
+    </view>
+    <view class="nav-title">
+      <text>生成 Token</text>
+    </view>
+    <view class="nav-right"></view>
+  </view>
+
+  <!-- Token 展示区 -->
+  <view class="preview-area">
+    <view class="preview-hint">长按图片保存</view>
+    <scroll-view class="token-scroll" scroll-x="{{!isVertical}}">
+      <view class="token-container {{isVertical ? 'vertical' : 'horizontal'}}">
+        <image
+          class="token-img"
+          src="{{card.image_uris.normal || card.image_uris.small}}"
+          mode="aspectFit"
+          wx:for="{{tokenCount}}"
+          wx:key="index"
+          bindtap="toggleCardRotate"
+          data-index="{{index}}"
+          style="transform: rotate({{cardRotations[index] || 0}}deg)"
+        />
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 控制面板 -->
+  <view class="control-panel">
+    <!-- Token 数量 -->
+    <view class="control-row">
+      <text class="control-label">Token 数量</text>
+      <view class="count-control">
+        <view class="count-btn minus" bindtap="minusCount">-</view>
+        <text class="count-value">{{tokenCount}}</text>
+        <view class="count-btn plus" bindtap="plusCount">+</view>
+      </view>
+    </view>
+
+    <!-- 横置/竖置 -->
+    <view class="control-row">
+      <text class="control-label">排列方式</text>
+      <view class="rotate-control">
+        <view class="rotate-btn {{isVertical ? 'active' : ''}}" bindtap="toggleRotate">
+          <text>竖置</text>
+        </view>
+        <view class="rotate-btn {{!isVertical ? 'active' : ''}}" bindtap="toggleRotate">
+          <text>横置</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 预览按钮 -->
+  <view class="preview-btn" bindtap="previewToken">
+    <text>预览大图</text>
+  </view>
+</view>

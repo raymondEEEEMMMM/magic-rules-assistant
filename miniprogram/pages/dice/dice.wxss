@@ -1,0 +1,332 @@
+/* pages/dice/dice.wxss */
+page {
+  background-color: #16213e;
+  height: 100%;
+  color: #ffffff;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* 导航栏 */
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 30rpx;
+  padding-top: calc(20rpx + env(safe-area-inset-top));
+  background: #1a1a2e;
+  border-bottom: 1rpx solid rgba(255, 215, 0, 0.15);
+}
+
+.nav-left, .nav-right {
+  min-width: 80rpx;
+}
+
+.back-btn {
+  font-size: 40rpx;
+  color: #ffd700;
+}
+
+.nav-title {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.nav-bar-light {
+  background: #ffffff;
+  border-bottom: 1rpx solid #e0e0e0;
+}
+
+.nav-bar-light .back-btn {
+  color: #667eea;
+}
+
+.nav-bar-light .nav-title {
+  color: #333333;
+}
+
+/* 区域 */
+.section {
+  padding: 30rpx;
+}
+
+.section-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 30rpx;
+  color: #ffd700;
+}
+
+.divider {
+  height: 1rpx;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 30rpx;
+}
+
+/* 骰子区域 */
+.dice-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  margin-bottom: 30rpx;
+}
+
+.dice-option {
+  padding: 16rpx 32rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  border: 2rpx solid transparent;
+}
+
+.dice-option.active {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: #ffd700;
+  color: #ffd700;
+}
+
+.custom-input {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 30rpx;
+  font-size: 28rpx;
+}
+
+.custom-input input {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8rpx;
+  padding: 12rpx 20rpx;
+  width: 150rpx;
+  text-align: center;
+}
+
+.roll-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 30rpx;
+}
+
+.roll-btn.rolling {
+  opacity: 0.6;
+}
+
+.dice-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20rpx;
+}
+
+.dice-number {
+  font-size: 120rpx;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 0 0 20rpx rgba(255, 215, 0, 0.5);
+}
+
+.dice-number.rolling-text {
+  animation: roll 0.1s linear infinite;
+}
+
+@keyframes roll {
+  0% { transform: rotate(-10deg); }
+  50% { transform: rotate(10deg); }
+  100% { transform: rotate(-10deg); }
+}
+
+.dice-label {
+  font-size: 40rpx;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* 硬币区域 */
+.coin-btn {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: #ffffff;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 30rpx;
+}
+
+.coin-btn.flipping {
+  opacity: 0.6;
+}
+
+.coin-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20rpx;
+}
+
+.coin-face {
+  font-size: 72rpx;
+  font-weight: bold;
+  color: #f5576c;
+}
+
+.coin-face.coin-flip-anim {
+  animation: coinFlip 0.15s linear infinite;
+}
+
+@keyframes coinFlip {
+  0% { transform: rotateY(0deg); }
+  50% { transform: rotateY(90deg); }
+  100% { transform: rotateY(0deg); }
+}
+
+/* 抽卡区域 */
+.draw-count {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 30rpx;
+}
+
+.count-btn {
+  width: 60rpx;
+  height: 60rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  font-weight: bold;
+}
+
+.count-btn:active {
+  opacity: 0.7;
+}
+
+.count-input {
+  width: 80rpx;
+  text-align: center;
+  font-size: 32rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8rpx;
+  padding: 10rpx;
+}
+
+.count-label {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.draw-btn {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: #ffffff;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 30rpx;
+}
+
+.draw-btn.drawing {
+  opacity: 0.6;
+}
+
+.cards-result {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  justify-content: center;
+}
+
+.card-item {
+  width: 200rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.card-image {
+  width: 180rpx;
+  height: 252rpx;
+  border-radius: 8rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.3);
+}
+
+.card-name {
+  font-size: 24rpx;
+  text-align: center;
+  color: #ffffff;
+}
+
+.card-set {
+  font-size: 20rpx;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Light theme */
+.container.page-light {
+  background-color: #f5f5f5;
+  color: #333333;
+}
+
+.container.page-light .section-title {
+  color: #667eea;
+}
+
+.container.page-light .dice-option {
+  background: rgba(0, 0, 0, 0.05);
+  color: #333333;
+}
+
+.container.page-light .dice-option.active {
+  background: rgba(102, 126, 234, 0.15);
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.container.page-light .custom-input input {
+  background: rgba(0, 0, 0, 0.05);
+  color: #333333;
+}
+
+.container.page-light .count-btn {
+  background: rgba(0, 0, 0, 0.05);
+  color: #333333;
+}
+
+.container.page-light .count-input {
+  background: rgba(0, 0, 0, 0.05);
+  color: #333333;
+}
+
+.container.page-light .count-label {
+  color: #666666;
+}
+
+.container.page-light .card-name {
+  color: #333333;
+}
+
+.container.page-light .card-set {
+  color: #999999;
+}
+
+.container.page-light .coin-face {
+  color: #f5576c;
+}
+
+.container.page-light .divider {
+  background: rgba(0, 0, 0, 0.1);
+}

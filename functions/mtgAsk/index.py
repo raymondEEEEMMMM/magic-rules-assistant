@@ -46,12 +46,29 @@ def main(event, context):
         print(f"=== 定时任务触发: {trigger_name} ===")
         from backend.services.agent_pool_manager import AgentPoolManager
         manager = AgentPoolManager()
-        result = manager.cleanup_all_sessions()
-        print(f"=== 清理结果: {result} ===")
+
+        # 1. 先清理所有过期会话
+        session_result = manager.cleanup_all_sessions()
+        print(f"=== 会话清理结果: {session_result} ===")
+
+        # 2. 再销毁空闲超时的 agents
+        idle_cleaned = manager.cleanup_idle_agents()
+        print(f"=== 空闲 Agent 清理数量: {idle_cleaned} ===")
+
+        # 获取池状态
+        stats = manager.get_pool_stats()
+        print(f"=== Agent 池状态: {stats} ===")
+
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json'},
-            'body': json.dumps({'success': True, 'triggered_by': trigger_name, 'result': result}, ensure_ascii=False)
+            'body': json.dumps({
+                'success': True,
+                'triggered_by': trigger_name,
+                'session_result': session_result,
+                'idle_agents_cleaned': idle_cleaned,
+                'pool_stats': stats
+            }, ensure_ascii=False)
         }
 
     # 获取请求信息
@@ -64,13 +81,28 @@ def main(event, context):
     print(f"Method: {http_method}, Path: {path}, Query: {query_string}")
     
     try:
+        # 检查是否有 action 参数（来自 wx.cloud.callFunction）
+        action = event.get('action', '')
+        if action == 'getOpenid':
+            # Event 函数通过 wx.cloud.callFunction 调用时，openid 在 wxContext 中
+            wx_context = event.get('wxContext', {})
+            openid = wx_context.get('OPENID') or wx_context.get('openid') or event.get('openid') or headers.get('x-wx-openid', None)
+            # 打印完整 event 和 context 用于调试
+            print(f"CODEBUDDY_DEBUG getOpenid: openid={openid}, wxContext={wx_context}")
+            print(f"CODEBUDDY_DEBUG event keys={list(event.keys())}, context keys={list(context.keys()) if context else 'None'}")
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'openid': openid})
+            }
+
         # 解析查询参数
         query_params = {}
         if query_string:
             from urllib.parse import parse_qs
             parsed = parse_qs(query_string)
             query_params = {k: v[0] if len(v) == 1 else v for k, v in parsed.items()}
-        
+
         # 路由处理
         if path == '/' or path == '':
             # 服务状态
@@ -625,6 +657,173 @@ def main(event, context):
                 'body': json.dumps(result, ensure_ascii=False)
             }
 
+        elif path == '/api/deck/cmc' and http_method == 'POST':
+            # 计算套牌 AVG CMC
+            # wx.cloud.callFunction 的 data 在 event 顶层，invokeFunction 测试在 event.body
+            cards = event.get('cards', [])
+            if not cards:
+                try:
+                    cards = json.loads(body).get('cards', []) if body else []
+                except (json.JSONDecodeError, TypeError):
+                    cards = []
+            if not cards:
+                return {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': json.dumps({'avgCMC': '0.00', 'cmcMap': {}})}
+
+            import httpx
+            cmc_map = {}
+
+            async def fetch_batch(names):
+                results = {}
+                chunk_size = 75
+                for i in range(0, len(names), chunk_size):
+                    chunk = names[i:i + chunk_size]
+                    identifiers = [{'name': n} for n in chunk]
+                    try:
+                        async with httpx.AsyncClient(timeout=30.0) as client:
+                            resp = await client.post(
+                                'https://api.scryfall.com/cards/collection',
+                                json={'identifiers': identifiers}
+                            )
+                            data = resp.json()
+                            if data.get('data'):
+                                for card in data['data']:
+                                    key = card.get('name', '').lower()
+                                    type_line = card.get('type_line', '') or ''
+                                    is_land = 'Land' in type_line
+                                    results[key] = {'cmc': card.get('cmc') or 0, 'is_land': is_land}
+                    except Exception as e:
+                        print(f'Scryfall batch query failed: {e}')
+                return results
+
+            import asyncio
+            names = [c['name'] for c in cards]
+            cmc_map = asyncio.run(fetch_batch(names))
+
+            total_cmc = 0.0
+            total_count = 0
+            for card in cards:
+                info = cmc_map.get(card['name'].lower(), {'cmc': 0, 'is_land': False})
+                mv = info['cmc']
+                is_land = info['is_land']
+                if is_land:
+                    continue  # 去除地牌
+                total_cmc += mv * card['count']
+                total_count += card['count']
+
+            avg_cmc = f'{total_cmc / total_count:.2f}' if total_count > 0 else '0.00'
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'avgCMC': avg_cmc, 'cmcMap': cmc_map})
+            }
+
+        elif path == '/api/deck/parse-url':
+            # 从 URL 解析套牌 (MTGGoldfish / Moxfield)
+            import html as html_module
+            import requests
+            from urllib.parse import unquote
+
+            query_string = event.get('queryString', '') or ''
+            print(f"DEBUG parse-url query_string={query_string}")
+            url = None
+            if query_string:
+                # 直接从 query_string 提取 url= 后面的内容
+                if 'url=' in query_string:
+                    url = query_string.split('url=', 1)[1]
+                    url = unquote(url.split('&')[0]) if '&' in url else unquote(url)
+            print(f"DEBUG parse-url extracted url={url}")
+
+            if not url:
+                return {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': json.dumps({'success': False, 'error': '缺少 URL 参数'})}
+
+            # 去掉 URL 中的锚点 (#paper 等)
+            url = url.split('#')[0]
+
+            # 验证 URL 域名，防止 SSRF 攻击
+            from urllib.parse import urlparse
+            parsed = urlparse(url)
+            allowed_hosts = ['www.mtggoldfish.com', 'mtggoldfish.com']
+            if parsed.netloc.lower() not in allowed_hosts:
+                return {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': json.dumps({'success': False, 'error': '不支持该 URL 类型'})}
+
+            try:
+                if parsed.netloc.lower() in allowed_hosts:
+                    # MTGGoldfish 解析
+                    resp = requests.get(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', 'Accept': 'text/html'}, timeout=30)
+                    resp.raise_for_status()
+                    html_content = resp.text
+
+                    # 提取 deck_input[deck]
+                    deck_input_match = re.search(r'name="deck_input\[deck\]"[^>]*value="([^"]+)"', html_content)
+                    if not deck_input_match:
+                        return {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': json.dumps({'success': False, 'error': '未能解析到套牌数据'})}
+
+                    deck_text = html_module.unescape(deck_input_match.group(1))
+
+                    cards = []
+                    seen = {}
+                    current_section = "main"
+                    for line in deck_text.split('\n'):
+                        line = line.strip()
+                        if not line:
+                            continue
+                        if line == '--':
+                            current_section = "sideboard"
+                            continue
+                        if current_section == "sideboard":
+                            continue
+                        match = re.match(r'^(\d+)[xX]?\s+(.+)$', line)
+                        if match:
+                            qty = int(match.group(1))
+                            card_name = match.group(2).strip()
+                            if card_name and qty > 0:
+                                key = card_name.lower()
+                                if key not in seen:
+                                    seen[key] = True
+                                    cards.append({'name': card_name, 'count': qty})
+
+                    # 提取名称
+                    name_match = re.search(r'<h1[^>]*class="deck-view-title"[^>]*>([^<]+)', html_content)
+                    name = name_match.group(1).strip() if name_match else ''
+
+                    if not cards:
+                        return {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': json.dumps({'success': False, 'error': '未能解析到套牌列表'})}
+
+                    return {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': json.dumps({'success': True, 'name': name, 'cards': cards})}
+
+                elif 'moxfield' in url.lower():
+                    # Moxfield 解析
+                    resp = requests.get(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', 'Accept': 'text/html'}, timeout=30)
+                    resp.raise_for_status()
+                    html_content = resp.text
+
+                    # 提取标题
+                    name_match = re.search(r'<h2[^>]*class="deck-view-info-name"[^>]*>([^<]+)', html_content)
+                    name = name_match.group(1).strip() if name_match else 'Moxfield Deck'
+
+                    # 提取卡牌
+                    cards = []
+                    seen = {}
+                    card_matches = re.findall(r'card-view-quantity">(\d+)</span>.*?card-view-name">([^<]+)', html_content, re.DOTALL)
+                    for qty, card_name in card_matches:
+                        card_name = card_name.strip()
+                        if card_name:
+                            key = card_name.lower()
+                            if key not in seen:
+                                seen[key] = True
+                                cards.append({'name': card_name, 'count': int(qty)})
+
+                    if not cards:
+                        return {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': json.dumps({'success': False, 'error': '未能解析到套牌列表'})}
+
+                    return {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': json.dumps({'success': True, 'name': name, 'cards': cards})}
+
+                else:
+                    return {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': json.dumps({'success': False, 'error': '暂不支持该 URL 类型'})}
+
+            except Exception as e:
+                return {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': json.dumps({'success': False, 'error': f'解析失败: {str(e)}'})}
+
         elif path == '/api/feedback' and http_method == 'POST':
             # 提交反馈
             from backend.database import RuleDatabase
@@ -832,6 +1031,279 @@ def main(event, context):
                     'body': json.dumps({'success': False, 'error': {'code': 'SSH_ERROR', 'message': str(e)}})
                 }
 
+        elif path == '/api/deck/list' and http_method == 'GET':
+            # 获取套牌列表
+            openid = query_params.get('openid') or headers.get('x-wx-openid', None)
+            if not openid:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': '缺少 openid 参数'})
+                }
+
+            from backend.database import RuleDatabase
+            db = RuleDatabase()
+            db.ensure_decks_table()
+            decks = db.get_decks_by_openid(openid)
+
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'success': True, 'decks': decks}, ensure_ascii=False, default=str)
+            }
+
+        elif path == '/api/deck/add' and http_method == 'POST':
+            # 添加套牌
+            try:
+                body_data = json.loads(body) if body else {}
+            except json.JSONDecodeError:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': 'Invalid JSON body'})
+                }
+
+            openid = body_data.get('openid') or headers.get('x-wx-openid', None)
+            if not openid:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': '缺少 openid 参数'})
+                }
+
+            name = body_data.get('name', '')
+            format = body_data.get('format', '其他')
+            commander = body_data.get('commander', '')
+            cards = body_data.get('cards', [])
+            total_cards = body_data.get('total_cards', 0)
+            avg_cmc = body_data.get('avg_cmc', '0.00')
+
+            if not name:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': '套牌名称不能为空'})
+                }
+
+            from backend.database import RuleDatabase
+            db = RuleDatabase()
+            db.ensure_decks_table()
+            deck_id = db.add_deck(openid, name, format, commander, cards, total_cards, avg_cmc)
+
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'success': True, 'deck_id': deck_id}, ensure_ascii=False)
+            }
+
+        elif re.match(r'^/api/deck/([^/]+)$', path) and http_method == 'DELETE':
+            # 删除套牌
+            match = re.match(r'^/api/deck/([^/]+)$', path)
+            deck_id = match.group(1)
+
+            openid = query_params.get('openid') or headers.get('x-wx-openid', None)
+            if not openid:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': '缺少 openid 参数'})
+                }
+
+            from backend.database import RuleDatabase
+            db = RuleDatabase()
+            success = db.delete_deck(deck_id, openid)
+
+            if success:
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': True}, ensure_ascii=False)
+                }
+            else:
+                return {
+                    'statusCode': 404,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': '套牌不存在或无权删除'})
+                }
+
+        elif re.match(r'^/api/deck/([^/]+)$', path) and http_method == 'PUT':
+            # 更新套牌
+            match = re.match(r'^/api/deck/([^/]+)$', path)
+            deck_id = match.group(1)
+
+            try:
+                body_data = json.loads(body) if body else {}
+            except json.JSONDecodeError:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': 'Invalid JSON body'})
+                }
+
+            openid = body_data.get('openid') or headers.get('x-wx-openid', None)
+            if not openid:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': '缺少 openid 参数'})
+                }
+
+            name = body_data.get('name')
+            format = body_data.get('format')
+            commander = body_data.get('commander')
+            cards = body_data.get('cards')
+            total_cards = body_data.get('total_cards')
+            avg_cmc = body_data.get('avg_cmc')
+
+            from backend.database import RuleDatabase
+            db = RuleDatabase()
+            success = db.update_deck(deck_id, openid, name, format, commander, cards, total_cards, avg_cmc)
+
+            if success:
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': True}, ensure_ascii=False)
+                }
+            else:
+                return {
+                    'statusCode': 404,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': False, 'error': '套牌不存在或无权更新'})
+                }
+
+        elif path == '/api/token/list':
+            # Token 列表
+            tokens = [
+                {"name": "珍宝", "enName": "Treasure", "color": "C", "icon": "💎", "colorName": "无色", "power": 0, "toughness": 0},
+                {"name": "复制品", "enName": "Copy", "color": "C", "icon": "🔄", "colorName": "任意", "type": "copy", "power": 0, "toughness": 0},
+                {"name": "士兵", "enName": "Soldier", "color": "W", "icon": "⚔️", "colorName": "白", "power": 1, "toughness": 1},
+                {"name": "天使", "enName": "Angel", "color": "W", "icon": "👼", "colorName": "白", "power": 3, "toughness": 3, "abilities": "飞行"},
+                {"name": "精灵", "enName": "Elf", "color": "W", "icon": "🧝", "colorName": "白", "power": 1, "toughness": 1},
+                {"name": "野狼", "enName": "Wolf", "color": "W", "icon": "🐺", "colorName": "白", "power": 2, "toughness": 2},
+                {"name": "猫", "enName": "Cat", "color": "W", "icon": "🐱", "colorName": "白", "power": 2, "toughness": 2},
+                {"name": "鸟", "enName": "Bird", "color": "U", "icon": "🐦", "colorName": "蓝", "power": 1, "toughness": 1, "abilities": "飞行"},
+                {"name": "海洋幻惑", "enName": "Kraken", "color": "U", "icon": "🦑", "colorName": "蓝", "power": 0, "toughness": 0},
+                {"name": "元素", "enName": "Elemental", "color": "U", "icon": "🌊", "colorName": "蓝", "power": 0, "toughness": 0},
+                {"name": "虚影", "enName": "Illusion", "color": "U", "icon": "👤", "colorName": "蓝", "power": 1, "toughness": 1, "abilities": "飞行"},
+                {"name": "灵俑", "enName": "Zombie", "color": "B", "icon": "💀", "colorName": "黑", "power": 2, "toughness": 2},
+                {"name": "吸血鬼", "enName": "Vampire", "color": "B", "icon": "🧛", "colorName": "黑", "power": 1, "toughness": 1},
+                {"name": "蝙蝠", "enName": "Bat", "color": "B", "icon": "🦇", "colorName": "黑", "power": 1, "toughness": 1, "abilities": "飞行"},
+                {"name": "恶魔", "enName": "Demon", "color": "B", "icon": "😈", "colorName": "黑", "power": 5, "toughness": 5, "abilities": "飞行"},
+                {"name": "妖精", "enName": "Fae", "color": "B", "icon": "🧚", "colorName": "黑", "power": 0, "toughness": 1},
+                {"name": "龙", "enName": "Dragon", "color": "R", "icon": "🐉", "colorName": "红", "power": 2, "toughness": 2, "abilities": "飞行"},
+                {"name": "鬼怪", "enName": "Goblin", "color": "R", "icon": "👺", "colorName": "红", "power": 1, "toughness": 1},
+                {"name": "元素", "enName": "Elemental", "color": "R", "icon": "🔥", "colorName": "红", "power": 1, "toughness": 1},
+                {"name": "龙兽", "enName": "Drake", "color": "R", "icon": "🦅", "colorName": "红", "power": 2, "toughness": 2, "abilities": "飞行"},
+                {"name": "战士", "enName": "Warrior", "color": "R", "icon": "⚔️", "colorName": "红", "power": 1, "toughness": 1},
+                {"name": "妖精", "enName": "Elf", "color": "G", "icon": "🧝", "colorName": "绿", "power": 1, "toughness": 1},
+                {"name": "狼", "enName": "Wolf", "color": "G", "icon": "🐺", "colorName": "绿", "power": 2, "toughness": 2},
+                {"name": "巨魔", "enName": "Troll", "color": "G", "icon": "🧌", "colorName": "绿", "power": 3, "toughness": 3},
+                {"name": "蜈蚣", "enName": "Squirrel", "color": "G", "icon": "🐿", "colorName": "绿", "power": 1, "toughness": 1},
+                {"name": "猫", "enName": "Cat", "color": "G", "icon": "🐱", "colorName": "绿", "power": 2, "toughness": 1},
+                {"name": "变形兽", "enName": "Shapeshifter", "color": "C", "icon": "👹", "colorName": "无色", "power": 3, "toughness": 3},
+                {"name": "组构体", "enName": "Construct", "color": "C", "icon": "🤖", "colorName": "无色", "power": 4, "toughness": 4},
+                {"name": "皮托斯", "enName": "Myr", "color": "C", "icon": "🗿", "colorName": "无色", "power": 0, "toughness": 0},
+                {"name": "Marit Lage", "enName": "Marit Lage", "color": "B", "icon": "🌊", "colorName": "黑", "power": 20, "toughness": 20, "abilities": "飞行，不灭"},
+            ]
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'tokens': tokens}, ensure_ascii=False)
+            }
+
+        elif path == '/api/promos' and http_method == 'GET':
+            # Promo 卡查询
+            import requests
+            from datetime import datetime
+
+            # 获取方式中英文映射表
+            acquisition_method_map = {
+                'promopack': '补充包促销',
+                'stamped': '印戳卡',
+                'storechampionship': '店冠军赛',
+                'standardshowdown': '标准对决',
+                'wizardsplaynetwork': 'WPN促销',
+                'bundle': '捆绑包促销',
+                'mediainsert': '杂志附赠卡',
+                'poster': '海报促销',
+                'universesbeyond': '宇宙系列',
+                'sourcematerial': '素材卡',
+                'ffvii': '最终幻想VII',
+            }
+
+            # 支持 year 参数筛选，默认当前年份
+            year = query_params.get('year', datetime.today().strftime('%Y'))
+
+            all_cards = []
+            seen = {}  # 用于去重 (name + set)
+
+            def fetch_with_retry(url, max_retries=3):
+                for attempt in range(max_retries):
+                    try:
+                        resp = requests.get(url, timeout=30, headers={
+                            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+                            'Accept': 'application/json'
+                        })
+                        return resp.json()
+                    except requests.exceptions.RequestException as e:
+                        if attempt == max_retries - 1:
+                            raise
+                        import time
+                        time.sleep(1)
+
+            # 查询 promo 卡 (排除 MTGO)
+            page = 1
+            while True:
+                query = f'is:promo year:{year}'
+                url = f"https://api.scryfall.com/cards/search?q={query}&page={page}"
+                result = fetch_with_retry(url)
+                cards = result.get('data', [])
+                for card in cards:
+                    # 排除 Magic Online Promos
+                    if card.get('digital', False):
+                        continue
+                    # 排除重复卡 (按 name + set_code 去重，保留第一个)
+                    key = (card.get('name', '').lower(), card.get('set', '').lower())
+                    if key in seen:
+                        continue
+                    seen[key] = True
+
+                    # 获取主要获取方式
+                    promo_types = card.get('promo_types', [])
+                    acquisition = promo_types[0] if promo_types else ''
+                    acquisition_cn = acquisition_method_map.get(acquisition, acquisition)
+
+                    all_cards.append({
+                        'name': card.get('name', ''),
+                        'set_name': card.get('set_name', ''),
+                        'set_code': card.get('set', ''),
+                        'released_at': card.get('released_at', ''),
+                        'image_url': card.get('image_uris', {}).get('border_crop', '') or card.get('image_uris', {}).get('normal', ''),
+                        'type_line': card.get('type_line', ''),
+                        'colors': card.get('colors', []),
+                        'rarity': card.get('rarity', ''),
+                        'acquisition_method': acquisition,
+                        'acquisition_method_cn': acquisition_cn,
+                        'security_stamp': card.get('security_stamp', ''),
+                    })
+
+                if not result.get('has_more'):
+                    break
+                page += 1
+                if page > 10:  # 防止过多请求
+                    break
+
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'success': True,
+                    'total': len(all_cards),
+                    'cards': all_cards
+                }, ensure_ascii=False)
+            }
+
         else:
             # 未知路径
             return {
@@ -855,7 +1327,9 @@ def main(event, context):
                         '/api/admin/cleanup-sessions',
                         '/api/admin/agent-pool/stats',
                         '/api/admin/import-rules',
-                        '/api/feedback'
+                        '/api/feedback',
+                        '/api/promos',
+                        '/api/token/list'
                     ]
                 })
             }

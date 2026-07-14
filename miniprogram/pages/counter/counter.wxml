@@ -3,7 +3,7 @@
   <!-- 顶部导航栏 -->
   <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
     <view class="nav-left">
-      <view class="back-btn" bindtap="goBack">←</view>
+      <view class="back-btn" bindtap="goToIndex">🏠</view>
     </view>
     <view class="nav-title">
       <text>生命值计数器</text>
@@ -21,19 +21,11 @@
         <view class="picker-value">{{currentFormatName}}</view>
       </picker>
     </view>
-    <view class="coin-btn" bindtap="flipCoin" wx:if="{{playerCount === 2}}">
-      <text>🎲 掷硬币</text>
-    </view>
   </view>
 
   <!-- 赛制信息 -->
   <view class="format-info">
     <text class="format-desc">{{playerCount}}人游戏 · 起始生命 {{initialLife}}</text>
-  </view>
-
-  <!-- 硬币结果 -->
-  <view class="coin-result" wx:if="{{coinResult && playerCount === 2}}">
-    <text class="coin-text {{coinAnimating ? 'coin-flip' : ''}}">{{coinResult}}</text>
   </view>
 
   <!-- 玩家区域 -->
@@ -50,6 +42,29 @@
           <view class="life-btn plus" bindtap="adjustLife" data-index="0" data-delta="{{1}}">+1</view>
           <view class="life-btn minus-small" bindtap="adjustLife" data-index="0" data-delta="{{-5}}">-5</view>
           <view class="life-btn plus-small" bindtap="adjustLife" data-index="0" data-delta="{{5}}">+5</view>
+        </view>
+
+        <!-- Mana Bar (默认收起) -->
+        <view class="mana-section">
+          <view class="mana-header" bindtap="toggleMana">
+            <text class="mana-title">法力池</text>
+            <text class="mana-toggle">{{showMana ? '▼' : '▶'}}</text>
+          </view>
+          <view class="mana-content" wx:if="{{showMana}}">
+            <view class="mana-row">
+              <view class="mana-item" wx:for="{{manaColors}}" wx:key="index">
+                <view class="mana-icon-wrapper">
+                  <image class="mana-icon" src="https://svgs.scryfall.io/card-symbols/{{item}}.svg" mode="aspectFit" />
+                </view>
+                <view class="mana-value">{{manaPool[item]}}</view>
+                <view class="mana-controls">
+                  <view class="mana-btn minus" bindtap="adjustMana" data-color="{{item}}" data-delta="{{-1}}">-</view>
+                  <view class="mana-btn plus" bindtap="adjustMana" data-color="{{item}}" data-delta="{{1}}">+</view>
+                </view>
+              </view>
+            </view>
+            <view class="mana-reset-btn" bindtap="resetMana">重置法力</view>
+          </view>
         </view>
       </view>
     </view>

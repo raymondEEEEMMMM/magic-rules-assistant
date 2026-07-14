@@ -37,9 +37,10 @@
       "computedHash": "3b14f14eeecce24fd87dc588edac73de95c8c2e878c2775d96e44195aceaaef1"
     },
     "cloudbase": {
-      "source": "tencentcloudbase/skills",
+      "source": "tencentcloudbase/cloudbase-skills",
       "sourceType": "github",
-      "computedHash": "c535e53584c0dd1dce506149e44b6ccd72bac7130530ca29e47b62d33198c570"
+      "skillPath": "skills/cloudbase/SKILL.md",
+      "computedHash": "a6236a58174ee3e23f8b8b3a31fa9c64a55688bfeeab84e38a60fe1be24769ce"
     },
     "cloudbase-document-database-in-wechat-miniprogram": {
       "source": "tencentcloudbase/skills",

@@ -1,0 +1,12 @@
+<view class="nav-header">
+  <view wx:if="{{showBack}}" class="nav-btn" bindtap="onBack">
+    <image class="icon" src="{{backIcon}}" mode="aspectFit"></image>
+  </view>
+  <view class="title-block">
+    <view class="title">{{title}}</view>
+    <view wx:if="{{subtitle}}" class="subtitle">{{subtitle}}</view>
+  </view>
+  <view wx:if="{{showTheme}}" class="nav-btn" bindtap="onToggleTheme">
+    <image class="icon" src="{{themeIcon}}" mode="aspectFit"></image>
+  </view>
+</view>

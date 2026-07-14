@@ -1,0 +1,27 @@
+.nav-header {
+  display: flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-2);
+  background-color: var(--bg-card);
+}
+.nav-btn {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+}
+.nav-btn:active { opacity: 0.7; }
+.icon { width: 36rpx; height: 36rpx; }
+.title-block { flex: 1; padding: 0 var(--space-2); }
+.title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+.subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin-top: 2rpx;
+}

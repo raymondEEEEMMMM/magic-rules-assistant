@@ -1,0 +1,7 @@
+<view
+  class="chip {{active ? 'active' : ''}}"
+  style="{{color && active ? 'background-color:' + color + ';' : ''}}"
+  bindtap="onTap"
+>
+  <text>{{text}}</text>
+</view>

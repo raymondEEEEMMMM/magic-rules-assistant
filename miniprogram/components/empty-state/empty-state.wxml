@@ -1,0 +1,10 @@
+<view class="empty-state">
+  <view class="icon-circle">
+    <image class="icon" src="{{iconDataUrl}}" mode="aspectFit"></image>
+  </view>
+  <view wx:if="{{title}}" class="title">{{title}}</view>
+  <view wx:if="{{desc}}" class="desc">{{desc}}</view>
+  <view wx:if="{{actionText}}" class="action" bindtap="onAction">
+    <text>{{actionText}}</text>
+  </view>
+</view>

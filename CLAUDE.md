@@ -124,6 +124,12 @@ miniprogram/
 | `/api/rules/status` | GET | Get rule version status |
 | `/api/ai-judge/chat` | POST | AI Judge chat (支持 per-user agent 隔离) |
 | `/api/ai-judge/clear` | POST | Clear AI Judge session |
+| `/api/deck/list` | GET | 获取用户套牌列表 (需 openid) |
+| `/api/deck/add` | POST | 添加套牌 |
+| `/api/deck/:id` | DELETE | 删除套牌 |
+| `/api/deck/:id` | PUT | 更新套牌 |
+| `/api/deck/cmc` | POST | 计算套牌 AVG CMC |
+| `/api/deck/parse-url` | GET | 解析 MTGGoldfish/Moxfield URL |
 
 ### Cloud Function Configuration
 
@@ -178,6 +184,46 @@ Key variables (in `.env.local` for local, `cloudbaserc.json` for cloud):
 3. **WeChat Message Handling**: Text messages parsed and routed to appropriate handlers based on prefixes (`卡牌:`, `异能:`) or commands (`/help`, `/start`)
 
 4. **Scheduled Updates**: `scheduler.py` runs periodic rule updates using the `schedule` library
+
+## Common Pitfalls
+
+### WeChat Mini-Program Modal + Input Focus Issue
+When a modal has an input field and clicking the input causes the modal to close unexpectedly, it's because the input's focus event bubbles up and triggers the modal's `catchtap`. 
+
+**Solution**: Wrap the input in a view with `catchtap="noop"` and add an empty `noop()` handler to the page:
+```xml
+<view class="search-wrapper" catchtap="noop">
+  <input bindinput="onSearch" ... />
+</view>
+```
+```javascript
+noop() {} // empty handler to stop tap propagation
+```
+
+This issue frequently occurs in modal development - remember to use `catchtap` on wrapper views to isolate input interactions from modal backdrop taps.
+
+### Cloud Function Debugging
+**Always use MCP tools for cloud debugging**, not local curl commands. Cloud functions may have different network configurations.
+
+**Log query:**
+```
+mcp__cloudbase__queryLogs({
+  action: "searchLogs",
+  service: "tcb",
+  queryString: "your_keyword",
+  limit: 20,
+  sort: "desc"
+})
+```
+
+**Function invocation:**
+```
+mcp__cloudbase__manageFunctions({
+  action: "invokeFunction",
+  functionName: "mtgAsk",
+  params: { /* your params */ }
+})
+```
 
 ## Partner Projects
 

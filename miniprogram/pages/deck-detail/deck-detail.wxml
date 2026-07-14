@@ -1,0 +1,258 @@
+<!--pages/deck-detail/deck-detail.wxml-->
+<view class="container {{isLightTheme ? 'page-light' : ''}}">
+  <!-- 顶部导航栏 -->
+  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
+    <view class="nav-left">
+      <view class="back-btn" bindtap="goToIndex">🏠</view>
+    </view>
+    <view class="nav-title">
+      <text>卡组详情</text>
+    </view>
+    <view class="nav-right"></view>
+  </view>
+
+  <scroll-view class="content" scroll-y wx:if="{{deck}}">
+    <!-- 卡组信息卡片 -->
+    <view class="deck-info-card">
+      <view class="deck-name-row">
+        <text class="deck-name">{{deck.name}}</text>
+        <text class="deck-format-tag">{{deck.format}}</text>
+      </view>
+      <view class="deck-meta">
+        <text class="meta-item">总张数：{{deck.totalCards}}</text>
+        <text class="meta-item" wx:if="{{deck.avgCMC}}">平均法术力费用：{{deck.avgCMC}}</text>
+      </view>
+    </view>
+
+    <!-- 指挥官区域 -->
+    <view class="section commander-section" wx:if="{{commanderInfo}}">
+      <view class="section-title commander-title">指挥官</view>
+      <view class="commander-card {{isLightTheme ? 'commander-card-light' : ''}}">
+        <image
+          class="commander-image"
+          src="{{commanderInfo.image}}"
+          mode="aspectSmall"
+          wx:if="{{commanderInfo.image}}"
+        />
+        <view class="commander-info">
+          <text class="commander-name">{{commanderInfo.name}}</text>
+          <text class="commander-type" wx:if="{{commanderInfo.type_line}}">{{commanderInfo.type_line}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-grid">
+      <view class="action-btn" bindtap="goToOdds">
+        <text class="action-icon">📊</text>
+        <text class="action-text">Odds计算</text>
+      </view>
+      <view class="action-btn" bindtap="shareDeck">
+        <text class="action-icon">📤</text>
+        <text class="action-text">分享卡组</text>
+      </view>
+      <view class="action-btn" bindtap="exportDeck">
+        <text class="action-icon">📋</text>
+        <text class="action-text">复制导出</text>
+      </view>
+    </view>
+
+    <!-- 分类卡牌列表 -->
+    <block wx:if="{{creatureCards.length > 0}}">
+      <view class="section">
+        <view class="section-title type-section-title">生物</view>
+        <view class="card-list">
+          <view class="card-item" wx:for="{{creatureCards}}" wx:key="name">
+            <text class="card-count">{{item.count}}</text>
+            <text class="card-name">{{item.name}}</text>
+            <view class="card-mana" wx:if="{{item.manaSymbols.length > 0}}">
+              <image
+                class="mana-symbol-img"
+                wx:for="{{item.manaSymbols}}"
+                wx:for-item="mana"
+                wx:key="key"
+                src="{{mana.url}}"
+                mode="aspectFit"
+              />
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:if="{{sorceryCards.length > 0}}">
+      <view class="section">
+        <view class="section-title type-section-title">法术</view>
+        <view class="card-list">
+          <view class="card-item" wx:for="{{sorceryCards}}" wx:key="name">
+            <text class="card-count">{{item.count}}</text>
+            <text class="card-name">{{item.name}}</text>
+            <view class="card-mana" wx:if="{{item.manaSymbols.length > 0}}">
+              <image
+                class="mana-symbol-img"
+                wx:for="{{item.manaSymbols}}"
+                wx:for-item="mana"
+                wx:key="key"
+                src="{{mana.url}}"
+                mode="aspectFit"
+              />
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:if="{{instantCards.length > 0}}">
+      <view class="section">
+        <view class="section-title type-section-title">瞬间</view>
+        <view class="card-list">
+          <view class="card-item" wx:for="{{instantCards}}" wx:key="name">
+            <text class="card-count">{{item.count}}</text>
+            <text class="card-name">{{item.name}}</text>
+            <view class="card-mana" wx:if="{{item.manaSymbols.length > 0}}">
+              <image
+                class="mana-symbol-img"
+                wx:for="{{item.manaSymbols}}"
+                wx:for-item="mana"
+                wx:key="key"
+                src="{{mana.url}}"
+                mode="aspectFit"
+              />
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:if="{{planeswalkerCards.length > 0}}">
+      <view class="section">
+        <view class="section-title type-section-title">鹏洛客</view>
+        <view class="card-list">
+          <view class="card-item" wx:for="{{planeswalkerCards}}" wx:key="name">
+            <text class="card-count">{{item.count}}</text>
+            <text class="card-name">{{item.name}}</text>
+            <view class="card-mana" wx:if="{{item.manaSymbols.length > 0}}">
+              <image
+                class="mana-symbol-img"
+                wx:for="{{item.manaSymbols}}"
+                wx:for-item="mana"
+                wx:key="key"
+                src="{{mana.url}}"
+                mode="aspectFit"
+              />
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:if="{{enchantmentCards.length > 0}}">
+      <view class="section">
+        <view class="section-title type-section-title">结界</view>
+        <view class="card-list">
+          <view class="card-item" wx:for="{{enchantmentCards}}" wx:key="name">
+            <text class="card-count">{{item.count}}</text>
+            <text class="card-name">{{item.name}}</text>
+            <view class="card-mana" wx:if="{{item.manaSymbols.length > 0}}">
+              <image
+                class="mana-symbol-img"
+                wx:for="{{item.manaSymbols}}"
+                wx:for-item="mana"
+                wx:key="key"
+                src="{{mana.url}}"
+                mode="aspectFit"
+              />
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:if="{{artifactCards.length > 0}}">
+      <view class="section">
+        <view class="section-title type-section-title">神器</view>
+        <view class="card-list">
+          <view class="card-item" wx:for="{{artifactCards}}" wx:key="name">
+            <text class="card-count">{{item.count}}</text>
+            <text class="card-name">{{item.name}}</text>
+            <view class="card-mana" wx:if="{{item.manaSymbols.length > 0}}">
+              <image
+                class="mana-symbol-img"
+                wx:for="{{item.manaSymbols}}"
+                wx:for-item="mana"
+                wx:key="key"
+                src="{{mana.url}}"
+                mode="aspectFit"
+              />
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:if="{{landCards.length > 0}}">
+      <view class="section">
+        <view class="section-title type-section-title">土地</view>
+        <view class="card-list">
+          <view class="card-item" wx:for="{{landCards}}" wx:key="name">
+            <text class="card-count">{{item.count}}</text>
+            <text class="card-name">{{item.name}}</text>
+            <view class="card-mana" wx:if="{{item.manaSymbols.length > 0}}">
+              <image
+                class="mana-symbol-img"
+                wx:for="{{item.manaSymbols}}"
+                wx:for-item="mana"
+                wx:key="key"
+                src="{{mana.url}}"
+                mode="aspectFit"
+              />
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:if="{{otherCards.length > 0}}">
+      <view class="section">
+        <view class="section-title type-section-title">其他</view>
+        <view class="card-list">
+          <view class="card-item" wx:for="{{otherCards}}" wx:key="name">
+            <text class="card-count">{{item.count}}</text>
+            <text class="card-name">{{item.name}}</text>
+            <view class="card-mana" wx:if="{{item.manaSymbols.length > 0}}">
+              <image
+                class="mana-symbol-img"
+                wx:for="{{item.manaSymbols}}"
+                wx:for-item="mana"
+                wx:key="key"
+                src="{{mana.url}}"
+                mode="aspectFit"
+              />
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 未分类时显示全部 -->
+    <view class="section" wx:if="{{!creatureCards.length && mainCards.length > 0}}">
+      <view class="section-title">卡牌列表</view>
+      <view class="card-list">
+        <view class="card-item" wx:for="{{mainCards}}" wx:key="name">
+          <text class="card-count">{{item.count}}</text>
+          <text class="card-name">{{item.name}}</text>
+          <view class="card-mana" wx:if="{{item.manaSymbols.length > 0}}">
+            <image
+              class="mana-symbol-img"
+              wx:for="{{item.manaSymbols}}"
+              wx:for-item="mana"
+              wx:key="key"
+              src="{{mana.url}}"
+              mode="aspectFit"
+            />
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

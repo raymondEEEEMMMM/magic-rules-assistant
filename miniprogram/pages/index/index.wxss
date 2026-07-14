@@ -1,6 +1,6 @@
 /* pages/index/index.wxss */
 page {
-  background-color: #16213e;
+  background-color: var(--legacy-bg);
   color: #ffffff;
 }
 
@@ -14,7 +14,7 @@ page {
 /* Banner */
 .banner {
   position: relative;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--legacy-accent-start) 0%, var(--legacy-accent-end) 100%);
   padding: 100rpx 40rpx 60rpx;
   padding-top: calc(100rpx + env(safe-area-inset-top));
   border-radius: 0 0 40rpx 40rpx;
@@ -90,7 +90,7 @@ page {
 }
 
 .search-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--legacy-accent-start) 0%, var(--legacy-accent-end) 100%);
   border-radius: 40rpx;
   padding: 20rpx 40rpx;
   font-size: 28rpx;
@@ -118,7 +118,7 @@ page {
 
 .history-clear {
   font-size: 24rpx;
-  color: #667eea;
+  color: var(--legacy-accent-start);
 }
 
 .history-list {
@@ -174,7 +174,7 @@ page {
 }
 
 .card-bar {
-  border-left-color: #667eea;
+  border-left-color: var(--legacy-accent-start);
 }
 
 .rule-bar {
@@ -195,6 +195,13 @@ page {
   border-radius: 20rpx;
 }
 
+.section-more {
+  font-size: 24rpx;
+  color: var(--legacy-accent-start);
+  padding: 6rpx 0;
+  margin-left: 16rpx;
+}
+
 .result-list {
   display: flex;
   flex-direction: column;
@@ -205,7 +212,7 @@ page {
   background: rgba(255, 255, 255, 0.08);
   border-radius: 20rpx;
   padding: 24rpx;
-  border-left: 6rpx solid #667eea;
+  border-left: 6rpx solid var(--legacy-accent-start);
 }
 
 .result-card.keyword-card {
@@ -221,7 +228,7 @@ page {
 
 .result-number {
   font-size: 24rpx;
-  color: #667eea;
+  color: var(--legacy-accent-start);
   font-weight: bold;
 }
 
@@ -270,24 +277,6 @@ page {
 }
 
 /* 查看更多 */
-.view-more-card {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24rpx;
-  background: rgba(102, 126, 234, 0.15);
-  border-radius: 16rpx;
-  border: 1rpx solid rgba(102, 126, 234, 0.3);
-  margin-top: 8rpx;
-}
-
-.view-more-text {
-  font-size: 28rpx;
-  color: #667eea;
-  font-weight: 500;
-}
-
 /* 无结果 */
 .no-results {
   display: flex;
@@ -321,7 +310,7 @@ page {
   width: 60rpx;
   height: 60rpx;
   border: 4rpx solid rgba(255, 255, 255, 0.2);
-  border-top-color: #667eea;
+  border-top-color: var(--legacy-accent-start);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 20rpx;
@@ -458,6 +447,183 @@ page {
 .counter-arrow {
   font-size: 48rpx;
   color: rgba(74, 222, 128, 0.6);
+  font-weight: 300;
+}
+
+/* 骰子 & 随机入口 */
+.dice-entry {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #2d1f4e 0%, #1a1a2e 100%);
+  border-radius: 24rpx;
+  padding: 28rpx 32rpx;
+  margin: 0 30rpx 20rpx;
+  border: 2rpx solid rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(102, 126, 234, 0.15);
+}
+
+.dice-entry:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.dice-icon {
+  font-size: 52rpx;
+  margin-right: 24rpx;
+}
+
+.dice-info {
+  flex: 1;
+}
+
+.dice-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 6rpx;
+}
+
+.dice-desc {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.dice-arrow {
+  font-size: 48rpx;
+  color: rgba(102, 126, 234, 0.6);
+  font-weight: 300;
+}
+
+/* Token 生成器入口 */
+.token-entry {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #1a3a2e 0%, #1a1a2e 100%);
+  border-radius: 24rpx;
+  padding: 28rpx 32rpx;
+  margin: 0 30rpx 20rpx;
+  border: 2rpx solid rgba(74, 222, 128, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(74, 222, 128, 0.1);
+}
+
+.token-entry:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.token-icon {
+  font-size: 52rpx;
+  margin-right: 24rpx;
+}
+
+.token-info {
+  flex: 1;
+}
+
+.token-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 6rpx;
+}
+
+.token-desc {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.token-arrow {
+  font-size: 48rpx;
+  color: rgba(74, 222, 128, 0.6);
+  font-weight: 300;
+}
+
+/* 套牌Odds入口 */
+.odds-entry {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #2e1f4e 0%, #1a1a2e 100%);
+  border-radius: 24rpx;
+  padding: 28rpx 32rpx;
+  margin: 0 30rpx 20rpx;
+  border: 2rpx solid rgba(155, 93, 229, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(155, 93, 229, 0.15);
+}
+
+.odds-entry:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.odds-icon {
+  font-size: 52rpx;
+  margin-right: 24rpx;
+}
+
+.odds-info {
+  flex: 1;
+}
+
+.odds-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 6rpx;
+}
+
+.odds-desc {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.deck-entry {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #1f2e4e 0%, #1a1a2e 100%);
+  border-radius: 24rpx;
+  padding: 28rpx 32rpx;
+  margin: 0 30rpx 20rpx;
+  border: 2rpx solid rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(102, 126, 234, 0.1);
+}
+
+.deck-entry:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.deck-icon {
+  font-size: 52rpx;
+  margin-right: 24rpx;
+}
+
+.deck-info {
+  flex: 1;
+}
+
+.deck-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 6rpx;
+}
+
+.deck-desc {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.deck-arrow {
+  font-size: 48rpx;
+  color: rgba(102, 126, 234, 0.6);
   font-weight: 300;
 }
 
@@ -633,7 +799,7 @@ page {
 }
 
 .container.page-light .banner {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--legacy-accent-start) 0%, var(--legacy-accent-end) 100%);
 }
 
 .container.page-light .search-input-wrapper {
@@ -650,7 +816,7 @@ page {
 }
 
 .container.page-light .search-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--legacy-accent-start) 0%, var(--legacy-accent-end) 100%);
   color: #ffffff;
 }
 
@@ -664,7 +830,7 @@ page {
 
 .container.page-light .result-card {
   background: rgba(255, 255, 255, 0.95);
-  border-left-color: #667eea;
+  border-left-color: var(--legacy-accent-start);
 }
 
 .container.page-light .result-title {
@@ -706,7 +872,7 @@ page {
 
 .container.page-light .loading-spinner {
   border-color: rgba(102, 126, 234, 0.2);
-  border-top-color: #667eea;
+  border-top-color: var(--legacy-accent-start);
 }
 
 .container.page-light .keyword-bar {
@@ -714,7 +880,7 @@ page {
 }
 
 .container.page-light .card-bar {
-  border-left-color: #667eea;
+  border-left-color: var(--legacy-accent-start);
 }
 
 .container.page-light .rule-bar {
@@ -728,6 +894,10 @@ page {
 .container.page-light .section-count {
   background: rgba(0, 0, 0, 0.05);
   color: #999;
+}
+
+.container.page-light .section-more {
+  color: var(--legacy-accent-start);
 }
 
 .container.page-light .ai-judge-section {
@@ -745,7 +915,7 @@ page {
 }
 
 .container.page-light .ai-judge-arrow {
-  color: #667eea;
+  color: var(--legacy-accent-start);
 }
 
 .container.page-light .counter-entry {
@@ -764,6 +934,61 @@ page {
 
 .container.page-light .counter-arrow {
   color: #22c55e;
+}
+
+.container.page-light .dice-entry {
+  background: #ffffff;
+  border-color: rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.container.page-light .dice-title {
+  color: #333333;
+}
+
+.container.page-light .dice-desc {
+  color: #666666;
+}
+
+.container.page-light .dice-arrow {
+  color: var(--legacy-accent-start);
+}
+
+.container.page-light .token-entry {
+  background: #ffffff;
+  border-color: rgba(74, 222, 128, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.container.page-light .token-title {
+  color: #333333;
+}
+
+.container.page-light .token-desc {
+  color: #666666;
+}
+
+.container.page-light .token-arrow {
+  color: #22c55e;
+}
+
+
+.container.page-light .deck-entry {
+  background: #ffffff;
+  border-color: rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.container.page-light .deck-title {
+  color: #333333;
+}
+
+.container.page-light .deck-desc {
+  color: #666666;
+}
+
+.container.page-light .deck-arrow {
+  color: var(--legacy-accent-start);
 }
 
 .container.page-light .latest-sets {
@@ -814,5 +1039,72 @@ page {
 }
 
 .container.page-light .feedback-link {
-  color: #667eea;
+  color: var(--legacy-accent-start);
+}
+
+/* ==================== */
+/* Promo 卡快讯入口 */
+/* ==================== */
+.promo-entry {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #2a1f3d 0%, #1a1a2e 100%);
+  border-radius: 24rpx;
+  padding: 28rpx 32rpx;
+  margin: 20rpx 30rpx 30rpx;
+  border: 2rpx solid rgba(147, 112, 219, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(147, 112, 219, 0.15);
+}
+
+.promo-entry:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.promo-icon {
+  font-size: 52rpx;
+  margin-right: 24rpx;
+}
+
+.promo-info {
+  flex: 1;
+}
+
+.promo-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 6rpx;
+}
+
+.promo-desc {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.promo-arrow {
+  font-size: 48rpx;
+  color: rgba(147, 112, 219, 0.6);
+  font-weight: 300;
+}
+
+/* 日间主题 - Promo 入口 */
+.container.page-light .promo-entry {
+  background: linear-gradient(135deg, #f5f0ff 0%, #ffffff 100%);
+  border-color: rgba(147, 112, 219, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(147, 112, 219, 0.1);
+}
+
+.container.page-light .promo-title {
+  color: #9370db;
+}
+
+.container.page-light .promo-desc {
+  color: #999;
+}
+
+.container.page-light .promo-arrow {
+  color: rgba(147, 112, 219, 0.5);
 }

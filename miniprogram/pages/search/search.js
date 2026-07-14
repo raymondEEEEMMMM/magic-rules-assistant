@@ -29,6 +29,12 @@ Page({
   onLoad(options) {
     this.loadHistory()
     this.setData({ isLightTheme: true })
+    // 如果有 keyword 参数，自动搜索
+    if (options.keyword) {
+      this.setData({ keyword: decodeURIComponent(options.keyword) })
+      this.onSearch()
+      return
+    }
     // 如果有 setCode 参数，自动加载系列卡牌
     if (options.setCode) {
       this.setData({
@@ -44,7 +50,7 @@ Page({
   },
 
   // 返回
-  goBack() {
+  goToIndex() {
     console.log('CODEBUDDY_DEBUG search goBack called')
     wx.navigateBack({
       success: () => console.log('CODEBUDDY_DEBUG search goBack success'),
@@ -159,7 +165,7 @@ Page({
 
   // 同步查询卡牌
   searchCardSync(keyword) {
-    return api.searchCard(keyword, 1, 5).then(res => {
+    return api.searchCard(keyword, 1, 10).then(res => {
       return res.results || res.items || []
     }).catch(() => [])
   },

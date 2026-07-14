@@ -1,0 +1,100 @@
+/**
+ * mtgAsk 设计 tokens
+ *
+ * 所有页面统一引用此处的 CSS 变量。
+ * 亮色主题默认；暗色主题由 .theme-dark 类覆盖（详见 section 1.4 spec）。
+ */
+
+page {
+  /* Legacy 兼容变量（P1 阶段保留旧视觉） */
+  --legacy-bg: #16213e;
+  --legacy-accent-start: #667eea;
+  --legacy-accent-end: #764ba2;
+  --legacy-text: #ffffff;
+  --legacy-text-secondary: rgba(255, 255, 255, 0.6);
+  --legacy-text-muted: rgba(255, 255, 255, 0.4);
+  --legacy-border: rgba(255, 255, 255, 0.1);
+  --legacy-card-bg: rgba(255, 255, 255, 0.08);
+  --legacy-input-bg: rgba(255, 255, 255, 0.1);
+
+  /* 背景层级 */
+  --bg-page: #faf8f3;
+  --bg-card: #ffffff;
+  --bg-input: #f5f5f5;
+  --bg-overlay: rgba(0, 0, 0, 0.4);
+
+  /* 文字层级 */
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --text-inverse: #ffffff;
+
+  /* 边框 */
+  --border-subtle: #f0f0f0;
+  --border-default: #e0e0e0;
+
+  /* 强调色 */
+  --accent-gold: #ffd700;
+  --accent-dark: #1a1a2e;
+
+  /* MTG 五色（功能分类用） */
+  --color-white: #f5f5f5;
+  --color-blue: #3a7bc8;
+  --color-black: #1a1a2e;
+  --color-red: #c83a3a;
+  --color-green: #3a9b5c;
+
+  /* 字号 */
+  --font-size-xs: 20rpx;
+  --font-size-sm: 24rpx;
+  --font-size-base: 28rpx;
+  --font-size-md: 30rpx;
+  --font-size-lg: 32rpx;
+  --font-size-xl: 40rpx;
+  --font-size-2xl: 44rpx;
+
+  /* 字重 */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* 间距（rpx，750rpx = 屏幕宽） */
+  --space-1: 8rpx;
+  --space-2: 16rpx;
+  --space-3: 24rpx;
+  --space-4: 32rpx;
+  --space-5: 40rpx;
+  --space-6: 48rpx;
+
+  /* 圆角 */
+  --radius-sm: 8rpx;
+  --radius-md: 12rpx;
+  --radius-lg: 16rpx;
+  --radius-xl: 24rpx;
+  --radius-full: 9999rpx;
+
+  /* 阴影 */
+  --shadow-card: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  --shadow-hover: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+
+  /* 字体栈 */
+  --font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+
+  /* 过渡时长 */
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+}
+
+/* 暗色主题覆盖（P3 阶段启用，定义先准备好） */
+.theme-dark {
+  --bg-page: #16213e;
+  --bg-card: #1a1a2e;
+  --bg-input: rgba(255, 255, 255, 0.1);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --shadow-card: 0 2rpx 12rpx rgba(0, 0, 0, 0.3);
+}

@@ -1,0 +1,23 @@
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) 0;
+}
+.left { display: flex; align-items: center; gap: var(--space-1); }
+.title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+.count {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  background-color: var(--bg-input);
+  padding: 2rpx 12rpx;
+  border-radius: var(--radius-full);
+}
+.more {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
