@@ -1,52 +1,44 @@
-<view class="container {{isLightTheme ? 'page-light' : ''}}">
-  <!-- 导航栏 -->
-  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
-    <view class="nav-left">
-      <view class="back-btn" bindtap="goToIndex">🏠</view>
-    </view>
-    <view class="nav-title">
-      <text>规则详情</text>
-    </view>
-    <view class="nav-right"></view>
+<view class="container {{isLightTheme ? '' : 'theme-dark'}}">
+  <view class="nav-bar">
+    <view class="back-btn" bindtap="goBack">‹</view>
+    <text class="nav-title">规则详情</text>
   </view>
 
-  <!-- 加载状态 -->
   <view wx:if="{{loading}}" class="loading">
-    <text>加载中...</text>
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
   </view>
 
-  <!-- 错误状态 -->
-  <view wx:elif="{{error}}" class="error">
-    <text>{{error}}</text>
+  <view wx:elif="{{error}}" class="error-state">
+    <empty-state icon="search" title="加载失败" desc="{{error}}" actionText="重试" bindaction="onRetry" />
   </view>
 
-  <!-- 规则详情 -->
-  <view wx:elif="{{ruleDetail}}" class="rule-detail">
-    <!-- 标题区域 -->
+  <view wx:elif="{{!ruleDetail}}" class="empty-state-wrap">
+    <empty-state icon="search" title="未找到规则" />
+  </view>
+
+  <view wx:else class="rule-content">
     <view class="rule-header">
       <text class="rule-number">{{ruleDetail.rule_number}}</text>
-      <text class="rule-title">{{ruleDetail.rule_title_cn || ruleDetail.rule_title_en}}</text>
+      <text class="rule-title">{{ruleDetail.rule_title}}</text>
     </view>
 
-    <!-- 切换按钮 -->
-    <view class="lang-tabs">
-      <view class="lang-tab {{showCn ? 'active' : ''}}" bindtap="switchLang" data-lang="cn">中文</view>
-      <view class="lang-tab {{!showCn ? 'active' : ''}}" bindtap="switchLang" data-lang="en">英文</view>
+    <view class="rule-tags">
+      <tag-chip text="中文" data-lang="cn" bindtap="switchLang" />
+      <tag-chip text="English" data-lang="en" bindtap="switchLang" />
     </view>
 
-    <!-- 规则内容 -->
-    <view class="rule-content">
-      <view class="section">
-        <text class="section-title">规则内容</text>
-        <view class="content-lines">
-          <text class="content-line" wx:for="{{showCn ? ruleDetail.contentLines_cn : ruleDetail.contentLines_en}}" wx:key="index">{{item}}</text>
+    <view class="rule-body">
+      <view wx:if="{{showCn}}">
+        <view class="rule-line" wx:for="{{ruleDetail.contentLines_cn}}" wx:key="*this">
+          <text>{{item}}</text>
         </view>
       </view>
-    </view>
-
-    <!-- 返回按钮 -->
-    <view class="bottom-bar">
-      <button class="btn-back" bindtap="goBack">返回</button>
+      <view wx:else>
+        <view class="rule-line" wx:for="{{ruleDetail.contentLines_en}}" wx:key="*this">
+          <text>{{item}}</text>
+        </view>
+      </view>
     </view>
   </view>
 </view>

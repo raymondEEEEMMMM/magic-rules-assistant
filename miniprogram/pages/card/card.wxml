@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!--pages/card/card.wxml-->
 <wxs module="utils">
 module.exports = {
@@ -161,84 +162,64 @@ module.exports = {
 
   <!-- 加载中 -->
   <view class="loading" wx:if="{{loading}}">
+=======
+<view class="container {{isLightTheme ? '' : 'theme-dark'}}">
+  <view class="nav-bar">
+    <view class="back-btn" bindtap="goBack">‹</view>
+    <text class="nav-title">卡牌详情</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">
+>>>>>>> dev
     <view class="loading-spinner"></view>
-  </view>
-</view>
-
-<!-- 卡牌详情页 -->
-<view class="card-detail-page {{isLightTheme ? 'page-light' : ''}}" wx:if="{{showDetail && currentCard}}">
-  <!-- 导航栏 -->
-  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
-    <view class="nav-left">
-      <view class="back-btn" bindtap="closeDetail">←</view>
-    </view>
-    <view class="nav-title">
-      <text>卡牌详情</text>
-    </view>
-    <view class="nav-right"></view>
+    <text class="loading-text">加载中...</text>
   </view>
 
-  <!-- 卡牌图片 -->
-  <view class="detail-image-container">
-    <image
-      class="detail-image"
-      src="{{currentCard.imageUrl}}"
-      mode="aspectFit"
-      binderror="onImageError"
-    />
+  <view wx:elif="{{error}}" class="error-state">
+    <empty-state icon="search" title="加载失败" desc="{{error}}" actionText="重试" bindaction="onRetry" />
   </view>
 
-  <!-- 卡牌信息 -->
-  <view class="detail-content">
-    <!-- 名称 -->
-    <view class="detail-name-section">
-      <view class="detail-name-row">
-        <text class="detail-name">{{currentCard.name}}</text>
-        <view class="copy-btn" bindtap="copyCardName" data-name="{{currentCard.name}}">复制</view>
-      </view>
-      <text class="detail-en-name" wx:if="{{currentCard.enName && currentCard.enName !== currentCard.name}}">{{currentCard.enName}}</text>
-    </view>
+  <view wx:elif="{{!currentCard}}" class="empty-state-wrap">
+    <empty-state icon="search" title="未找到卡牌" />
+  </view>
 
-    <!-- 基础信息 -->
-    <view class="info-card">
-      <view class="info-row" wx:if="{{currentCard.manaSymbols.length > 0}}">
-        <text class="info-label">法力费用</text>
-        <view class="mana-symbols">
-          <image
-            class="mana-symbol"
-            wx:for="{{currentCard.manaSymbols}}"
-            wx:key="key"
-            src="{{item.url}}"
-            mode="aspectFit"
-          />
-        </view>
-      </view>
-      <view class="info-row">
-        <text class="info-label">类型</text>
-        <text class="info-value">{{currentCard.type}}</text>
-      </view>
-      <view class="info-row" wx:if="{{currentCard.power}}">
-        <text class="info-label">力量/防御</text>
-        <text class="info-value">{{currentCard.power}}/{{currentCard.toughness}}</text>
-      </view>
-      <view class="info-row" wx:if="{{currentCard.setName}}">
-        <text class="info-label">所属系列</text>
-        <text class="info-value">{{currentCard.setName}}</text>
-      </view>
-      <view class="info-row" wx:if="{{currentCard.acquisition_method_cn}}">
-        <text class="info-label">获取方式</text>
-        <text class="info-value">{{currentCard.acquisition_method_cn}}</text>
+  <view wx:else class="card-content">
+    <view class="card-image-card">
+      <image
+        wx:if="{{currentCard.image_uris && currentCard.image_uris.normal}}"
+        class="card-image"
+        src="{{currentCard.image_uris.normal}}"
+        mode="aspectFit"
+      />
+      <view wx:else class="card-image-placeholder">
+        <text>无图片</text>
       </view>
     </view>
 
-    <!-- 关键词异能 -->
-    <view class="section" wx:if="{{currentCard.keywords && currentCard.keywords.length > 0}}">
-      <text class="section-title">关键词异能</text>
-      <view class="keyword-tags">
-        <text class="keyword-tag" wx:for="{{currentCard.keywords}}" wx:key="index">{{item}}</text>
+    <view class="card-header">
+      <text class="card-name">{{currentCard.zhs_name || currentCard.name}}</text>
+      <text wx:if="{{currentCard.name && currentCard.zhs_name && currentCard.name !== currentCard.zhs_name}}" class="card-name-en">{{currentCard.name}}</text>
+      <text wx:if="{{currentCard.mana_cost}}" class="card-mana">{{currentCard.mana_cost}}</text>
+    </view>
+
+    <view class="card-tags">
+      <tag-chip wx:if="{{currentCard.type_line}}" text="{{currentCard.type_line}}" />
+      <tag-chip wx:if="{{currentCard.rarity}}" text="{{currentCard.rarity}}" color="var(--accent-gold)" />
+    </view>
+
+    <view class="card-body">
+      <view wx:if="{{currentCard.oracle_text}}" class="card-text">
+        <text>{{currentCard.oracle_text}}</text>
+      </view>
+      <view wx:if="{{currentCard.flavor_text}}" class="card-flavor">
+        <text>{{currentCard.flavor_text}}</text>
+      </view>
+      <view wx:if="{{currentCard.power !== undefined && currentCard.power !== null}}" class="card-stats">
+        <text class="stats-value">{{currentCard.power}}/{{currentCard.toughness}}</text>
       </view>
     </view>
 
+<<<<<<< HEAD
     <!-- Oracle 规则文本 -->
     <view class="section" wx:if="{{currentCard.text}}">
       <text class="section-title">规则文本</text>
@@ -270,6 +251,11 @@ module.exports = {
           <text class="ruling-text">{{item.comment}}</text>
         </view>
       </view>
+=======
+    <view class="card-actions">
+      <view class="action-btn" bindtap="onShare">分享</view>
+      <view class="action-btn" bindtap="onCopyName">复制牌名</view>
+>>>>>>> dev
     </view>
   </view>
 </view>

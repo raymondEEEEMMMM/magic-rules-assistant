@@ -14,6 +14,7 @@ Page({
     },
     history: [],
     loading: false,
+    searching: false,
     searchDone: false,
     searchFocused: true,
     isLightTheme: true,
@@ -23,12 +24,15 @@ Page({
     rulesLoading: false,
     // 系列筛选
     setCode: '',
-    setName: ''
+    setName: '',
+    // 当前激活的 tab：all | cards | rules | keywords
+    currentTab: 'all',
+    totalCount: 0
   },
 
   onLoad(options) {
     this.loadHistory()
-    this.setData({ isLightTheme: true })
+    this.setData({ isLightTheme: app.globalData.isLightTheme })
     // 如果有 keyword 参数，自动搜索
     if (options.keyword) {
       this.setData({ keyword: decodeURIComponent(options.keyword) })
@@ -49,13 +53,35 @@ Page({
     this.setData({ isLightTheme: app.globalData.isLightTheme })
   },
 
+  // 更新主题（由 app.js 调用）
+  updateTheme(isLight) {
+    this.setData({ isLightTheme: isLight })
+  },
+
   // 返回
   goToIndex() {
-    console.log('CODEBUDDY_DEBUG search goBack called')
     wx.navigateBack({
-      success: () => console.log('CODEBUDDY_DEBUG search goBack success'),
-      fail: (err) => console.log('CODEBUDDY_DEBUG search goBack fail err=', err)
     })
+  },
+
+  // 返回上一页（带 fallback）
+  goBack() {
+    wx.navigateBack({
+      fail: () => wx.redirectTo({ url: '/pages/index/index' })
+    })
+  },
+
+  // 切换分类 tab
+  onSwitchTab(e) {
+    const tab = (e.currentTarget.dataset && e.currentTarget.dataset.tab) || 'all'
+    this.setData({ currentTab: tab })
+  },
+
+  // 计算 totalCount
+  updateTotalCount() {
+    const r = this.data.combinedResults || { keywords: [], cards: [], rules: [] }
+    const total = (r.keywords?.length || 0) + (r.cards?.length || 0) + (r.rules?.length || 0)
+    this.setData({ totalCount: total })
   },
 
   // 加载搜索历史
@@ -79,6 +105,7 @@ Page({
 
     this.setData({
       loading: true,
+      searching: true,
       searchDone: false,
       keywordsLoading: true,
       cardsLoading: true,
@@ -87,7 +114,8 @@ Page({
         keywords: [],
         cards: [],
         rules: []
-      }
+      },
+      totalCount: 0
     })
 
     // 保存到历史
@@ -99,6 +127,7 @@ Page({
         'combinedResults.keywords': res || [],
         keywordsLoading: false
       })
+      this.updateTotalCount()
       this.checkAllLoaded()
     })
 
@@ -107,6 +136,7 @@ Page({
         'combinedResults.cards': res || [],
         cardsLoading: false
       })
+      this.updateTotalCount()
       this.checkAllLoaded()
     })
 
@@ -115,6 +145,7 @@ Page({
         'combinedResults.rules': res || [],
         rulesLoading: false
       })
+      this.updateTotalCount()
       this.checkAllLoaded()
     })
   },
@@ -125,6 +156,7 @@ Page({
     if (!keywordsLoading && !cardsLoading && !rulesLoading) {
       this.setData({
         loading: false,
+        searching: false,
         searchDone: true
       })
     }
@@ -136,22 +168,26 @@ Page({
     if (!setCode) return
     this.setData({
       cardsLoading: true,
-      loading: true
+      loading: true,
+      searching: true
     })
     api.getSetCards(setCode).then(res => {
       this.setData({
         'combinedResults.cards': res.items || [],
         cardsLoading: false,
         loading: false,
+        searching: false,
         searchDone: true
       })
+      this.updateTotalCount()
     }).catch(err => {
-      console.error('CODEBUDDY_DEBUG search loadSetCards error', err)
       this.setData({
         cardsLoading: false,
         loading: false,
+        searching: false,
         searchDone: true
       })
+      this.updateTotalCount()
     })
   },
 
@@ -206,51 +242,41 @@ Page({
       keyword: '',
       combinedResults: { keywords: [], cards: [], rules: [] },
       searchDone: false,
-      searchFocused: true
+      searchFocused: true,
+      currentTab: 'all',
+      totalCount: 0
     })
   },
 
   // 查看规则详情
   viewRuleDetail(e) {
     const ruleNumber = e.currentTarget.dataset.rule
-    console.log('CODEBUDDY_DEBUG search viewRuleDetail called ruleNumber=', ruleNumber)
     if (!ruleNumber) {
       wx.showToast({ title: '规则编号为空', icon: 'none' })
       return
     }
     const url = `/pages/rule/rule?rule=${encodeURIComponent(ruleNumber)}`
-    console.log('CODEBUDDY_DEBUG search viewRuleDetail url=', url)
     wx.navigateTo({
       url,
-      success: () => console.log('CODEBUDDY_DEBUG search viewRuleDetail success'),
-      fail: (err) => console.log('CODEBUDDY_DEBUG search viewRuleDetail fail err=', err)
     })
   },
 
   // 查看关键词详情
   viewKeywordDetail(e) {
     const keyword = e.currentTarget.dataset.keyword
-    console.log('CODEBUDDY_DEBUG search viewKeywordDetail called keyword=', keyword)
     const url = `/pages/keyword/keyword?keyword=${encodeURIComponent(keyword)}`
-    console.log('CODEBUDDY_DEBUG search viewKeywordDetail url=', url)
     wx.navigateTo({
       url,
-      success: () => console.log('CODEBUDDY_DEBUG search viewKeywordDetail success'),
-      fail: (err) => console.log('CODEBUDDY_DEBUG search viewKeywordDetail fail err=', err)
     })
   },
 
   // 查看卡牌详情
   viewCardDetail(e) {
     const cardId = e.currentTarget.dataset.id
-    console.log('CODEBUDDY_DEBUG search viewCardDetail called cardId=', cardId)
     if (!cardId) return
     const url = `/pages/card/card?id=${encodeURIComponent(cardId)}`
-    console.log('CODEBUDDY_DEBUG search viewCardDetail url=', url)
     wx.navigateTo({
       url,
-      success: () => console.log('CODEBUDDY_DEBUG search viewCardDetail success'),
-      fail: (err) => console.log('CODEBUDDY_DEBUG search viewCardDetail fail err=', err)
     })
   },
 

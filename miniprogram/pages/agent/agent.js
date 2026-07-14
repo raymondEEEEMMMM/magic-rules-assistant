@@ -23,17 +23,28 @@ Page({
     loadingText: '知识库已加载...',
     loadingStep: 1,  // 加载步骤
     thinkingStep: 0,  // 思维链步骤
-    thinkingText: '收到你的问题...'  // 思维链文字
+    thinkingText: '收到你的问题...',  // 思维链文字
+    examples: [
+      '什么是飞行异能？',
+      '黑色莲花有什么特殊能力？',
+      '战斗中如何计算伤害？',
+      '什么是连击？'
+    ]
   },
 
   onLoad() {
-    this.setData({ isLightTheme: true })
+    this.setData({ isLightTheme: app.globalData.isLightTheme })
     this.initOpenid()
     this.loadHistory()
   },
 
   onShow() {
     this.setData({ isLightTheme: app.globalData.isLightTheme })
+  },
+
+  // 更新主题（由 app.js 调用）
+  updateTheme(isLight) {
+    this.setData({ isLightTheme: isLight })
   },
 
   // 返回
@@ -208,12 +219,6 @@ Page({
     this.sendMessage()
   },
 
-  // 切换日间/夜间主题
-  toggleTheme() {
-    const newTheme = app.toggleTheme()
-    this.setData({ isLightTheme: newTheme })
-  },
-
   // 切换模式
   setShortMode(e) {
     const mode = e.currentTarget.dataset.mode === 'true'
@@ -342,7 +347,6 @@ Page({
       }
     }).catch(err => {
       console.error('API error:', err)
-      console.log('CODEBUDDY_DEBUG chat catch err=', err, 'typeof err=', typeof err)
       if (thinkingTimer) {
         clearInterval(thinkingTimer)
       }

@@ -15,8 +15,8 @@ App({
   globalData: {
     functionName: 'mtgAsk',
     userInfo: null,
-    isLightTheme: true,
-    lightOnly: true,
+    isLightTheme: themeUtil.isLight(),
+    lightOnly: false,
     showAIJudgeCard: false,
     db: db
   },
@@ -24,21 +24,20 @@ App({
   version: '1.0.0',
 
   onLaunch() {
-    this.globalData.isLightTheme = true
+    this.globalData.isLightTheme = themeUtil.isLight()
   },
 
   onShow() {},
 
-  // P2: 锁定亮色，toggleTheme 改为 noop
+  // P3: 启用主题切换
   toggleTheme() {
-    console.log('[app] P2: 暗色主题已锁定为亮色，P3 阶段开放')
-    return true
+    return themeUtil.toggle()
   },
 
   updateTheme(isLight) {
     const pages = getCurrentPages()
     pages.forEach(page => {
-      if (page.updateTheme) page.updateTheme(true)
+      if (page.updateTheme) page.updateTheme(isLight)
     })
   },
 
