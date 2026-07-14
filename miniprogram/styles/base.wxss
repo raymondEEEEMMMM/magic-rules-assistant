@@ -1,0 +1,54 @@
+/**
+ * 全局基础样式
+ * reset + 字体 + 动效
+ */
+
+/* 页面基础 */
+page {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 重置列表默认样式 */
+.list-reset {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* 通用动效 */
+.fade-in {
+  animation: fadeIn var(--duration-base) ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* tap 反馈 */
+.tappable {
+  transition: opacity var(--duration-fast);
+}
+
+.tappable:active {
+  opacity: 0.7;
+}
+
+/* 文字省略 */
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-ellipsis-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
