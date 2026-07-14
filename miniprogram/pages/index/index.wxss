@@ -1109,3 +1109,68 @@ page {
 .container.page-light .promo-arrow {
   color: rgba(147, 112, 219, 0.5);
 }
+
+/* ==================== */
+/* P2: 顶部品牌区 */
+/* ==================== */
+.brand-section {
+  padding: 60rpx 40rpx 40rpx;
+  padding-top: calc(60rpx + env(safe-area-inset-top));
+  text-align: center;
+  background: var(--bg-page);
+}
+.brand-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.brand-title {
+  display: block;
+  font-size: 56rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -1rpx;
+}
+.brand-subtitle {
+  display: block;
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  margin-top: 8rpx;
+}
+
+/* ==================== */
+/* P2: 搜索框卡片 */
+/* ==================== */
+.search-card {
+  margin: 24rpx 32rpx;
+  background: var(--bg-card);
+  border-radius: 24rpx;
+  box-shadow: var(--shadow-card);
+  padding: 16rpx 20rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+.search-row {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: var(--bg-input);
+  border-radius: 20rpx;
+  padding: 16rpx 20rpx;
+}
+.search-icon { font-size: 28rpx; margin-right: 12rpx; opacity: 0.5; }
+.search-input { flex: 1; font-size: 28rpx; color: var(--text-primary); }
+.search-placeholder { color: var(--text-muted); }
+.search-clear { padding: 8rpx; color: var(--text-muted); }
+.search-btn {
+  background: var(--accent-dark);
+  color: var(--text-inverse);
+  border-radius: 20rpx;
+  padding: 16rpx 32rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+.search-btn:active { opacity: 0.7; }

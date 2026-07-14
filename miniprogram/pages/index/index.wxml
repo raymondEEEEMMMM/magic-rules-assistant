@@ -1,12 +1,11 @@
 <!--pages/index/index.wxml-->
 <view class="container {{isLightTheme ? 'page-light' : ''}}">
-  <!-- 顶部Banner -->
-  <view class="banner">
-    <view class="banner-content">
-      <text class="banner-title">MTGAsk</text>
-      <text class="banner-subtitle">万智牌规则问答助手</text>
+  <!-- 顶部品牌区（明亮日间风） -->
+  <view class="brand-section">
+    <view class="brand-content">
+      <text class="brand-title">MTGAsk</text>
+      <text class="brand-subtitle">万智牌规则问答助手</text>
     </view>
-    <view class="theme-btn" bindtap="toggleTheme">{{isLightTheme ? '🌙' : '☀️'}}</view>
   </view>
 
   <!-- AI 裁判入口 -->
@@ -22,9 +21,9 @@
     <view class="ai-judge-arrow">›</view>
   </view>
 
-  <!-- 搜索框 -->
-  <view class="search-box">
-    <view class="search-input-wrapper">
+  <!-- 搜索框（卡片包裹） -->
+  <view class="search-card">
+    <view class="search-row">
       <text class="search-icon">🔍</text>
       <input
         class="search-input"
