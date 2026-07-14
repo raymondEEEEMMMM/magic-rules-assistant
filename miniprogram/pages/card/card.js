@@ -18,7 +18,7 @@ Page({
   },
 
   onLoad(options) {
-    this.setData({ isLightTheme: true })
+    this.setData({ isLightTheme: app.globalData.isLightTheme })
 
     // 如果来自 promo 页面，从本地存储读取卡牌数据
     if (options.from === 'promo') {
@@ -48,7 +48,12 @@ Page({
   },
 
   onShow() {
-    this.setData({ isLightTheme: true })
+    this.setData({ isLightTheme: app.globalData.isLightTheme })
+  },
+
+  // 更新主题（由 app.js 调用）
+  updateTheme(isLight) {
+    this.setData({ isLightTheme: isLight })
   },
 
   // 返回
