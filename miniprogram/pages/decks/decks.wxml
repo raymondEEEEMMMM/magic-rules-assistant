@@ -1,34 +1,28 @@
-<!--pages/decks/decks.wxml-->
-<view class="container {{isLightTheme ? 'page-light' : ''}}">
-  <!-- 顶部导航栏 -->
-  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
-    <view class="nav-left">
-      <view class="back-btn" bindtap="goToIndex">🏠</view>
-    </view>
-    <view class="nav-title">
-      <text>我的套牌</text>
-    </view>
-    <view class="nav-right">
-      <view class="add-btn" bindtap="showImport">+</view>
-    </view>
+<view class="container">
+  <view class="nav-bar">
+    <view class="back-btn" bindtap="goBack">‹</view>
+    <text class="nav-title">我的套牌</text>
+    <view class="nav-action" bindtap="showImport">+</view>
   </view>
 
   <!-- 套牌列表 -->
-  <view class="deck-list" wx:if="{{decks.length > 0}}">
+  <view wx:if="{{decks.length > 0}}" class="deck-list">
     <view
       class="deck-card"
       wx:for="{{decks}}"
-      wx:key="id"
+      wx:key="_id"
       bindtap="previewDeck"
       data-deck="{{item}}"
     >
       <view class="deck-info">
-        <view class="deck-name">{{item.name}}</view>
+        <text class="deck-name">{{item.name}}</text>
+        <view class="deck-tags">
+          <text class="deck-tag format">{{item.format || '其他'}}</text>
+          <text wx:if="{{item.commander}}" class="deck-tag commander">⌘ {{item.commander}}</text>
+        </view>
         <view class="deck-meta">
-          <text class="deck-format">{{item.format}}</text>
-          <text class="deck-commander-tag" wx:if="{{item.commander}}">⌘ {{item.commander}}</text>
-          <text class="deck-count">{{item.totalCards}} 张</text>
-          <text class="deck-cm" wx:if="{{item.avgCMC}}">· 平均法术力费用 {{item.avgCMC}}</text>
+          <text class="deck-count">{{item.totalCards || 0}} 张</text>
+          <text wx:if="{{item.avgCMC}}" class="deck-cmc">· 平均法术力费用 {{item.avgCMC}}</text>
         </view>
       </view>
       <view class="deck-arrow">›</view>
@@ -36,175 +30,10 @@
   </view>
 
   <!-- 空状态 -->
-  <view class="empty-state" wx:elif="{{decks.length === 0}}">
+  <view wx:elif="{{decks.length === 0}}" class="empty">
     <view class="empty-icon">📚</view>
-    <view class="empty-text">暂无套牌</view>
-    <view class="empty-hint">点击右上角 + 导入套牌</view>
-  </view>
-
-  <!-- 导入弹窗 -->
-  <view class="modal {{showImportModal ? 'show' : ''}}" catchtap="closeImport">
-    <view class="modal-content" catchtap="catchInner">
-
-      <view class="modal-header">
-        <text class="modal-title">导入套牌</text>
-        <view class="modal-close" bindtap="closeImport">✕</view>
-      </view>
-
-      <!-- 名称输入 -->
-      <view class="input-group" catchtap="catchInner">
-        <text class="input-label">套牌名称</text>
-        <input
-          class="input-field"
-          placeholder="输入套牌名称"
-          value="{{editingName}}"
-          bindinput="setDeckName"
-        />
-      </view>
-
-      <!-- 赛制选择 -->
-      <view class="input-group" catchtap="catchInner">
-        <text class="input-label">赛制</text>
-        <picker mode="selector" range="{{formats}}" bindchange="selectFormat">
-          <view class="picker-value">{{editingFormat}}</view>
-        </picker>
-      </view>
-
-      <!-- 卡牌格式选择 -->
-      <view class="input-group" catchtap="catchInner">
-        <text class="input-label">卡牌格式</text>
-        <picker mode="selector" range="{{cardFormats}}" bindchange="selectCardFormat">
-          <view class="picker-value">{{editingCardFormat}}</view>
-        </picker>
-      </view>
-
-      <!-- 指挥官选择（仅 EDH/指挥官） -->
-      <view class="input-group commander-group" wx:if="{{editingFormat === '指挥官'}}" catchtap="catchInner">
-        <text class="input-label">指挥官</text>
-        <view class="commander-search-row">
-          <input
-            class="input-field"
-            placeholder="输入指挥官名称"
-            value="{{editingCommander}}"
-            bindinput="onCommanderInput"
-            bindconfirm="searchCommander"
-          />
-          <view class="commander-search-btn" catchtap="searchCommander">🔍</view>
-        </view>
-        <!-- 搜索结果下拉 -->
-        <view class="commander-dropdown" wx:if="{{commanderResults.length > 0}}">
-          <view
-            class="commander-option"
-            wx:for="{{commanderResults}}"
-            wx:key="id"
-            catchtap="selectCommander"
-            data-index="{{index}}"
-          >
-            <image class="commander-thumb" src="{{item.image}}" mode="aspectSmall" />
-            <view class="commander-info">
-              <text class="commander-name">{{item.name}}</text>
-              <text class="commander-type">{{item.type_line}}</text>
-            </view>
-          </view>
-        </view>
-      </view>
-
-      <!-- 套牌内容输入 -->
-      <view class="input-group" catchtap="catchInner">
-        <view class="input-label-row">
-          <text class="input-label">套牌内容</text>
-          <view class="paste-btn" catchtap="pasteFromClipboard">粘贴</view>
-        </view>
-        <textarea
-          class="textarea-field"
-          placeholder="粘贴套牌内容，支持格式：&#10;4 Lightning Bolt&#10;1x Black Lotus&#10;4 黑莲花"
-          value="{{importText}}"
-          bindinput="onImportTextInput"
-          auto-height
-          maxlength="10000"
-        />
-      </view>
-
-      <!-- URL 导入 -->
-      <view class="input-group" catchtap="catchInner">
-        <view class="input-label-row">
-          <text class="input-label">或从 URL 导入</text>
-          <view class="paste-btn" catchtap="pasteUrlFromClipboard">粘贴URL</view>
-        </view>
-        <input
-          class="input-field"
-          placeholder="https://www.mtggoldfish.com/deck/xxx"
-          value="{{importUrl}}"
-          bindinput="onImportUrlInput"
-        />
-        <view class="url-import-btn" catchtap="importFromUrl" wx:if="{{importUrl}}">
-          <text>从URL导入</text>
-        </view>
-      </view>
-
-      <!-- 解析结果 -->
-      <view class="parse-result" wx:if="{{parseResult}}">
-        <view class="parse-success">
-          <text>解析成功：{{parseResult.total}} 张牌，{{parseResult.cards.length}} 种</text>
-          <text class="result-cm" wx:if="{{parseResult.avgCMC}}"> · 平均法术力费用 {{parseResult.avgCMC}}</text>
-          <text class="result-commander" wx:if="{{parseResult.commander}}"> · 指挥官：{{parseResult.commander}}</text>
-        </view>
-        <view class="parse-preview">
-          <view class="preview-item" wx:for="{{parseResult.cards.slice(0, 10)}}" wx:key="name">
-            <text>{{item.count}} {{item.name}}</text>
-          </view>
-          <view class="preview-more" wx:if="{{parseResult.cards.length > 10}}">
-            <text>...还有 {{parseResult.cards.length - 10}} 种</text>
-          </view>
-        </view>
-        <view class="parse-errors" wx:if="{{parseErrors.length > 0}}">
-          <text class="error-text" wx:for="{{parseErrors}}" wx:key="index">{{item}}</text>
-        </view>
-      </view>
-
-      <!-- 操作按钮 -->
-      <view class="modal-actions">
-        <view class="action-btn confirm-btn" catchtap="confirmImport">
-          <text>导入</text>
-        </view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 套牌预览弹窗 -->
-  <view class="modal {{showDeckModal ? 'show' : ''}}" catchtap="closeDeckPreview">
-    <view class="modal-content modal-large" catchtap="catchInner" wx:if="{{selectedDeck}}">
-      <view class="modal-header">
-        <text class="modal-title">{{selectedDeck.name}}</text>
-        <view class="modal-close" bindtap="closeDeckPreview">✕</view>
-      </view>
-
-      <view class="deck-detail-meta">
-        <text class="detail-tag">{{selectedDeck.format}}</text>
-        <text class="detail-tag">{{selectedDeck.totalCards}} 张</text>
-        <text class="detail-tag" wx:if="{{selectedDeck.avgCMC}}">平均法术力费用 {{selectedDeck.avgCMC}}</text>
-      </view>
-      <view class="deck-commander" wx:if="{{selectedDeck.commander}}">
-        <text class="commander-label">指挥官：</text><text class="commander-name">{{selectedDeck.commander}}</text>
-      </view>
-
-      <scroll-view class="deck-cards-scroll" scroll-y>
-        <view class="deck-cards-list">
-          <view class="deck-card-item" wx:for="{{selectedDeck.cards}}" wx:key="name">
-            <text class="card-count">{{item.count}}</text>
-            <text class="card-name">{{item.name}}</text>
-          </view>
-        </view>
-      </scroll-view>
-
-      <view class="modal-actions">
-        <view class="action-btn detail-btn" catchtap="goToDeckDetail">
-          <text>卡组详情</text>
-        </view>
-        <view class="action-btn delete-btn" catchtap="deleteDeck">
-          <text>删除</text>
-        </view>
-      </view>
-    </view>
+    <text class="empty-title">还没有套牌</text>
+    <text class="empty-desc">从 MTGGoldfish / Moxfield 导入或新建</text>
+    <view class="empty-btn" bindtap="showImport">新建套牌</view>
   </view>
 </view>

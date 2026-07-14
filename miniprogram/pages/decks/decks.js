@@ -245,6 +245,10 @@ Page({
     wx.redirectTo({ url: '/pages/index/index' })
   },
 
+  goBack() {
+    wx.navigateBack({ fail: () => wx.redirectTo({ url: '/pages/index/index' }) })
+  },
+
   // 阻止事件冒泡（阻止弹窗关闭）
   catchInner() {},
 
@@ -255,7 +259,6 @@ Page({
 
   // 加载套牌列表（通过云函数API）
   loadDecks() {
-    console.log('CODEBUDDY_DEBUG loadDecks called')
     const openid = app.globalData.userInfo?.openid || wx.getStorageSync('user_openid') || ''
     wx.cloud.callFunction({
       name: 'mtgAsk',
@@ -388,7 +391,6 @@ Page({
 
     wx.showLoading({ title: '解析中...', mask: true })
     const { cards, commander } = parseDeckText(importText, editingCardFormat)
-    console.log('CODEBUDDY_DEBUG confirmImport cards=', JSON.stringify(cards).substring(0, 500))
     if (cards.length === 0) {
       wx.hideLoading()
       wx.showToast({ title: '未识别到有效卡牌', icon: 'none' })
@@ -426,7 +428,6 @@ Page({
           const body = typeof result.body === 'string' ? JSON.parse(result.body) : result.body
           if (body.avgCMC) {
             avgCMC = body.avgCMC
-            console.log('CODEBUDDY_DEBUG CMC result avgCMC=', body.avgCMC, 'cmcMap=', JSON.stringify(body.cmcMap).substring(0, 300))
             if (Object.keys(body.cmcMap || {}).length === 0) cmcFailed = true
           } else {
             cmcFailed = true
@@ -437,7 +438,6 @@ Page({
         }
       } else {
         cmcFailed = true
-        console.log('CODEBUDDY_DEBUG CMC failed - result=', JSON.stringify(result).substring(0, 200))
       }
     } catch (e) {
       console.error('CMC fetch error', e)
@@ -474,7 +474,6 @@ Page({
       avgCMC: avgCMC,
       createdAt: new Date().toISOString()
     }
-    console.log('CODEBUDDY_DEBUG newDeck commander info:', 'editingCommander=', editingCommander, 'commander(from parse)=', commander, 'final=', newDeck.commander)
 
     if (cmcFailed) {
       wx.showToast({ title: 'AVG CMC 计算失败，已设为0', icon: 'none', duration: 2000 })
