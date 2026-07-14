@@ -141,6 +141,20 @@ function test_http_parseResponse_direct() {
   if (!parsed.ok) throw new Error('parse failed')
 }
 
+const nav = require('../utils/nav.js')
+
+function test_nav_buildUrl_with_query() {
+  const url = nav.buildUrl('/pages/card/card', { id: 'abc 123' })
+  if (url !== '/pages/card/card?id=abc%20123') {
+    throw new Error('unexpected: ' + url)
+  }
+}
+
+function test_nav_buildUrl_no_query() {
+  const url = nav.buildUrl('/pages/index/index')
+  if (url !== '/pages/index/index') throw new Error('unexpected')
+}
+
 module.exports = {
   'storage.set+get': test_storage_set_and_get,
   'storage.get default': test_storage_get_with_default,
@@ -159,5 +173,7 @@ module.exports = {
   'http buildCloudCallData GET': test_http_buildCloudCallData_GET,
   'http buildCloudCallData POST': test_http_buildCloudCallData_POST,
   'http parseResponse body string': test_http_parseResponse_body_string,
-  'http parseResponse direct': test_http_parseResponse_direct
+  'http parseResponse direct': test_http_parseResponse_direct,
+  'nav buildUrl with query': test_nav_buildUrl_with_query,
+  'nav buildUrl no query': test_nav_buildUrl_no_query
 }
