@@ -1,68 +1,54 @@
-<!--pages/dice/dice.wxml-->
-<view class="container {{isLightTheme ? 'page-light' : ''}}">
-  <!-- 顶部导航栏 -->
-  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
-    <view class="nav-left">
-      <view class="back-btn" bindtap="goToIndex">🏠</view>
-    </view>
-    <view class="nav-title">
-      <text>骰子 & 随机</text>
-    </view>
-    <view class="nav-right"></view>
+<view class="container">
+  <view class="nav-bar">
+    <view class="back-btn" bindtap="goToIndex">‹</view>
+    <text class="nav-title">骰子 & 随机</text>
   </view>
 
-  <!-- 骰子区域 -->
-  <view class="section dice-section">
-    <view class="section-title">🎲 掷骰子</view>
-
-    <!-- 骰子选项 -->
-    <view class="dice-options">
-      <view
-        class="dice-option {{selectedDice == item.value && !isCustom ? 'active' : ''}}"
-        wx:for="{{diceOptions}}"
-        wx:key="value"
-        bindtap="selectDice"
-        data-value="{{item.value}}"
-      >
-        {{item.label}}
-      </view>
-      <view class="dice-option {{isCustom ? 'active' : ''}}" bindtap="toggleCustom">自定义</view>
-    </view>
-
-    <!-- 自定义输入 -->
-    <view class="custom-input" wx:if="{{isCustom}}">
-      <text>面数：</text>
-      <input type="number" value="{{customSides}}" bindinput="inputCustomSides" min="2" />
-    </view>
-
-    <!-- 掷骰按钮 -->
-    <view class="roll-btn {{isRolling ? 'rolling' : ''}}" bindtap="rollDice">
-      <text>{{isRolling ? '掷骰中...' : '掷骰'}}</text>
-    </view>
-
-    <!-- 骰子结果 -->
-    <view class="dice-result" wx:if="{{diceResult !== null}}">
-      <text class="dice-number {{isRolling ? 'rolling-text' : ''}}">{{diceResult}}</text>
-      <text class="dice-label">/ {{isCustom ? customSides : selectedDice}}</text>
+  <view class="dice-tabs">
+    <view
+      wx:for="{{diceOptions}}"
+      wx:key="value"
+      class="dice-tab {{selectedDice === item.value && !isCustom ? 'active' : ''}}"
+      bindtap="selectDice"
+      data-value="{{item.value}}"
+    >
+      {{item.label}}
     </view>
   </view>
 
-  <!-- 分割线 -->
-  <view class="divider"></view>
-
-  <!-- 丢硬币区域 -->
-  <view class="section coin-section">
-    <view class="section-title">🪙 丢硬币</view>
-
-    <!-- 丢硬币按钮 -->
-    <view class="coin-btn {{coinAnimating ? 'flipping' : ''}}" bindtap="flipCoin">
-      <text>{{coinAnimating ? '翻转中...' : '丢硬币'}}</text>
-    </view>
-
-    <!-- 硬币结果 -->
-    <view class="coin-result" wx:if="{{coinResult}}">
-      <text class="coin-face {{coinAnimating ? 'coin-flip-anim' : ''}}">{{coinResult === '正面' ? '🌝' : '🌚'}}</text>
+  <view class="custom-card" bindtap="toggleCustom">
+    <view class="custom-row">
+      <text class="custom-label">自定义面数</text>
+      <input
+        type="number"
+        class="custom-input"
+        value="{{customSides}}"
+        bindinput="inputCustomSides"
+        wx:if="{{isCustom}}"
+      />
+      <text wx:else class="custom-input-display">点击启用自定义</text>
     </view>
   </view>
 
+  <view class="dice-display">
+    <text wx:if="{{diceResult !== null}}" class="dice-result">{{diceResult}}</text>
+    <text wx:else class="dice-placeholder">点击掷骰</text>
+    <text wx:if="{{diceResult !== null}}" class="dice-label">/ {{isCustom ? customSides : selectedDice}}</text>
   </view>
+
+  <view class="roll-btn {{isRolling ? 'rolling' : ''}}" bindtap="rollDice">
+    {{isRolling ? '掷骰中...' : '掷骰子'}}
+  </view>
+
+  <view class="coin-section">
+    <text class="section-title">丢硬币</text>
+    <view class="coin-display">
+      <text wx:if="{{coinResult}}" class="coin-result {{coinAnimating ? 'coin-flip-anim' : ''}}">{{coinResult === '正面' ? '🌝' : '🌚'}}</text>
+      <text wx:else class="coin-placeholder">点击丢币</text>
+      <text wx:if="{{coinResult}}" class="coin-label">{{coinResult}}</text>
+    </view>
+    <view class="roll-btn secondary {{coinAnimating ? 'rolling' : ''}}" bindtap="flipCoin">
+      {{coinAnimating ? '旋转中...' : '丢硬币'}}
+    </view>
+  </view>
+</view>
