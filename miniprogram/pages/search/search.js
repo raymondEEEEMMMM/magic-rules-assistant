@@ -32,7 +32,7 @@ Page({
 
   onLoad(options) {
     this.loadHistory()
-    this.setData({ isLightTheme: true })
+    this.setData({ isLightTheme: app.globalData.isLightTheme })
     // 如果有 keyword 参数，自动搜索
     if (options.keyword) {
       this.setData({ keyword: decodeURIComponent(options.keyword) })
@@ -51,6 +51,11 @@ Page({
 
   onShow() {
     this.setData({ isLightTheme: app.globalData.isLightTheme })
+  },
+
+  // 更新主题（由 app.js 调用）
+  updateTheme(isLight) {
+    this.setData({ isLightTheme: isLight })
   },
 
   // 返回
