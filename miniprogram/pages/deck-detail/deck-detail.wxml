@@ -1,6 +1,6 @@
 <view class="container">
   <view class="nav-bar">
-    <view class="back-btn" bindtap="goToIndex">‹</view>
+    <view class="back-btn" bindtap="goBack">‹</view>
     <text class="nav-title">{{deck.name || '套牌详情'}}</text>
   </view>
 
