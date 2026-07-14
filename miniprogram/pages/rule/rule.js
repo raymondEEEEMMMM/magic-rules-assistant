@@ -15,7 +15,7 @@ Page({
   },
 
   onLoad(options) {
-    this.setData({ isLightTheme: true })
+    this.setData({ isLightTheme: app.globalData.isLightTheme })
     if (options.rule) {
       this.setData({
         ruleNumber: decodeURIComponent(options.rule)
@@ -25,7 +25,12 @@ Page({
   },
 
   onShow() {
-    this.setData({ isLightTheme: true })
+    this.setData({ isLightTheme: app.globalData.isLightTheme })
+  },
+
+  // 更新主题（由 app.js 调用）
+  updateTheme(isLight) {
+    this.setData({ isLightTheme: isLight })
   },
 
   // 返回
