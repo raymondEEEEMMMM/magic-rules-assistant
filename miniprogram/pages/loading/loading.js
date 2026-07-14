@@ -1,5 +1,8 @@
+const app = getApp()
+
 Page({
   data: {
+    isLightTheme: true,
     currentText: '',
     progress: 0
   },
@@ -13,7 +16,14 @@ Page({
   ],
 
   onLoad() {
+    if (app && app.globalData) {
+      this.setData({ isLightTheme: app.globalData.isLightTheme })
+    }
     this.runLoadingSequence()
+  },
+
+  updateTheme(isLight) {
+    this.setData({ isLightTheme: isLight })
   },
 
   runLoadingSequence() {
