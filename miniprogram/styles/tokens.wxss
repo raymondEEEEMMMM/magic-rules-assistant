@@ -87,14 +87,41 @@ page {
   --duration-slow: 300ms;
 }
 
-/* 暗色主题覆盖（P3 阶段启用，定义先准备好） */
+/* 暗色主题覆盖（保留兼容旧 .theme-light 类名） */
 .theme-dark {
-  --bg-page: #16213e;
-  --bg-card: #1a1a2e;
-  --bg-input: rgba(255, 255, 255, 0.1);
+  --bg-page: #0f1419;
+  --bg-card: #1a1f2e;
+  --bg-input: rgba(255, 255, 255, 0.08);
   --text-primary: #ffffff;
   --text-secondary: rgba(255, 255, 255, 0.7);
   --text-muted: rgba(255, 255, 255, 0.4);
+  --text-inverse: #1a1a1a;
   --border-subtle: rgba(255, 255, 255, 0.1);
-  --shadow-card: 0 2rpx 12rpx rgba(0, 0, 0, 0.3);
+  --border-default: rgba(255, 255, 255, 0.2);
+  --accent-gold: #ffd700;
+  --accent-dark: #ffd700;
+  --shadow-card: 0 2rpx 12rpx rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 4rpx 20rpx rgba(0, 0, 0, 0.5);
+  /* MTG 五色保持不变 */
+  --color-white: #f5f5f5;
+  --color-blue: #3a7bc8;
+  --color-black: #1a1a1a;
+  --color-red: #c83a3a;
+  --color-green: #3a9b5c;
+}
+
+/* 兼容旧 .theme-light 选择器（指向亮色变量） */
+.theme-light {
+  --bg-page: #faf8f3;
+  --bg-card: #ffffff;
+  --bg-input: #f5f5f5;
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --text-inverse: #ffffff;
+  --border-subtle: #f0f0f0;
+  --border-default: #e0e0e0;
+  --accent-gold: #ffd700;
+  --accent-dark: #1a1a2e;
+  --shadow-card: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
