@@ -55,8 +55,13 @@ Page({
     this.setData({ isLightTheme: app.globalData.isLightTheme })
   },
 
-  // 返回首页
-  goToIndex() {
-    wx.redirectTo({ url: '/pages/index/index' })
+  // 主题切换
+  updateTheme(isLight) {
+    this.setData({ isLightTheme: isLight })
+  },
+
+  // 返回
+  goBack() {
+    wx.navigateBack({ fail: () => wx.redirectTo({ url: '/pages/index/index' }) })
   }
 })
