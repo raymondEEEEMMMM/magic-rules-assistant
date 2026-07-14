@@ -1,7 +1,8 @@
 <!--pages/apitest/apitest.wxml-->
-<view class="container">
-  <view class="header">
-    <text class="title">API 连通性测试</text>
+<view class="container {{isLightTheme ? '' : 'theme-dark'}}">
+  <view class="nav-bar">
+    <view class="back-btn" bindtap="goBack">‹</view>
+    <text class="nav-title">API 连通性测试</text>
   </view>
 
   <!-- 测试列表 -->
@@ -13,15 +14,15 @@
         <view class="test-status {{aiJudgeStatus}}">{{aiJudgeStatusText}}</view>
       </view>
       <view class="test-desc">测试与AI裁判服务的连接</view>
-      <button class="test-btn" bindtap="testAiJudge" loading="{{aiJudgeLoading}}">
+      <view class="test-btn {{aiJudgeLoading ? 'disabled' : ''}}" bindtap="testAiJudge">
         {{aiJudgeLoading ? '测试中...' : '开始测试'}}
-      </button>
+      </view>
       <view class="test-result" wx:if="{{aiJudgeResult}}">
         <view class="result-header">
           <text class="result-label">返回结果：</text>
-          <button class="copy-btn" bindtap="copyResult" data-result="{{aiJudgeResult}}">复制</button>
+          <view class="copy-btn" bindtap="copyResult" data-result="{{aiJudgeResult}}">复制</view>
         </view>
-        <text class="result-content">{{aiJudgeResult}}</text>
+        <text class="result-content" user-select="true">{{aiJudgeResult}}</text>
       </view>
     </view>
 
@@ -32,15 +33,15 @@
         <view class="test-status {{ruleSearchStatus}}">{{ruleSearchStatusText}}</view>
       </view>
       <view class="test-desc">测试规则搜索功能（关键词：战斗）</view>
-      <button class="test-btn" bindtap="testRuleSearch" loading="{{ruleSearchLoading}}">
+      <view class="test-btn {{ruleSearchLoading ? 'disabled' : ''}}" bindtap="testRuleSearch">
         {{ruleSearchLoading ? '测试中...' : '开始测试'}}
-      </button>
+      </view>
       <view class="test-result" wx:if="{{ruleSearchResult}}">
         <view class="result-header">
           <text class="result-label">返回结果：</text>
-          <button class="copy-btn" bindtap="copyResult" data-result="{{ruleSearchResult}}">复制</button>
+          <view class="copy-btn" bindtap="copyResult" data-result="{{ruleSearchResult}}">复制</view>
         </view>
-        <text class="result-content">{{ruleSearchResult}}</text>
+        <text class="result-content" user-select="true">{{ruleSearchResult}}</text>
       </view>
     </view>
 
@@ -51,15 +52,15 @@
         <view class="test-status {{cardSearchStatus}}">{{cardSearchStatusText}}</view>
       </view>
       <view class="test-desc">测试卡牌查询功能（卡牌：黑莲花）</view>
-      <button class="test-btn" bindtap="testCardSearch" loading="{{cardSearchLoading}}">
+      <view class="test-btn {{cardSearchLoading ? 'disabled' : ''}}" bindtap="testCardSearch">
         {{cardSearchLoading ? '测试中...' : '开始测试'}}
-      </button>
+      </view>
       <view class="test-result" wx:if="{{cardSearchResult}}">
         <view class="result-header">
           <text class="result-label">返回结果：</text>
-          <button class="copy-btn" bindtap="copyResult" data-result="{{cardSearchResult}}">复制</button>
+          <view class="copy-btn" bindtap="copyResult" data-result="{{cardSearchResult}}">复制</view>
         </view>
-        <text class="result-content">{{cardSearchResult}}</text>
+        <text class="result-content" user-select="true">{{cardSearchResult}}</text>
       </view>
     </view>
 
@@ -70,15 +71,15 @@
         <view class="test-status {{keywordStatus}}">{{keywordStatusText}}</view>
       </view>
       <view class="test-desc">测试关键词查询功能（关键词：飞行）</view>
-      <button class="test-btn" bindtap="testKeyword" loading="{{keywordLoading}}">
+      <view class="test-btn {{keywordLoading ? 'disabled' : ''}}" bindtap="testKeyword">
         {{keywordLoading ? '测试中...' : '开始测试'}}
-      </button>
+      </view>
       <view class="test-result" wx:if="{{keywordResult}}">
         <view class="result-header">
           <text class="result-label">返回结果：</text>
-          <button class="copy-btn" bindtap="copyResult" data-result="{{keywordResult}}">复制</button>
+          <view class="copy-btn" bindtap="copyResult" data-result="{{keywordResult}}">复制</view>
         </view>
-        <text class="result-content">{{keywordResult}}</text>
+        <text class="result-content" user-select="true">{{keywordResult}}</text>
       </view>
     </view>
   </view>

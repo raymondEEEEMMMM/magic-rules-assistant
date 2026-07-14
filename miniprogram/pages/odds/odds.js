@@ -88,6 +88,14 @@ Page({
     this.setData({ isLightTheme: app.globalData.isLightTheme })
   },
 
+  goBack() {
+    wx.navigateBack({ fail: () => wx.redirectTo({ url: '/pages/index/index' }) })
+  },
+
+  updateTheme(isLight) {
+    this.setData({ isLightTheme: isLight })
+  },
+
   // 应用套牌到计算器
   applyDeck(deck) {
     const deckSize = deck.totalCards || 60

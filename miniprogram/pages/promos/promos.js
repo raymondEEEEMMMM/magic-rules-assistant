@@ -98,18 +98,23 @@ Page({
   },
 
   // 返回
-  goToIndex() {
-    wx.redirectTo({ url: '/pages/index/index' })
+  goBack() {
+    wx.navigateBack({ fail: () => wx.redirectTo({ url: '/pages/index/index' }) })
   },
 
-  // 查看卡牌详情 (穿透到卡牌详情页，以当前 promo 版本展示)
-  viewCardDetail(e) {
-    const card = e.currentTarget.dataset.card
-    if (!card) return
+  // 主题切换
+  updateTheme(isLight) {
+    this.setData({ isLightTheme: isLight })
+  },
+
+  // 点击 promo 卡（已有逻辑：传递到 card 详情）
+  onPromoTap(e) {
+    const promo = e.currentTarget.dataset.promo
+    if (!promo) return
 
     // 将卡牌数据通过本地存储传递（避免 URL 参数长度限制）
     try {
-      wx.setStorageSync('promoCardData', card)
+      wx.setStorageSync('promoCardData', promo)
     } catch (e) {
       console.error('存储卡牌数据失败:', e)
     }

@@ -24,7 +24,7 @@ Page({
   },
 
   onLoad(options) {
-    this.setData({ isLightTheme: true })
+    this.setData({ isLightTheme: app.globalData.isLightTheme })
     if (options.setCode) {
       this.setData({
         setCode: options.setCode,
@@ -38,13 +38,19 @@ Page({
     this.setData({ isLightTheme: app.globalData.isLightTheme })
   },
 
+  // 更新主题（由 app.js 调用）
+  updateTheme(isLight) {
+    this.setData({ isLightTheme: isLight })
+  },
+
   // 返回
+  goBack() {
+    wx.navigateBack({ fail: () => wx.redirectTo({ url: '/pages/index/index' }) })
+  },
+
   goToIndex() {
-    console.log('CODEBUDDY_DEBUG setcards goBack called')
     wx.navigateBack({
-      success: () => console.log('CODEBUDDY_DEBUG setcards goBack success'),
-      fail: (err) => {
-        console.log('CODEBUDDY_DEBUG setcards goBack fail err=', err)
+      fail: () => {
         wx.switchTab({ url: '/pages/index/index' })
       }
     })
@@ -56,10 +62,12 @@ Page({
     this.setData({ loading: true })
 
     api.getSetCards(setCode, 1, 9999).then(res => {
-      console.log('CODEBUDDY_DEBUG API returned, first 3 cards:', JSON.stringify(res.items?.slice(0, 3)))
       const cards = (res.items || []).map(card => ({
         id: card.id,
         display_name: card.display_name || card.name || '',
+        name: card.name || '',
+        zhs_name: card.zhs_name || card.display_name || card.name || '',
+        image_uris: card.image_uris || null,
         image_url: card.image_url || '',
         colors: card.colors || [],
         cmc: card.cmc || 0,
@@ -80,7 +88,6 @@ Page({
         loaded: true
       })
     }).catch(err => {
-      console.error('CODEBUDDY_DEBUG setcards loadSetData error', err)
       this.setData({
         loading: false,
         loaded: true
@@ -140,17 +147,14 @@ Page({
   // 类别筛选
   onTypeFilter(e) {
     const type = e.currentTarget.dataset.type
-    console.log('CODEBUDDY_DEBUG type filter:', type, 'current:', this.data.filterType)
     this.setData({ filterType: this.data.filterType === type ? '' : type })
     this.applyFilters()
-    console.log('CODEBUDDY_DEBUG after filter, filteredCards count:', this.data.filteredCards.length)
   },
 
   // 应用所有筛选
   applyFilters() {
     const { cards, filterColor, filterCmc, filterType, filterRarity } = this.data
     let filtered = cards
-    console.log('CODEBUDDY_DEBUG applyFilters:', { filterColor, filterCmc, filterType, filterRarity, total: cards.length })
 
     // 按颜色筛选
     if (filterColor) {
@@ -177,7 +181,6 @@ Page({
       filtered = filtered.filter(card => card.rarity === filterRarity)
     }
 
-    console.log('CODEBUDDY_DEBUG filtered result:', filtered.length, 'cards')
     this.setData({ filteredCards: filtered })
   },
 
@@ -187,5 +190,10 @@ Page({
     if (!cardId) return
     const url = `/pages/card/card?id=${encodeURIComponent(cardId)}`
     wx.navigateTo({ url })
+  },
+
+  // 新版 WXML 调用
+  onCardTap(e) {
+    this.viewCardDetail(e)
   }
 })

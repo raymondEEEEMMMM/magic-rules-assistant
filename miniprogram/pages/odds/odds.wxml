@@ -1,14 +1,9 @@
 <!--pages/odds/odds.wxml-->
-<view class="container {{isLightTheme ? 'page-light' : ''}}">
+<view class="container {{isLightTheme ? '' : 'theme-dark'}}">
   <!-- 顶部导航栏 -->
-  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
-    <view class="nav-left">
-      <view class="back-btn" bindtap="goToIndex">🏠</view>
-    </view>
-    <view class="nav-title">
-      <text>Odds 计算器</text>
-    </view>
-    <view class="nav-right"></view>
+  <view class="nav-bar">
+    <view class="back-btn" bindtap="goBack">‹</view>
+    <text class="nav-title">Odds 计算器</text>
   </view>
 
   <scroll-view class="content" scroll-y>
@@ -82,11 +77,11 @@
 
       <!-- 进度条概率 -->
       <view class="odds-grid">
-        <view class="odds-item" wx:for="{{[0,1,2,3]}}" wx:key="k">
+        <view class="odds-item" wx:for="{{[0,1,2,3]}}" wx:key="*this">
           <view class="odds-bar-wrapper">
             <view
               class="odds-bar"
-              style="width: {{oddsPct[item]}}%; background: {{item === 0 ? '#f5576c' : item === 1 ? '#667eea' : item === 2 ? '#11998e' : '#ffd700'}}"
+              style="width: {{oddsPct[item]}}%; background: {{item === 0 ? 'var(--color-red)' : item === 1 ? 'var(--color-blue)' : item === 2 ? 'var(--color-green)' : 'var(--accent-gold)'}}"
             ></view>
           </view>
           <view class="odds-label">
@@ -99,7 +94,7 @@
       <!-- 累积概率 -->
       <view class="cumulative-title">累积概率（至少抽到）</view>
       <view class="cumulative-grid">
-        <view class="cumulative-item" wx:for="{{[1,2,3,4]}}" wx:key="k">
+        <view class="cumulative-item" wx:for="{{[1,2,3,4]}}" wx:key="*this">
           <text class="cumulative-count">{{item}}+ 张</text>
           <text class="cumulative-pct {{oddsCumHigh[item] ? 'high' : ''}}">{{oddsCumPct[item]}}%</text>
         </view>
