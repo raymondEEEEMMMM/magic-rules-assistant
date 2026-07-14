@@ -12,23 +12,24 @@ Page({
     searchDone: false,
     showDetail: false,
     currentCard: null,
+    error: null,
     useApi: true,  // 默认使用API模式
     isLightTheme: true
   },
 
   onLoad(options) {
-    console.log('CODEBUDDY_DEBUG card onLoad options=', options)
     this.setData({ isLightTheme: true })
 
     // 如果来自 promo 页面，从本地存储读取卡牌数据
     if (options.from === 'promo') {
-      console.log('CODEBUDDY_DEBUG card onLoad from promo')
       try {
         const promoCard = wx.getStorageSync('promoCardData')
         if (promoCard && promoCard.name) {
           this.setData({
             currentCard: this.formatPromoCard(promoCard),
-            showDetail: true
+            showDetail: true,
+            loading: false,
+            error: null
           })
           wx.removeStorageSync('promoCardData')
           return
@@ -40,13 +41,10 @@ Page({
 
     // 如果有 id 参数，直接加载卡牌详情
     if (options.id) {
-      console.log('CODEBUDDY_DEBUG card onLoad id found, loading detail')
       this.setData({ keyword: decodeURIComponent(options.id) })
       this.fetchCardDetail(options.id)
     } else {
-      console.log('CODEBUDDY_DEBUG card onLoad no id parameter')
     }
-    console.log('CODEBUDDY_DEBUG card onLoad completed')
   },
 
   onShow() {
@@ -58,6 +56,37 @@ Page({
     wx.redirectTo({
       url: '/pages/index/index'
     })
+  },
+
+  // 返回上一页（带 fallback）
+  goBack() {
+    wx.navigateBack({
+      fail: () => wx.redirectTo({ url: '/pages/index/index' })
+    })
+  },
+
+  // 重试
+  onRetry() {
+    this.setData({ error: null })
+    const keyword = this.data.keyword
+    if (keyword) this.performApiSearch(keyword)
+  },
+
+  // 分享提示
+  onShare() {
+    wx.showToast({ title: '点击右上角分享', icon: 'none' })
+  },
+
+  // 复制牌名
+  onCopyName() {
+    const card = this.data.currentCard
+    const name = card && (card.zhs_name || card.name)
+    if (name) {
+      wx.setClipboardData({
+        data: name,
+        success: () => wx.showToast({ title: '已复制', icon: 'success' })
+      })
+    }
   },
 
   onInput(e) {
@@ -154,6 +183,7 @@ Page({
   // 获取单张卡牌详情
   fetchCardDetail(cardId) {
     wx.showLoading({ title: '加载中...' })
+    this.setData({ loading: true, error: null })
 
     api.getCardById(cardId).then(card => {
       wx.hideLoading()
@@ -173,23 +203,31 @@ Page({
         this.setData({
           currentCard: {
             id: card.id,
-            name: card.zhs_name || card.name,
+            name: card.name,
+            zhs_name: card.zhs_name || card.name,
             enName: card.name,
             manaCost: manaCost,
             manaSymbols: manaSymbols,
+            mana_cost: card.mana_cost || '',
             type: card.zhs_type_line || card.type_line || '',
+            type_line: card.zhs_type_line || card.type_line || '',
             text: oracleText,
             enText: enText,
-            power: card.power || '',
-            toughness: card.toughness || '',
+            oracle_text: oracleText,
+            flavor_text: card.flavor_text || '',
+            power: card.power !== undefined && card.power !== null ? card.power : '',
+            toughness: card.toughness !== undefined && card.toughness !== null ? card.toughness : '',
             setName: card.zhs_set_name || card.set_name || '',
             collectorNumber: card.collector_number || '',
             rarity: card.rarity || '',
             imageUrl: card.zhs_image_uris?.normal || card.image_uris?.normal || '',
+            image_uris: card.image_uris || {},
             keywords: keywords,
             legalities: card.legalities || {},
             rulings: []
           },
+          loading: false,
+          error: null,
           showDetail: true
         })
 
@@ -201,6 +239,10 @@ Page({
     }).catch(err => {
       wx.hideLoading()
       console.error('卡牌详情加载失败:', err)
+      this.setData({
+        loading: false,
+        error: (err && (err.errMsg || err.message)) || '网络错误，请稍后重试'
+      })
       wx.showToast({
         title: '加载失败',
         icon: 'none'
@@ -219,21 +261,27 @@ Page({
     const oracleText = this.convertNewlines(card.oracle_text || '')
     const manaCost = card.mana_cost || ''
     const manaSymbols = this.getManaSymbols(manaCost)
+    const imageUrl = card.image_url || ''
     return {
       id: card.id || '',
       name: card.name || '',
       display_name: card.name || '',
       zhs_name: card.name || '',
-      imageUrl: card.image_url || '',
+      imageUrl: imageUrl,
+      image_uris: imageUrl ? { normal: imageUrl } : {},
       type: card.type_line || '',
       type_line: card.type_line || '',
       mana_cost: manaCost,
       manaCost: manaCost,
       text: oracleText,
       enText: oracleText,
+      oracle_text: oracleText,
+      flavor_text: card.flavor_text || '',
       manaSymbols: manaSymbols,
       colors: card.colors || [],
       rarity: card.rarity || '',
+      power: card.power !== undefined && card.power !== null ? card.power : '',
+      toughness: card.toughness !== undefined && card.toughness !== null ? card.toughness : '',
       setName: card.set_name || '',
       set_name: card.set_name || '',
       released_at: card.released_at || '',
