@@ -1205,3 +1205,46 @@ page {
 .ai-title { font-size: 32rpx; font-weight: 600; color: var(--text-inverse); }
 .ai-desc { font-size: 22rpx; color: rgba(255, 255, 255, 0.7); }
 .ai-arrow { font-size: 40rpx; color: rgba(255, 255, 255, 0.5); margin-left: auto; }
+
+/* ==================== */
+/* P2: 工具入口 - 纵向列表 */
+/* ==================== */
+.tools-section { margin: 32rpx; }
+.section-title-wrap { padding: 0 8rpx 16rpx; }
+.section-title { font-size: 28rpx; font-weight: 600; color: var(--text-primary); }
+.tools-card {
+  background: var(--bg-card);
+  border-radius: 20rpx;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.tool-item {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 28rpx 24rpx;
+}
+.tool-item:active { background: var(--bg-input); }
+.tool-divider {
+  height: 1rpx;
+  background: var(--border-subtle);
+  margin: 0 24rpx;
+}
+.tool-icon-block {
+  width: 68rpx;
+  height: 68rpx;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.tool-color-blue { background-color: var(--color-blue); }
+.tool-color-black { background-color: var(--color-black); }
+.tool-color-red { background-color: var(--color-red); }
+.tool-color-green { background-color: var(--color-green); }
+.tool-icon { width: 36rpx; height: 36rpx; }
+.tool-info { flex: 1; display: flex; flex-direction: column; gap: 4rpx; min-width: 0; }
+.tool-name { font-size: 30rpx; font-weight: 600; color: var(--text-primary); }
+.tool-desc { font-size: 22rpx; color: var(--text-secondary); }
+.tool-chevron { width: 32rpx; height: 32rpx; opacity: 0.3; flex-shrink: 0; }

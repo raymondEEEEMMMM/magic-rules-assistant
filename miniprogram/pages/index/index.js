@@ -4,6 +4,9 @@ const app = getApp()
 // 引入 API 工具
 const api = require('../../utils/api')
 
+// 引入 SVG 图标 helper（用于工具列表图标）
+const iconUtil = require('../../utils/icon.js')
+
 Page({
   data: {
     version: '',
@@ -35,6 +38,15 @@ Page({
     this.fetchLatestSets()
     this.fetchSecretLair()
     this.fetchHomepageCards()
+    this.setData({
+      toolIcons: {
+        token: iconUtil.getDataUrl('card', { color: '#ffffff' }),
+        deck: iconUtil.getDataUrl('book', { color: '#ffffff' }),
+        heart: iconUtil.getDataUrl('heart', { color: '#ffffff' }),
+        dice: iconUtil.getDataUrl('dice', { color: '#ffffff' }),
+        chevron: iconUtil.getDataUrl('chevron-right')
+      }
+    })
   },
 
   onShow() {
