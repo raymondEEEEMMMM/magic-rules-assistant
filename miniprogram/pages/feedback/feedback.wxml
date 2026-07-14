@@ -1,47 +1,35 @@
-<!--pages/feedback/feedback.wxml-->
-<view class="container {{isLightTheme ? 'page-light' : ''}}">
-  <!-- 顶部导航栏 -->
-  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
-    <view class="nav-left">
-      <view class="back-btn" bindtap="goToIndex">🏠</view>
-    </view>
-    <view class="nav-title">
-      <text>反馈建议</text>
-    </view>
-    <view class="nav-right"></view>
+<view class="container {{isLightTheme ? '' : 'theme-dark'}}">
+  <view class="nav-bar">
+    <view class="back-btn" bindtap="goBack">‹</view>
+    <text class="nav-title">意见反馈</text>
   </view>
 
-  <!-- 反馈类型选择 -->
-  <view class="section">
-    <view class="section-title">反馈类型</view>
+  <view class="form-card">
+    <view class="form-label">反馈类型</view>
     <view class="type-list">
-      <view
+      <tag-chip
         wx:for="{{feedbackTypes}}"
         wx:key="key"
-        class="type-item {{selectedType === item.key ? 'active' : ''}}"
-        bindtap="selectType"
-        data-index="{{index}}"
-      >
-        {{item.name}}
-      </view>
+        text="{{item.name}}"
+        active="{{selectedType === item.key}}"
+        data-key="{{item.key}}"
+        bindtap="onSelectType"
+      />
     </view>
-  </view>
 
-  <!-- 反馈内容 -->
-  <view class="section">
-    <view class="section-title">反馈内容</view>
+    <view class="form-label">反馈内容</view>
     <textarea
-      class="content-input"
-      placeholder="请详细描述您的问题或建议..."
+      class="form-textarea"
+      placeholder="请描述您的建议或问题..."
       value="{{content}}"
       bindinput="onContentInput"
       maxlength="500"
+      auto-height
     ></textarea>
-    <view class="char-count">{{content.length}}/500</view>
-  </view>
+    <text class="form-counter">{{content.length}}/500</text>
 
-  <!-- 提交按钮 -->
-  <view class="submit-btn" bindtap="submitFeedback">
-    <text>提交反馈</text>
+    <view class="form-btn {{submitting || !content ? 'disabled' : ''}}" bindtap="submitFeedback">
+      <text>{{submitting ? '提交中...' : '提交反馈'}}</text>
+    </view>
   </view>
 </view>

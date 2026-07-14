@@ -47,10 +47,22 @@ Page({
     this.setData({ isLightTheme: app.globalData.isLightTheme })
   },
 
+  // 主题切换
+  updateTheme(isLight) {
+    this.setData({ isLightTheme: isLight })
+  },
+
+  // 返回
+  goBack() {
+    wx.navigateBack({ fail: () => wx.redirectTo({ url: '/pages/index/index' }) })
+  },
+
   // 选择反馈类型
-  selectType(e) {
-    const index = parseInt(e.currentTarget.dataset.index)
-    this.setData({ selectedType: this.data.feedbackTypes[index].key })
+  onSelectType(e) {
+    const key = e.currentTarget.dataset.key
+    if (key) {
+      this.setData({ selectedType: key })
+    }
   },
 
   // 输入反馈内容
@@ -99,10 +111,5 @@ Page({
       wx.showToast({ title: '提交失败', icon: 'none' })
       this.setData({ submitting: false })
     })
-  },
-
-  // 返回
-  goToIndex() {
-    wx.redirectTo({ url: '/pages/index/index' })
   }
 })
