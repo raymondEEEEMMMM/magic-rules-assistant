@@ -202,6 +202,29 @@ noop() {} // empty handler to stop tap propagation
 
 This issue frequently occurs in modal development - remember to use `catchtap` on wrapper views to isolate input interactions from modal backdrop taps.
 
+### Cloud Function Debugging
+**Always use MCP tools for cloud debugging**, not local curl commands. Cloud functions may have different network configurations.
+
+**Log query:**
+```
+mcp__cloudbase__queryLogs({
+  action: "searchLogs",
+  service: "tcb",
+  queryString: "your_keyword",
+  limit: 20,
+  sort: "desc"
+})
+```
+
+**Function invocation:**
+```
+mcp__cloudbase__manageFunctions({
+  action: "invokeFunction",
+  functionName: "mtgAsk",
+  params: { /* your params */ }
+})
+```
+
 ## Partner Projects
 
 ### MTG 裁判知识库

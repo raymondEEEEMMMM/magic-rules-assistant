@@ -1,5 +1,10 @@
 from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
-from fastapi.responses import XMLResponse, StreamingResponse, PlainTextResponse
+from fastapi.responses import StreamingResponse, PlainTextResponse, Response
+
+class XMLResponse(Response):
+    """简单的 XML 响应类，替代已移除的 fastapi.responses.XMLResponse"""
+    def __init__(self, content: str, status_code: int = 200):
+        super().__init__(content=content.encode('utf-8'), status_code=status_code, media_type='application/xml')
 from typing import Optional
 import hashlib
 import re
@@ -109,6 +114,49 @@ async def get_card_rule(card_name: str, order: str = "releaseDate"):
         return result  # MTGCH API 返回 {items: [...], total: ...}
     except Exception as e:
         return {"items": [], "total": 0, "error": str(e)}
+
+@app.get("/api/token/list")
+async def get_token_list():
+    """获取 Token 列表"""
+    tokens = [
+        # 特殊
+        {"name": "珍宝", "enName": "Treasure", "color": "C", "icon": "💎", "colorName": "无色", "power": 0, "toughness": 0},
+        {"name": "复制品", "enName": "Copy", "color": "C", "icon": "🔄", "colorName": "任意", "type": "copy", "power": 0, "toughness": 0},
+        # White
+        {"name": "士兵", "enName": "Soldier", "color": "W", "icon": "⚔️", "colorName": "白", "power": 1, "toughness": 1},
+        {"name": "天使", "enName": "Angel", "color": "W", "icon": "👼", "colorName": "白", "power": 3, "toughness": 3, "abilities": "飞行"},
+        {"name": "精灵", "enName": "Elf", "color": "W", "icon": "🧝", "colorName": "白", "power": 1, "toughness": 1},
+        {"name": "野狼", "enName": "Wolf", "color": "W", "icon": "🐺", "colorName": "白", "power": 2, "toughness": 2},
+        {"name": "猫", "enName": "Cat", "color": "W", "icon": "🐱", "colorName": "白", "power": 2, "toughness": 2},
+        # Blue
+        {"name": "鸟", "enName": "Bird", "color": "U", "icon": "🐦", "colorName": "蓝", "power": 1, "toughness": 1, "abilities": "飞行"},
+        {"name": "海洋幻惑", "enName": "Kraken", "color": "U", "icon": "🦑", "colorName": "蓝", "power": 0, "toughness": 0},
+        {"name": "元素", "enName": "Elemental", "color": "U", "icon": "🌊", "colorName": "蓝", "power": 0, "toughness": 0},
+        {"name": "虚影", "enName": "Illusion", "color": "U", "icon": "👤", "colorName": "蓝", "power": 1, "toughness": 1, "abilities": "飞行"},
+        # Black
+        {"name": "灵俑", "enName": "Zombie", "color": "B", "icon": "💀", "colorName": "黑", "power": 2, "toughness": 2},
+        {"name": "吸血鬼", "enName": "Vampire", "color": "B", "icon": "🧛", "colorName": "黑", "power": 1, "toughness": 1},
+        {"name": "蝙蝠", "enName": "Bat", "color": "B", "icon": "🦇", "colorName": "黑", "power": 1, "toughness": 1, "abilities": "飞行"},
+        {"name": "恶魔", "enName": "Demon", "color": "B", "icon": "😈", "colorName": "黑", "power": 5, "toughness": 5, "abilities": "飞行"},
+        {"name": "妖精", "enName": "Fae", "color": "B", "icon": "🧚", "colorName": "黑", "power": 0, "toughness": 1},
+        # Red
+        {"name": "龙", "enName": "Dragon", "color": "R", "icon": "🐉", "colorName": "红", "power": 2, "toughness": 2, "abilities": "飞行"},
+        {"name": "鬼怪", "enName": "Goblin", "color": "R", "icon": "👺", "colorName": "红", "power": 1, "toughness": 1},
+        {"name": "元素", "enName": "Elemental", "color": "R", "icon": "🔥", "colorName": "红", "power": 1, "toughness": 1},
+        {"name": "龙兽", "enName": "Drake", "color": "R", "icon": "🦅", "colorName": "红", "power": 2, "toughness": 2, "abilities": "飞行"},
+        # Green
+        {"name": "妖精", "enName": "Elf", "color": "G", "icon": "🧝", "colorName": "绿", "power": 1, "toughness": 1},
+        {"name": "狼", "enName": "Wolf", "color": "G", "icon": "🐺", "colorName": "绿", "power": 2, "toughness": 2},
+        {"name": "巨魔", "enName": "Troll", "color": "G", "icon": "🧌", "colorName": "绿", "power": 3, "toughness": 3},
+        {"name": "蜈蚣", "enName": "Squirrel", "color": "G", "icon": "🐿", "colorName": "绿", "power": 1, "toughness": 1},
+        {"name": "猫", "enName": "Cat", "color": "G", "icon": "🐱", "colorName": "绿", "power": 2, "toughness": 1},
+        # Other
+        {"name": "变形兽", "enName": "Shapeshifter", "color": "C", "icon": "👹", "colorName": "无色", "power": 3, "toughness": 3},
+        {"name": "组构体", "enName": "Construct", "color": "C", "icon": "🤖", "colorName": "无色", "power": 4, "toughness": 4},
+        {"name": "皮托斯", "enName": "Myr", "color": "C", "icon": "🗿", "colorName": "无色", "power": 0, "toughness": 0},
+        {"name": "Marit Lage", "enName": "Marit Lage", "color": "B", "icon": "🌊", "colorName": "黑", "power": 20, "toughness": 20, "abilities": "飞行，不灭"},
+    ]
+    return {"tokens": tokens}
 
 # ==================== 微信 HTTP 访问路径 API ====================
 # 这些路由用于 HTTP 访问路径 /wechat 的调用
@@ -1107,6 +1155,46 @@ async def update_deck(deck_id: str, request: Request):
             return {"success": False, "error": "更新失败或无权限"}
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+
+# ==================== 首页卡片配置 API ====================
+
+@app.get("/api/homepage/cards")
+async def get_homepage_cards():
+    """
+    获取首页卡片显示配置
+
+    返回: [{"card_key": "ai_judge", "card_name": "AI 裁判", "hidden": false}, ...]
+    """
+    try:
+        configs = db.get_homepage_card_configs()
+        return {"success": True, "cards": configs}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.post("/api/homepage/cards/{card_key}/hidden")
+async def set_homepage_card_hidden(card_key: str, request: Request):
+    """
+    设置首页卡片隐藏/显示
+
+    Path: card_key - 卡片标识 (ai_judge, token, promos, counter, dice, deck)
+    Body: {"hidden": true/false}
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        return {"success": False, "error": "请求体必须是有效 JSON"}
+
+    hidden = body.get("hidden")
+    if hidden is None:
+        return {"success": False, "error": "hidden 参数必填"}
+
+    success = db.update_homepage_card_hidden(card_key, hidden)
+    if success:
+        return {"success": True}
+    else:
+        return {"success": False, "error": "更新失败"}
 
 
 if __name__ == "__main__":
