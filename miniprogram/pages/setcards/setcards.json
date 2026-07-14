@@ -1,4 +1,6 @@
 {
-  "usingComponents": {},
-  "navigationBarTitleText": "系列卡牌"
+  "navigationBarTitleText": "{{setName || '系列卡牌'}}",
+  "usingComponents": {
+    "empty-state": "/components/empty-state/empty-state"
+  }
 }
