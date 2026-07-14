@@ -3,6 +3,8 @@ const app = getApp()
 
 Page({
   data: {
+    isLightTheme: true,
+
     // AI 裁判测试
     aiJudgeStatus: 'pending',
     aiJudgeStatusText: '待测试',
@@ -30,6 +32,21 @@ Page({
 
   onLoad() {
     // 页面加载
+    this.setData({ isLightTheme: app.globalData.isLightTheme })
+  },
+
+  onShow() {
+    if (app && app.globalData) {
+      this.setData({ isLightTheme: app.globalData.isLightTheme })
+    }
+  },
+
+  goBack() {
+    wx.navigateBack({ fail: () => wx.redirectTo({ url: '/pages/index/index' }) })
+  },
+
+  updateTheme(isLight) {
+    this.setData({ isLightTheme: isLight })
   },
 
   // 测试 AI 裁判 API
