@@ -25,7 +25,7 @@ Page({
   },
 
   onLoad(options) {
-    this.setData({ isLightTheme: true })
+    this.setData({ isLightTheme: app.globalData.isLightTheme })
     this.loadSldCards()
   },
 
@@ -33,9 +33,17 @@ Page({
     this.setData({ isLightTheme: app.globalData.isLightTheme })
   },
 
+  // 更新主题（由 app.js 调用）
+  updateTheme(isLight) {
+    this.setData({ isLightTheme: isLight })
+  },
+
   // 返回
+  goBack() {
+    wx.navigateBack({ fail: () => wx.redirectTo({ url: '/pages/index/index' }) })
+  },
+
   goToIndex() {
-    console.log('CODEBUDDY_DEBUG sldcards goBack called')
     wx.navigateBack({
       fail: () => wx.switchTab({ url: '/pages/index/index' })
     })
@@ -46,7 +54,6 @@ Page({
     this.setData({ loading: true })
 
     api.getSecretLairCards(6).then(res => {
-      console.log('CODEBUDDY_DEBUG sldcards API returned, groups:', res.groups?.length)
 
       // groups 已经是按日期分组的结构
       const groups = res.groups || []
@@ -61,7 +68,6 @@ Page({
         loaded: true
       })
     }).catch(err => {
-      console.error('CODEBUDDY_DEBUG sldcards loadSldCards error', err)
       this.setData({
         loading: false,
         loaded: true
@@ -90,7 +96,6 @@ Page({
     this.setData({ loading: true })
 
     api.searchSecretLair(code).then(res => {
-      console.log('CODEBUDDY_DEBUG sldcards search result:', res)
       this.setData({ loading: false })
 
       if (res.found && res.card) {
@@ -125,7 +130,6 @@ Page({
         })
       }
     }).catch(err => {
-      console.error('CODEBUDDY_DEBUG sldcards search error', err)
       this.setData({ loading: false })
       wx.showToast({
         title: '搜索失败',
@@ -173,5 +177,10 @@ Page({
     if (!cardId) return
     const url = `/pages/card/card?id=${encodeURIComponent(cardId)}`
     wx.navigateTo({ url })
+  },
+
+  // 新版 WXML 调用
+  onCardTap(e) {
+    this.viewCardDetail(e)
   }
 })

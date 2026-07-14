@@ -1,3 +1,6 @@
 {
-  "usingComponents": {}
+  "navigationBarTitleText": "Secret Lair",
+  "usingComponents": {
+    "empty-state": "/components/empty-state/empty-state"
+  }
 }
