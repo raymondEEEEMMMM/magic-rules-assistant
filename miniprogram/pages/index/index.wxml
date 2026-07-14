@@ -8,17 +8,16 @@
     </view>
   </view>
 
-  <!-- AI 裁判入口 -->
-  <view class="ai-judge-section" wx:if="{{showAIJudgeCard && !keyword && !hiddenCards.aiJudge}}" bindtap="goToAIJudge">
-    <view class="ai-judge-badge">
-      <image class="ai-badge-icon" src="/images/mtgask_logo.png" mode="aspectFit"></image>
-      <view class="ai-badge-glow"></view>
+  <!-- AI 裁判入口 - 深底横幅 + 金色图标 -->
+  <view class="ai-banner" wx:if="{{showAIJudgeCard && !keyword && !hiddenCards.aiJudge}}" bindtap="goToAIJudge">
+    <view class="ai-icon-block">
+      <image class="ai-icon" src="/images/mtgask_logo.png" mode="aspectFit"></image>
     </view>
-    <view class="ai-judge-info">
-      <text class="ai-judge-title">AI 裁判</text>
-      <text class="ai-judge-desc">智能规则问答 · 随时随地</text>
+    <view class="ai-info">
+      <text class="ai-title">AI 裁判</text>
+      <text class="ai-desc">智能规则问答 · 随时随地</text>
     </view>
-    <view class="ai-judge-arrow">›</view>
+    <text class="ai-arrow">›</text>
   </view>
 
   <!-- 搜索框（卡片包裹） -->
