@@ -1,0 +1,21 @@
+.demo-page {
+  min-height: 100vh;
+  padding: var(--space-3);
+  background-color: var(--bg-page);
+}
+.section {
+  margin-bottom: var(--space-5);
+  background-color: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+}
+.section-title {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+}
+.chips-row { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.icons-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); }
+.icon-cell { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); }
+.icon-img { width: 48rpx; height: 48rpx; }
+.icon-name { font-size: var(--font-size-xs); color: var(--text-muted); }

@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "组件演示",
+  "usingComponents": {
+    "nav-header": "/components/nav-header/nav-header",
+    "card-list-item": "/components/card-list-item/card-list-item",
+    "section-header": "/components/section-header/section-header",
+    "empty-state": "/components/empty-state/empty-state",
+    "skeleton-card": "/components/skeleton-card/skeleton-card",
+    "tag-chip": "/components/tag-chip/tag-chip"
+  }
+}

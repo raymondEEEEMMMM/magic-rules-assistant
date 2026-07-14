@@ -1,0 +1,48 @@
+<view class="demo-page">
+  <view class="section">
+    <view class="section-title">nav-header</view>
+    <nav-header title="演示页" subtitle="副标题示例" showBack="{{true}}" showTheme="{{true}}" />
+  </view>
+
+  <view class="section">
+    <view class="section-title">card-list-item</view>
+    <card-list-item icon="book" iconColor="#1a1a2e" title="我的套牌" desc="导入导出" />
+    <card-list-item icon="heart" iconColor="#c83a3a" title="生命值" desc="多人对战" withDivider="{{true}}" />
+    <card-list-item icon="dice" iconColor="#3a9b5c" title="骰子" desc="随机抽卡" withDivider="{{true}}" />
+  </view>
+
+  <view class="section">
+    <view class="section-title">section-header</view>
+    <section-header title="最新系列" count="9" moreText="查看全部 ›" />
+  </view>
+
+  <view class="section">
+    <view class="section-title">tag-chip</view>
+    <view class="chips-row">
+      <tag-chip text="全部" active="{{true}}" />
+      <tag-chip text="卡牌" />
+      <tag-chip text="规则" />
+      <tag-chip text="关键词" />
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">skeleton-card</view>
+    <skeleton-card lines="3" avatar="{{true}}" />
+  </view>
+
+  <view class="section">
+    <view class="section-title">empty-state</view>
+    <empty-state icon="search" title="未找到结果" desc="试试其他关键词" actionText="清空搜索" />
+  </view>
+
+  <view class="section">
+    <view class="section-title">图标库（12 个）</view>
+    <view class="icons-grid">
+      <view wx:for="{{icons}}" wx:key="*this" class="icon-cell">
+        <image class="icon-img" src="{{iconDataUrls[item]}}" mode="aspectFit"></image>
+        <text class="icon-name">{{item}}</text>
+      </view>
+    </view>
+  </view>
+</view>
