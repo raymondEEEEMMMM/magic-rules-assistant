@@ -1,144 +1,61 @@
-<!--pages/counter/counter.wxml-->
-<view class="container {{isLightTheme ? 'page-light' : ''}}">
-  <!-- 顶部导航栏 -->
-  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
-    <view class="nav-left">
-      <view class="back-btn" bindtap="goToIndex">🏠</view>
-    </view>
-    <view class="nav-title">
-      <text>生命值计数器</text>
-    </view>
-    <view class="nav-right">
-      <view class="reset-btn" bindtap="resetAll">重置</view>
+<view class="container">
+  <view class="nav-bar">
+    <view class="back-btn" bindtap="goToIndex">‹</view>
+    <text class="nav-title">生命值计数器</text>
+  </view>
+
+  <view class="format-tabs">
+    <view
+      wx:for="{{formats}}"
+      wx:key="key"
+      class="format-tab {{format === item.key ? 'active' : ''}}"
+      bindtap="onSelectFormat"
+      data-key="{{item.key}}"
+    >
+      {{item.name}}
     </view>
   </view>
 
-  <!-- 控制栏 -->
-  <view class="control-bar">
-    <view class="format-select">
-      <text class="label">赛制</text>
-      <picker mode="selector" range="{{formats}}" range-key="name" bindchange="setFormat" value="{{formatIndex}}">
-        <view class="picker-value">{{currentFormatName}}</view>
-      </picker>
-    </view>
-  </view>
-
-  <!-- 赛制信息 -->
   <view class="format-info">
     <text class="format-desc">{{playerCount}}人游戏 · 起始生命 {{initialLife}}</text>
   </view>
 
-  <!-- 玩家区域 -->
-  <view class="players-area">
-    <!-- 1人布局 -->
-    <view class="solo-layout" wx:if="{{playerCount === 1}}">
-      <view class="solo-player">
-        <view class="player-name">你</view>
-        <view class="player-life {{players[0].life <= 10 ? 'life-low' : ''}} {{players[0].life <= 5 ? 'life-critical' : ''}}">
-          <text class="life-value">{{players[0].life}}</text>
-        </view>
-        <view class="life-controls">
-          <view class="life-btn minus" bindtap="adjustLife" data-index="0" data-delta="{{-1}}">-1</view>
-          <view class="life-btn plus" bindtap="adjustLife" data-index="0" data-delta="{{1}}">+1</view>
-          <view class="life-btn minus-small" bindtap="adjustLife" data-index="0" data-delta="{{-5}}">-5</view>
-          <view class="life-btn plus-small" bindtap="adjustLife" data-index="0" data-delta="{{5}}">+5</view>
-        </view>
+  <view class="players">
+    <view class="player-card" wx:for="{{players}}" wx:key="index">
+      <text class="player-name">{{item.name}}</text>
+      <text class="player-life">{{item.life}}</text>
+      <view class="life-controls">
+        <view class="life-btn minus" data-index="{{index}}" data-delta="-1" catchtap="adjustLife">-1</view>
+        <view class="life-btn minus-big" data-index="{{index}}" data-delta="-5" catchtap="adjustLife">-5</view>
+        <view class="life-btn plus-big" data-index="{{index}}" data-delta="5" catchtap="adjustLife">+5</view>
+        <view class="life-btn plus" data-index="{{index}}" data-delta="1" catchtap="adjustLife">+1</view>
+      </view>
+    </view>
+  </view>
 
-        <!-- Mana Bar (默认收起) -->
-        <view class="mana-section">
-          <view class="mana-header" bindtap="toggleMana">
-            <text class="mana-title">法力池</text>
-            <text class="mana-toggle">{{showMana ? '▼' : '▶'}}</text>
-          </view>
-          <view class="mana-content" wx:if="{{showMana}}">
-            <view class="mana-row">
-              <view class="mana-item" wx:for="{{manaColors}}" wx:key="index">
-                <view class="mana-icon-wrapper">
-                  <image class="mana-icon" src="https://svgs.scryfall.io/card-symbols/{{item}}.svg" mode="aspectFit" />
-                </view>
-                <view class="mana-value">{{manaPool[item]}}</view>
-                <view class="mana-controls">
-                  <view class="mana-btn minus" bindtap="adjustMana" data-color="{{item}}" data-delta="{{-1}}">-</view>
-                  <view class="mana-btn plus" bindtap="adjustMana" data-color="{{item}}" data-delta="{{1}}">+</view>
-                </view>
-              </view>
-            </view>
-            <view class="mana-reset-btn" bindtap="resetMana">重置法力</view>
-          </view>
+  <view class="actions">
+    <view class="action-btn" bindtap="toggleMana" wx:if="{{format === 'solo'}}">
+      {{showMana ? '隐藏' : '显示'}} 法力
+    </view>
+    <view class="action-btn primary" bindtap="resetAll">重置</view>
+  </view>
+
+  <view wx:if="{{showMana && format === 'solo'}}" class="mana-pool">
+    <text class="section-title">法力池</text>
+    <view class="mana-list">
+      <view
+        wx:for="{{manaColors}}"
+        wx:key="*this"
+        class="mana-item mana-{{item}}"
+      >
+        <text class="mana-key">{{item}}</text>
+        <text class="mana-qty">{{manaPool[item]}}</text>
+        <view class="mana-controls">
+          <view class="mana-btn" data-color="{{item}}" data-delta="-1" catchtap="adjustMana">-</view>
+          <view class="mana-btn" data-color="{{item}}" data-delta="1" catchtap="adjustMana">+</view>
         </view>
       </view>
     </view>
-
-    <!-- 2人布局 -->
-    <view class="players-grid-2" wx:if="{{playerCount === 2}}">
-      <view class="player-card">
-        <view class="player-life {{players[0].life <= 10 ? 'life-low' : ''}} {{players[0].life <= 5 ? 'life-critical' : ''}}">
-          <text class="life-value">{{players[0].life}}</text>
-        </view>
-        <view class="life-controls">
-          <view class="life-btn minus" bindtap="adjustLife" data-index="0" data-delta="{{-1}}">-</view>
-          <view class="life-btn plus" bindtap="adjustLife" data-index="0" data-delta="{{1}}">+</view>
-          <view class="life-btn minus-small" bindtap="adjustLife" data-index="0" data-delta="{{-5}}">-5</view>
-          <view class="life-btn plus-small" bindtap="adjustLife" data-index="0" data-delta="{{5}}">+5</view>
-        </view>
-      </view>
-      <view class="players-spacer"></view>
-      <view class="player-card">
-        <view class="player-life {{players[1].life <= 10 ? 'life-low' : ''}} {{players[1].life <= 5 ? 'life-critical' : ''}}">
-          <text class="life-value">{{players[1].life}}</text>
-        </view>
-        <view class="life-controls">
-          <view class="life-btn minus" bindtap="adjustLife" data-index="1" data-delta="{{-1}}">-</view>
-          <view class="life-btn plus" bindtap="adjustLife" data-index="1" data-delta="{{1}}">+</view>
-          <view class="life-btn minus-small" bindtap="adjustLife" data-index="1" data-delta="{{-5}}">-5</view>
-          <view class="life-btn plus-small" bindtap="adjustLife" data-index="1" data-delta="{{5}}">+5</view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 4人指挥官 2x2 布局 -->
-    <view class="commander-grid" wx:if="{{playerCount === 4}}">
-      <view class="commander-row">
-        <view class="commander-player">
-          <view class="player-life {{players[0].life <= 10 ? 'life-low' : ''}} {{players[0].life <= 5 ? 'life-critical' : ''}}">
-            <text class="life-value">{{players[0].life}}</text>
-          </view>
-          <view class="life-controls">
-            <view class="life-btn minus" bindtap="adjustLife" data-index="0" data-delta="{{-1}}">-</view>
-            <view class="life-btn plus" bindtap="adjustLife" data-index="0" data-delta="{{1}}">+</view>
-          </view>
-        </view>
-        <view class="commander-player">
-          <view class="player-life {{players[1].life <= 10 ? 'life-low' : ''}} {{players[1].life <= 5 ? 'life-critical' : ''}}">
-            <text class="life-value">{{players[1].life}}</text>
-          </view>
-          <view class="life-controls">
-            <view class="life-btn minus" bindtap="adjustLife" data-index="1" data-delta="{{-1}}">-</view>
-            <view class="life-btn plus" bindtap="adjustLife" data-index="1" data-delta="{{1}}">+</view>
-          </view>
-        </view>
-      </view>
-      <view class="commander-row">
-        <view class="commander-player">
-          <view class="player-life {{players[2].life <= 10 ? 'life-low' : ''}} {{players[2].life <= 5 ? 'life-critical' : ''}}">
-            <text class="life-value">{{players[2].life}}</text>
-          </view>
-          <view class="life-controls">
-            <view class="life-btn minus" bindtap="adjustLife" data-index="2" data-delta="{{-1}}">-</view>
-            <view class="life-btn plus" bindtap="adjustLife" data-index="2" data-delta="{{1}}">+</view>
-          </view>
-        </view>
-        <view class="commander-player">
-          <view class="player-life {{players[3].life <= 10 ? 'life-low' : ''}} {{players[3].life <= 5 ? 'life-critical' : ''}}">
-            <text class="life-value">{{players[3].life}}</text>
-          </view>
-          <view class="life-controls">
-            <view class="life-btn minus" bindtap="adjustLife" data-index="3" data-delta="{{-1}}">-</view>
-            <view class="life-btn plus" bindtap="adjustLife" data-index="3" data-delta="{{1}}">+</view>
-          </view>
-        </view>
-      </view>
-      <view class="reset-center-btn" bindtap="resetAll">↻</view>
-    </view>
+    <view class="mana-reset-btn" bindtap="resetMana">重置法力池</view>
   </view>
 </view>
