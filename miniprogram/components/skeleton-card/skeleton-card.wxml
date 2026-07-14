@@ -1,0 +1,6 @@
+<view class="skeleton">
+  <view wx:if="{{avatar}}" class="skeleton-avatar"></view>
+  <view class="skeleton-body">
+    <view wx:for="{{lines}}" wx:key="*this" class="skeleton-line" style="width: {{item === 1 ? '60%' : (item === lines ? '40%' : '90%')}};"></view>
+  </view>
+</view>
