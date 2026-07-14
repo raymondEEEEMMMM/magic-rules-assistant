@@ -1,213 +1,44 @@
 /* pages/token-generate/token-generate.wxss */
-page {
-  background-color: #16213e;
-  height: 100%;
-  color: #ffffff;
-}
+page { background: var(--bg-page); }
+.container { min-height: 100vh; padding: 24rpx 32rpx; display: flex; flex-direction: column; }
+.nav-bar { display: flex; align-items: center; padding: 16rpx 0 32rpx; }
+.back-btn { width: 64rpx; height: 64rpx; display: flex; align-items: center; justify-content: center; font-size: 48rpx; color: var(--text-primary); margin-right: 16rpx; }
+.back-btn:active { opacity: 0.5; }
+.nav-title { font-size: 36rpx; font-weight: 700; color: var(--text-primary); }
 
-.container {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
+.empty-card { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120rpx 0; }
+.empty-icon { font-size: 96rpx; opacity: 0.5; margin-bottom: 24rpx; }
+.empty-text { font-size: 32rpx; font-weight: 600; color: var(--text-primary); }
+.empty-desc { font-size: 24rpx; color: var(--text-secondary); margin-top: 8rpx; }
 
-/* 导航栏 */
-.nav-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20rpx 30rpx;
-  padding-top: calc(20rpx + env(safe-area-inset-top));
-  background: #1a1a2e;
-  border-bottom: 1rpx solid rgba(255, 215, 0, 0.15);
-}
-
-.nav-left, .nav-right {
-  min-width: 80rpx;
-}
-
-.back-btn {
-  font-size: 40rpx;
-  color: #ffd700;
-}
-
-.nav-title {
-  font-size: 34rpx;
-  font-weight: bold;
-  color: #ffffff;
-}
-
-.nav-bar-light {
-  background: #ffffff;
-  border-bottom: 1rpx solid #e0e0e0;
-}
-
-.nav-bar-light .back-btn {
-  color: #667eea;
-}
-
-.nav-bar-light .nav-title {
-  color: #333333;
-}
-
-/* Token 展示区 */
-.preview-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 30rpx;
-}
-
-.preview-hint {
-  font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.4);
-  margin-bottom: 20rpx;
-}
-
-.token-scroll {
-  width: 100%;
-  flex: 1;
-}
-
-.token-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16rpx;
-}
-
-.token-container.vertical {
-  flex-direction: column;
-}
-
-.token-container.horizontal {
-  flex-direction: row;
-  flex-wrap: wrap;
-}
-
-.token-img {
-  width: 300rpx;
-  height: 418rpx;
-  border-radius: 8rpx;
-  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.4);
-  transition: transform 0.3s ease;
-}
-
-.token-container.horizontal .token-img {
-  width: 200rpx;
-  height: 280rpx;
-}
+/* Token 预览区 */
+.preview-card { background: var(--bg-card); border-radius: 20rpx; box-shadow: var(--shadow-card); padding: 24rpx; margin-bottom: 24rpx; }
+.preview-title { font-size: 22rpx; color: var(--text-muted); text-align: center; margin-bottom: 16rpx; }
+.token-scroll { width: 100%; }
+.token-container { display: flex; align-items: center; justify-content: center; gap: 16rpx; }
+.token-container.vertical { flex-direction: column; }
+.token-container.horizontal { flex-direction: row; flex-wrap: wrap; }
+.token-img-wrapper { display: inline-block; }
+.token-img { width: 300rpx; height: 418rpx; border-radius: 12rpx; box-shadow: var(--shadow-card); transition: transform 0.3s ease; }
+.token-container.horizontal .token-img { width: 200rpx; height: 280rpx; }
 
 /* 控制面板 */
-.control-panel {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 24rpx 24rpx 0 0;
-  padding: 30rpx;
-}
-
-.control-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30rpx;
-}
-
-.control-row:last-child {
-  margin-bottom: 0;
-}
-
-.control-label {
-  font-size: 30rpx;
-  color: #ffffff;
-}
+.control-card { background: var(--bg-card); border-radius: 20rpx; box-shadow: var(--shadow-card); padding: 24rpx; margin-bottom: 24rpx; }
+.control-row { display: flex; align-items: center; justify-content: space-between; padding: 16rpx 0; }
+.control-row + .control-row { border-top: 1rpx solid var(--border-subtle); }
+.control-label { font-size: 28rpx; color: var(--text-primary); font-weight: 600; }
 
 /* 数量控制 */
-.count-control {
-  display: flex;
-  align-items: center;
-  gap: 24rpx;
-}
-
-.count-btn {
-  width: 64rpx;
-  height: 64rpx;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #ffffff;
-}
-
-.count-btn:active {
-  opacity: 0.7;
-}
-
-.count-value {
-  font-size: 40rpx;
-  font-weight: bold;
-  color: #ffd700;
-  min-width: 60rpx;
-  text-align: center;
-}
+.count-control { display: flex; align-items: center; gap: 24rpx; }
+.count-btn { width: 64rpx; height: 64rpx; background: var(--bg-input); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36rpx; font-weight: 700; color: var(--text-primary); }
+.count-btn:active { opacity: 0.7; }
+.count-value { font-size: 36rpx; font-weight: 700; color: var(--accent-dark); min-width: 60rpx; text-align: center; }
 
 /* 横置竖置 */
-.rotate-control {
-  display: flex;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 30rpx;
-  padding: 4rpx;
-}
-
-.rotate-btn {
-  padding: 12rpx 32rpx;
-  border-radius: 26rpx;
-  font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.rotate-btn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #ffffff;
-}
+.rotate-control { display: flex; background: var(--bg-input); border-radius: 30rpx; padding: 4rpx; }
+.rotate-btn { padding: 12rpx 32rpx; border-radius: 26rpx; font-size: 26rpx; color: var(--text-secondary); }
+.rotate-btn.active { background: var(--accent-dark); color: var(--text-inverse); }
 
 /* 预览按钮 */
-.preview-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #ffffff;
-  padding: 28rpx;
-  border-radius: 16rpx;
-  text-align: center;
-  font-size: 32rpx;
-  font-weight: bold;
-  margin: 0 30rpx 30rpx;
-}
-
-/* Light theme */
-.container.page-light {
-  background-color: #f5f5f5;
-}
-
-.container.page-light .control-panel {
-  background: rgba(0, 0, 0, 0.03);
-}
-
-.container.page-light .control-label {
-  color: #333333;
-}
-
-.container.page-light .count-btn {
-  background: rgba(0, 0, 0, 0.05);
-  color: #333333;
-}
-
-.container.page-light .count-value {
-  color: #667eea;
-}
-
-.container.page-light .rotate-btn {
-  color: #666666;
-}
+.preview-btn { background: var(--accent-dark); color: var(--text-inverse); padding: 28rpx; border-radius: 20rpx; text-align: center; font-size: 30rpx; font-weight: 700; margin-top: auto; margin-bottom: 32rpx; }
+.preview-btn:active { opacity: 0.7; }
