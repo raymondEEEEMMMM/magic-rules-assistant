@@ -155,6 +155,29 @@ function test_nav_buildUrl_no_query() {
   if (url !== '/pages/index/index') throw new Error('unexpected')
 }
 
+const iconUtil = require('../utils/icon.js')
+
+function test_icon_getDataUrl() {
+  const url = iconUtil.getDataUrl('search')
+  if (!url.startsWith('data:image/svg+xml;base64,')) {
+    throw new Error('unexpected: ' + url.slice(0, 50))
+  }
+}
+
+function test_icon_getDataUrl_with_size_and_color() {
+  const url = iconUtil.getDataUrl('search', { size: 32, color: '#ff0000' })
+  const decoded = atob(url.replace('data:image/svg+xml;base64,', ''))
+  if (!decoded.includes('width="32"')) throw new Error('size not applied')
+  if (!decoded.includes('#ff0000') && !decoded.includes('stroke="#ff0000"')) {
+    throw new Error('color not applied')
+  }
+}
+
+function test_icon_getDataUrl_unknown() {
+  const url = iconUtil.getDataUrl('nonexistent-icon-name')
+  if (url !== '') throw new Error('expected empty, got ' + url)
+}
+
 module.exports = {
   'storage.set+get': test_storage_set_and_get,
   'storage.get default': test_storage_get_with_default,
@@ -175,5 +198,8 @@ module.exports = {
   'http parseResponse body string': test_http_parseResponse_body_string,
   'http parseResponse direct': test_http_parseResponse_direct,
   'nav buildUrl with query': test_nav_buildUrl_with_query,
-  'nav buildUrl no query': test_nav_buildUrl_no_query
+  'nav buildUrl no query': test_nav_buildUrl_no_query,
+  'icon getDataUrl': test_icon_getDataUrl,
+  'icon getDataUrl with size/color': test_icon_getDataUrl_with_size_and_color,
+  'icon getDataUrl unknown': test_icon_getDataUrl_unknown
 }
