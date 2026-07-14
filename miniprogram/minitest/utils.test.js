@@ -61,6 +61,51 @@ function test_theme_toggle() {
   if (after2 !== 'light') throw new Error('toggle from dark should give light')
 }
 
+const errorUtil = require('../utils/error.js')
+
+function test_error_classify_network() {
+  const err = { errMsg: 'request:fail' }
+  const type = errorUtil.classify(err)
+  if (type !== 'network') throw new Error('expected network, got ' + type)
+}
+
+function test_error_classify_timeout() {
+  const err = { errMsg: 'request:fail timeout' }
+  const type = errorUtil.classify(err)
+  if (type !== 'timeout') throw new Error('expected timeout, got ' + type)
+}
+
+function test_error_classify_business() {
+  const err = '业务错误：参数无效'
+  const type = errorUtil.classify(err)
+  if (type !== 'business') throw new Error('expected business, got ' + type)
+}
+
+function test_error_friendlyMessage_network() {
+  const msg = errorUtil.friendlyMessage({ errMsg: 'request:fail' })
+  if (!msg.includes('网络')) throw new Error('expected 网络提示, got: ' + msg)
+}
+
+function test_error_handle_with_toast() {
+  let toastCalled = null
+  const origToast = wx.showToast
+  wx.showToast = (opts) => { toastCalled = opts }
+  errorUtil.handle({ errMsg: 'request:fail' }, { silent: false, context: '测试场景' })
+  wx.showToast = origToast
+  if (!toastCalled || !toastCalled.title.includes('网络')) {
+    throw new Error('Toast should be called with network message')
+  }
+}
+
+function test_error_handle_silent() {
+  let toastCalled = false
+  const origToast = wx.showToast
+  wx.showToast = () => { toastCalled = true }
+  errorUtil.handle({ errMsg: 'request:fail' }, { silent: true })
+  wx.showToast = origToast
+  if (toastCalled) throw new Error('Toast should not be called in silent mode')
+}
+
 module.exports = {
   'storage.set+get': test_storage_set_and_get,
   'storage.get default': test_storage_get_with_default,
@@ -68,5 +113,11 @@ module.exports = {
   'storage.namespace': test_storage_namespacing,
   'theme default light': test_theme_default_is_light,
   'theme isLight': test_theme_isLight,
-  'theme toggle': test_theme_toggle
+  'theme toggle': test_theme_toggle,
+  'error classify network': test_error_classify_network,
+  'error classify timeout': test_error_classify_timeout,
+  'error classify business': test_error_classify_business,
+  'error friendlyMessage network': test_error_friendlyMessage_network,
+  'error handle toast': test_error_handle_with_toast,
+  'error handle silent': test_error_handle_silent
 }
