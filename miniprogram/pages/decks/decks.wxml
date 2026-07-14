@@ -1,34 +1,28 @@
-<!--pages/decks/decks.wxml-->
-<view class="container {{isLightTheme ? 'page-light' : ''}}">
-  <!-- 顶部导航栏 -->
-  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
-    <view class="nav-left">
-      <view class="back-btn" bindtap="goToIndex">🏠</view>
-    </view>
-    <view class="nav-title">
-      <text>我的套牌</text>
-    </view>
-    <view class="nav-right">
-      <view class="add-btn" bindtap="showImport">+</view>
-    </view>
+<view class="container">
+  <view class="nav-bar">
+    <view class="back-btn" bindtap="goBack">‹</view>
+    <text class="nav-title">我的套牌</text>
+    <view class="nav-action" bindtap="showImport">+</view>
   </view>
 
   <!-- 套牌列表 -->
-  <view class="deck-list" wx:if="{{decks.length > 0}}">
+  <view wx:if="{{decks.length > 0}}" class="deck-list">
     <view
       class="deck-card"
       wx:for="{{decks}}"
-      wx:key="id"
+      wx:key="_id"
       bindtap="previewDeck"
       data-deck="{{item}}"
     >
       <view class="deck-info">
-        <view class="deck-name">{{item.name}}</view>
+        <text class="deck-name">{{item.name}}</text>
+        <view class="deck-tags">
+          <text class="deck-tag format">{{item.format || '其他'}}</text>
+          <text wx:if="{{item.commander}}" class="deck-tag commander">⌘ {{item.commander}}</text>
+        </view>
         <view class="deck-meta">
-          <text class="deck-format">{{item.format}}</text>
-          <text class="deck-commander-tag" wx:if="{{item.commander}}">⌘ {{item.commander}}</text>
-          <text class="deck-count">{{item.totalCards}} 张</text>
-          <text class="deck-cm" wx:if="{{item.avgCMC}}">· 平均法术力费用 {{item.avgCMC}}</text>
+          <text class="deck-count">{{item.totalCards || 0}} 张</text>
+          <text wx:if="{{item.avgCMC}}" class="deck-cmc">· 平均法术力费用 {{item.avgCMC}}</text>
         </view>
       </view>
       <view class="deck-arrow">›</view>
@@ -36,16 +30,16 @@
   </view>
 
   <!-- 空状态 -->
-  <view class="empty-state" wx:elif="{{decks.length === 0}}">
+  <view wx:elif="{{decks.length === 0}}" class="empty">
     <view class="empty-icon">📚</view>
-    <view class="empty-text">暂无套牌</view>
-    <view class="empty-hint">点击右上角 + 导入套牌</view>
+    <text class="empty-title">还没有套牌</text>
+    <text class="empty-desc">从 MTGGoldfish / Moxfield 导入或新建</text>
+    <view class="empty-btn" bindtap="showImport">新建套牌</view>
   </view>
 
   <!-- 导入弹窗 -->
-  <view class="modal {{showImportModal ? 'show' : ''}}" catchtap="closeImport">
+  <view class="modal {{showImportModal ? 'show' : ''}}" wx:if="{{showImportModal}}" catchtap="closeImport">
     <view class="modal-content" catchtap="catchInner">
-
       <view class="modal-header">
         <text class="modal-title">导入套牌</text>
         <view class="modal-close" bindtap="closeImport">✕</view>
@@ -172,7 +166,7 @@
   </view>
 
   <!-- 套牌预览弹窗 -->
-  <view class="modal {{showDeckModal ? 'show' : ''}}" catchtap="closeDeckPreview">
+  <view class="modal {{showDeckModal ? 'show' : ''}}" wx:if="{{showDeckModal}}" catchtap="closeDeckPreview">
     <view class="modal-content modal-large" catchtap="catchInner" wx:if="{{selectedDeck}}">
       <view class="modal-header">
         <text class="modal-title">{{selectedDeck.name}}</text>

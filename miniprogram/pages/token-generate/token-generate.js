@@ -30,6 +30,10 @@ Page({
     wx.redirectTo({ url: '/pages/index/index' })
   },
 
+  goBack() {
+    wx.navigateBack({ fail: () => wx.redirectTo({ url: '/pages/index/index' }) })
+  },
+
   minusCount() {
     if (this.data.tokenCount > 1) {
       this.setData({ tokenCount: this.data.tokenCount - 1 })

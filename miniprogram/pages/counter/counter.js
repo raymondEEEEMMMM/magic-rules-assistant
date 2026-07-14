@@ -57,7 +57,7 @@ Page({
     }
   },
 
-  // 设置赛制
+  // 设置赛制（picker 风格，保留兼容）
   setFormat(e) {
     const index = parseInt(e.detail.value)
     const formats = this.data.formats
@@ -69,11 +69,24 @@ Page({
     this.initPlayers()
   },
 
+  // 赛制 tabs 选择
+  onSelectFormat(e) {
+    const key = e.currentTarget.dataset.key
+    const formats = this.data.formats
+    const selected = formats.find(f => f.key === key) || formats[0]
+    this.setData({
+      format: selected.key,
+      currentFormatName: selected.name
+    })
+    this.initPlayers()
+  },
+
   // 调整生命值
   adjustLife(e) {
     const { index, delta } = e.currentTarget.dataset
+    const deltaNum = parseInt(delta)
     const players = this.data.players
-    players[index].life += delta
+    players[index].life += deltaNum
 
     // 生命值不能低于0
     if (players[index].life < 0) {
@@ -110,8 +123,9 @@ Page({
   // 调整法力值
   adjustMana(e) {
     const { color, delta } = e.currentTarget.dataset
+    const deltaNum = parseInt(delta)
     const manaPool = this.data.manaPool
-    manaPool[color] += delta
+    manaPool[color] += deltaNum
     if (manaPool[color] < 0) manaPool[color] = 0
     this.setData({ manaPool })
   },

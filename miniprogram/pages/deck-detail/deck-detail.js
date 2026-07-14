@@ -238,6 +238,10 @@ Page({
     wx.redirectTo({ url: '/pages/index/index' })
   },
 
+  goBack() {
+    wx.navigateBack({ fail: () => wx.redirectTo({ url: '/pages/index/index' }) })
+  },
+
   // 计算Odds
   goToOdds() {
     const { deckStr } = this.data
