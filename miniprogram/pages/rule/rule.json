@@ -1,3 +1,7 @@
 {
-  "usingComponents": {}
+  "navigationBarTitleText": "规则详情",
+  "usingComponents": {
+    "empty-state": "/components/empty-state/empty-state",
+    "tag-chip": "/components/tag-chip/tag-chip"
+  }
 }

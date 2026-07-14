@@ -35,6 +35,15 @@ Page({
     })
   },
 
+  goBack() {
+    wx.navigateBack({ fail: () => wx.redirectTo({ url: '/pages/index/index' }) })
+  },
+
+  onRetry() {
+    this.setData({ error: null })
+    this.fetchRuleDetail()
+  },
+
   // 获取规则详情
   fetchRuleDetail() {
     const ruleNumber = this.data.ruleNumber
