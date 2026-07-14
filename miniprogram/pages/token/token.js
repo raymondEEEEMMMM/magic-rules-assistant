@@ -118,7 +118,7 @@ Page({
         this.setData({ tokens: res.tokens, tokenGroups: groups })
       }
     }).catch(err => {
-      console.error('CODEBUDDY_DEBUG fetchTokenList error', err)
+      console.error('fetchTokenList error', err)
     })
   },
 
@@ -130,8 +130,12 @@ Page({
     wx.redirectTo({ url: '/pages/index/index' })
   },
 
+  goBack() {
+    wx.navigateBack({ fail: () => wx.redirectTo({ url: '/pages/index/index' }) })
+  },
+
   selectToken(e) {
-    const token = e.detail.token
+    const token = (e.detail && e.detail.token) || (e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.token)
     if (!token) return
     if (token.type === 'copy') {
       this.setData({ showCopyModal: true, copySearchQuery: '', copySearchResults: [] })
@@ -151,7 +155,6 @@ Page({
   searchTokenCards(token) {
     const searchName = translateToEn(token.enName)
     const encodedName = encodeURIComponent(searchName)
-    console.log('CODEBUDDY_DEBUG searchTokenCards searchName=', searchName, 'encoded=', encodedName)
 
     const processCards = (cards, isFallback = false) => {
       if (!cards || cards.length === 0) {
@@ -200,7 +203,6 @@ Page({
         'Accept': 'application/json'
       },
       success: res => {
-        console.log('CODEBUDDY_DEBUG Scryfall token response status=', res.statusCode, 'data=', JSON.stringify(res.data).substring(0, 200))
         if (res.statusCode === 404 || res.statusCode === 400 || !res.data || !res.data.data || res.data.data.length === 0) {
           this.setData({ isLoadingToken: false, tokenCards: [], availableSets: [{ code: 'all', name: '全部' }] })
           wx.showToast({ title: '未找到该 Token，请尝试英文搜索', icon: 'none', duration: 2000 })
@@ -209,7 +211,6 @@ Page({
         processCards(res.data.data)
       },
       fail: (err) => {
-        console.log('CODEBUDDY_DEBUG Scryfall request failed', err)
         this.setData({ isLoadingToken: false })
         wx.showToast({ title: '网络错误，请稍后重试', icon: 'none' })
       }
@@ -323,7 +324,6 @@ Page({
         'Accept': 'application/json'
       },
       success: res => {
-        console.log('CODEBUDDY_DEBUG token search response status=', res.statusCode)
         if (res.data && res.data.data) {
           const results = res.data.data.slice(0, 9).map(card => ({
             name: card.name,
