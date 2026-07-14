@@ -106,6 +106,41 @@ function test_error_handle_silent() {
   if (toastCalled) throw new Error('Toast should not be called in silent mode')
 }
 
+const http = require('../utils/http.js')
+
+function test_http_buildQueryString() {
+  const qs = http.buildQueryString({ q: '黑莲花', page: 1, undef: undefined })
+  if (qs !== 'q=%E9%BB%91%E8%8E%B2%E8%8A%B1&page=1') {
+    throw new Error('unexpected: ' + qs)
+  }
+}
+
+function test_http_buildCloudCallData_GET() {
+  const data = http.buildCloudCallData('/api/search', { q: '飞行' }, 'GET')
+  if (data.path !== '/api/search') throw new Error('path wrong')
+  if (!data.queryString.includes('q=')) throw new Error('queryString missing')
+  if (data.body !== undefined) throw new Error('GET should not have body')
+}
+
+function test_http_buildCloudCallData_POST() {
+  const data = http.buildCloudCallData('/api/foo', { foo: 'bar' }, 'POST')
+  if (data.path !== '/api/foo') throw new Error('path wrong')
+  if (data.body !== JSON.stringify({ foo: 'bar' })) throw new Error('body wrong')
+  if (data.queryString !== undefined) throw new Error('POST should not have queryString')
+}
+
+function test_http_parseResponse_body_string() {
+  const res = { result: { body: JSON.stringify({ ok: true }) } }
+  const parsed = http.parseResponse(res)
+  if (!parsed.ok) throw new Error('parse failed')
+}
+
+function test_http_parseResponse_direct() {
+  const res = { result: { ok: true } }
+  const parsed = http.parseResponse(res)
+  if (!parsed.ok) throw new Error('parse failed')
+}
+
 module.exports = {
   'storage.set+get': test_storage_set_and_get,
   'storage.get default': test_storage_get_with_default,
@@ -119,5 +154,10 @@ module.exports = {
   'error classify business': test_error_classify_business,
   'error friendlyMessage network': test_error_friendlyMessage_network,
   'error handle toast': test_error_handle_with_toast,
-  'error handle silent': test_error_handle_silent
+  'error handle silent': test_error_handle_silent,
+  'http buildQueryString': test_http_buildQueryString,
+  'http buildCloudCallData GET': test_http_buildCloudCallData_GET,
+  'http buildCloudCallData POST': test_http_buildCloudCallData_POST,
+  'http parseResponse body string': test_http_parseResponse_body_string,
+  'http parseResponse direct': test_http_parseResponse_direct
 }
