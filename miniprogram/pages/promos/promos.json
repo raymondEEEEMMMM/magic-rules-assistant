@@ -1,4 +1,6 @@
 {
-  "usingComponents": {},
-  "navigationStyle": "custom"
+  "navigationBarTitleText": "Promo 卡快讯",
+  "usingComponents": {
+    "empty-state": "/components/empty-state/empty-state"
+  }
 }

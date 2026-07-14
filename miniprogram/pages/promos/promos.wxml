@@ -1,50 +1,34 @@
-<!--pages/promos/promos.wxml-->
-<view class="container {{isLightTheme ? 'page-light' : ''}}">
-  <!-- 顶部导航栏 -->
-  <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
-    <view class="nav-left">
-      <view class="back-btn" bindtap="goToIndex">🏠</view>
-    </view>
-    <view class="nav-title">
-      <text>Promo 卡快讯</text>
-    </view>
-    <view class="nav-right"></view>
+<view class="container {{isLightTheme ? '' : 'theme-dark'}}">
+  <view class="nav-bar">
+    <view class="back-btn" bindtap="goBack">‹</view>
+    <text class="nav-title">Promo 卡快讯</text>
   </view>
 
-  <!-- 年份筛选 -->
-  <view class="year-filter" wx:if="{{showYearFilter}}">
-    <view class="filter-toggle" bindtap="toggleYearFilter">×</view>
-    <picker mode="selector" range="{{years}}" bindchange="onYearChange" value="{{years.indexOf(selectedYear)}}">
-      <view class="year-value">{{selectedYear}} 年</view>
-    </picker>
-  </view>
-  <view class="show-filter-btn" wx:if="{{!showYearFilter}}" bindtap="toggleYearFilter">
-    <text>筛选年份</text>
+  <view wx:if="{{loading && cards.length === 0}}" class="loading">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
   </view>
 
-  <!-- 卡牌列表 -->
-  <scroll-view class="cards-scroll" scroll-y bindscrolltolower="loadMore">
-    <view class="cards-list">
-      <view class="promo-item" wx:for="{{cards}}" wx:key="index" bindtap="viewCardDetail" data-card="{{item}}">
-        <image class="promo-item-image" src="{{item.image_url}}" mode="aspectFill" />
-        <view class="promo-item-info">
-          <text class="promo-item-name">{{item.name}}</text>
-          <text class="promo-item-set">{{item.set_name}} · {{item.acquisition_method_cn || item.acquisition_method}}</text>
-          <text class="promo-item-date">{{item.released_at}}</text>
-        </view>
+  <view wx:elif="{{cards.length === 0 && !loading}}" class="empty-wrap">
+    <empty-state icon="sparkle" title="暂无 Promo 卡" />
+  </view>
+
+  <view wx:else class="promo-list">
+    <view class="promo-card" wx:for="{{cards}}" wx:key="id" bindtap="onPromoTap" data-promo="{{item}}">
+      <image wx:if="{{item.image_url}}" class="promo-image" src="{{item.image_url}}" mode="aspectFit" />
+      <view wx:else class="promo-image-placeholder">
+        <text>无图片</text>
+      </view>
+      <view class="promo-info">
+        <text class="promo-name">{{item.name || item.zhs_name}}</text>
+        <text wx:if="{{item.set_name || item.acquisition_method_cn || item.acquisition_method}}" class="promo-desc">{{item.set_name}}{{item.set_name ? ' · ' : ''}}{{item.acquisition_method_cn || item.acquisition_method}}</text>
+        <text wx:if="{{item.released_at}}" class="promo-type">{{item.released_at}}</text>
       </view>
     </view>
+  </view>
 
-    <!-- 加载更多 -->
-    <view class="load-more" wx:if="{{hasMore}}">
-      <text wx:if="{{loading}}">加载中...</text>
-      <text wx:else bindtap="loadMore">加载更多</text>
-    </view>
-
-    <!-- 无数据 -->
-    <view class="empty-state" wx:if="{{cards.length === 0 && !loading}}">
-      <text class="empty-icon">🎴</text>
-      <text class="empty-text">暂无 Promo 卡数据</text>
-    </view>
-  </scroll-view>
+  <view class="load-more" wx:if="{{hasMore && cards.length > 0}}">
+    <text wx:if="{{loading}}">加载中...</text>
+    <text wx:else bindtap="loadMore">加载更多</text>
+  </view>
 </view>
