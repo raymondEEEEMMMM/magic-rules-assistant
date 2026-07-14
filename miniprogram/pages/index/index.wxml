@@ -10,7 +10,7 @@
   </view>
 
   <!-- AI 裁判入口 -->
-  <view class="ai-judge-section" wx:if="{{showAIJudgeCard}}" bindtap="goToAIJudge">
+  <view class="ai-judge-section" wx:if="{{showAIJudgeCard && !keyword && !hiddenCards.aiJudge}}" bindtap="goToAIJudge">
     <view class="ai-judge-badge">
       <image class="ai-badge-icon" src="/images/mtgask_logo.png" mode="aspectFit"></image>
       <view class="ai-badge-glow"></view>
@@ -103,8 +103,8 @@
   </view>
 
   <!-- Promo 卡快讯入口 -->
-  <view class="promo-entry" wx:if="{{!keyword}}" bindtap="goToPromos">
-    <view class="promo-icon">🎴</view>
+  <view class="promo-entry" wx:if="{{!keyword && !hiddenCards.promos}}" bindtap="goToPromos">
+    <view class="promo-icon">🎁</view>
     <view class="promo-info">
       <text class="promo-title">Promo 卡快讯</text>
       <text class="promo-desc">最新促销卡牌 · 获取方式</text>
@@ -113,7 +113,7 @@
   </view>
 
   <!-- 我的套牌入口 -->
-  <view class="deck-entry" wx:if="{{false && !keyword}}" bindtap="goToDecks">
+  <view class="deck-entry" wx:if="{{false && !keyword && !hiddenCards.deck}}" bindtap="goToDecks">
     <view class="deck-icon">📚</view>
     <view class="deck-info">
       <text class="deck-title">我的套牌</text>
@@ -123,7 +123,7 @@
   </view>
 
   <!-- Token 生成器入口 -->
-  <view class="token-entry" wx:if="{{!keyword}}" bindtap="goToToken">
+  <view class="token-entry" wx:if="{{!keyword && !hiddenCards.token}}" bindtap="goToToken">
     <view class="token-icon">🎴</view>
     <view class="token-info">
       <text class="token-title">Token 生成器</text>
@@ -133,7 +133,7 @@
   </view>
 
   <!-- 生命值计数器入口 -->
-  <view class="counter-entry" wx:if="{{!keyword}}" bindtap="goToCounter">
+  <view class="counter-entry" wx:if="{{!keyword && !hiddenCards.counter}}" bindtap="goToCounter">
     <view class="counter-icon">❤️</view>
     <view class="counter-info">
       <text class="counter-title">生命值计数器</text>
@@ -143,7 +143,7 @@
   </view>
 
   <!-- 骰子 & 随机入口 -->
-  <view class="dice-entry" wx:if="{{!keyword}}" bindtap="goToDice">
+  <view class="dice-entry" wx:if="{{!keyword && !hiddenCards.dice}}" bindtap="goToDice">
     <view class="dice-icon">🎲</view>
     <view class="dice-info">
       <text class="dice-title">骰子 & 随机</text>

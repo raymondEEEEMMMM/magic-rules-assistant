@@ -21,29 +21,27 @@ Page({
     searchDone: false,
     latestSets: [],
     sldGroups: [],
-    showSldSection: false
+    showSldSection: false,
+    hiddenCards: {}
   },
 
   onLoad() {
-    console.log('CODEBUDDY_DEBUG index onLoad started')
     this.setData({
       version: app.version || '1.0.0',
       isLightTheme: app.globalData.isLightTheme,
       showAIJudgeCard: app.globalData.showAIJudgeCard
     })
-    console.log('CODEBUDDY_DEBUG index setData version=', this.data.version, 'isLightTheme=', this.data.isLightTheme)
     this.loadHistory()
     this.fetchLatestSets()
     this.fetchSecretLair()
+    this.fetchHomepageCards()
   },
 
   onShow() {
-    console.log('CODEBUDDY_DEBUG index onShow isLightTheme=', app.globalData.isLightTheme)
     this.setData({
       isLightTheme: app.globalData.isLightTheme,
       showAIJudgeCard: app.globalData.showAIJudgeCard
     })
-    console.log('CODEBUDDY_DEBUG index onShow completed')
   },
 
   // 更新主题（由 app.js 调用）
@@ -64,9 +62,7 @@ Page({
   // 加载搜索历史
   loadHistory() {
     const history = wx.getStorageSync('searchHistory') || []
-    console.log('CODEBUDDY_DEBUG index loadHistory historyLength=', history.length, 'history=', history)
     this.setData({ history })
-    console.log('CODEBUDDY_DEBUG index loadHistory setData completed')
   },
 
   // 获取最新系列资讯
@@ -97,6 +93,24 @@ Page({
       }
     }).catch(err => {
       console.error('获取Secret Lair失败:', err)
+    })
+  },
+
+  // 获取首页卡片配置
+  fetchHomepageCards() {
+    api.request('/api/homepage/cards', {}).then(res => {
+      if (res && res.cards) {
+        // 转换为 {aiJudge: true, token: false, ...} 格式
+        const hiddenCards = {}
+        res.cards.forEach(card => {
+          // card_key 格式为 snake_case，转换为 camelCase
+          const key = card.card_key.replace(/_([a-z])/g, (_, c) => c.toUpperCase())
+          hiddenCards[key] = card.hidden
+        })
+        this.setData({ hiddenCards })
+      }
+    }).catch(err => {
+      console.error('获取首页卡片配置失败:', err)
     })
   },
 
@@ -218,44 +232,32 @@ Page({
   // 查看规则详情
   viewRuleDetail(e) {
     const ruleNumber = e.currentTarget.dataset.rule
-    console.log('CODEBUDDY_DEBUG index viewRuleDetail called ruleNumber=', ruleNumber)
     if (!ruleNumber) {
       wx.showToast({ title: '规则编号为空', icon: 'none' })
       return
     }
     const url = `/pages/rule/rule?rule=${encodeURIComponent(ruleNumber)}`
-    console.log('CODEBUDDY_DEBUG index viewRuleDetail url=', url)
     wx.navigateTo({
       url,
-      success: () => console.log('CODEBUDDY_DEBUG index viewRuleDetail success'),
-      fail: (err) => console.log('CODEBUDDY_DEBUG index viewRuleDetail fail err=', err)
     })
   },
 
   // 查看关键词详情
   viewKeywordDetail(e) {
     const keyword = e.currentTarget.dataset.keyword
-    console.log('CODEBUDDY_DEBUG index viewKeywordDetail called keyword=', keyword)
     const url = `/pages/keyword/keyword?keyword=${encodeURIComponent(keyword)}`
-    console.log('CODEBUDDY_DEBUG index viewKeywordDetail url=', url)
     wx.navigateTo({
       url,
-      success: () => console.log('CODEBUDDY_DEBUG index viewKeywordDetail success'),
-      fail: (err) => console.log('CODEBUDDY_DEBUG index viewKeywordDetail fail err=', err)
     })
   },
 
   // 查看卡牌详情
   viewCardDetail(e) {
     const cardId = e.currentTarget.dataset.id
-    console.log('CODEBUDDY_DEBUG index viewCardDetail called cardId=', cardId)
     if (!cardId) return
     const url = `/pages/card/card?id=${encodeURIComponent(cardId)}`
-    console.log('CODEBUDDY_DEBUG index viewCardDetail url=', url)
     wx.navigateTo({
       url,
-      success: () => console.log('CODEBUDDY_DEBUG index viewCardDetail success'),
-      fail: (err) => console.log('CODEBUDDY_DEBUG index viewCardDetail fail err=', err)
     })
   },
 
@@ -263,114 +265,80 @@ Page({
   viewSetCards(e) {
     const setCode = e.currentTarget.dataset.code
     const setName = e.currentTarget.dataset.name
-    console.log('CODEBUDDY_DEBUG index viewSetCards called setCode=', setCode, 'setName=', setName)
     if (!setCode) return
     const url = `/pages/setcards/setcards?setCode=${encodeURIComponent(setCode)}&setName=${encodeURIComponent(setName)}`
-    console.log('CODEBUDDY_DEBUG index viewSetCards url=', url)
     wx.navigateTo({
       url,
-      success: () => console.log('CODEBUDDY_DEBUG index viewSetCards success'),
-      fail: (err) => console.log('CODEBUDDY_DEBUG index viewSetCards fail err=', err)
     })
   },
 
   // 跳转 AI 裁判页面
   goToAIJudge() {
-    console.log('CODEBUDDY_DEBUG index goToAIJudge called url=/pages/agent/agent')
     wx.navigateTo({
       url: '/pages/agent/agent',
-      success: () => console.log('CODEBUDDY_DEBUG index goToAIJudge success'),
-      fail: (err) => console.log('CODEBUDDY_DEBUG index goToAIJudge fail err=', err)
     })
   },
 
   // 跳转骰子 & 随机页面
   goToDice() {
-    console.log('CODEBUDDY_DEBUG index goToDice called url=/pages/dice/dice')
     wx.navigateTo({
       url: '/pages/dice/dice',
-      success: () => console.log('CODEBUDDY_DEBUG index goToDice success'),
-      fail: (err) => console.log('CODEBUDDY_DEBUG index goToDice fail err=', err)
     })
   },
 
   // 跳转 Token 生成器页面
   goToToken() {
-    console.log('CODEBUDDY_DEBUG index goToToken called url=/pages/token/token')
     wx.navigateTo({
       url: '/pages/token/token',
-      success: () => console.log('CODEBUDDY_DEBUG index goToToken success'),
-      fail: (err) => console.log('CODEBUDDY_DEBUG index goToToken fail err=', err)
     })
   },
 
   // 跳转我的套牌页面
   goToDecks() {
-    console.log('CODEBUDDY_DEBUG index goToDecks called url=/pages/decks/decks')
     wx.navigateTo({
       url: '/pages/decks/decks',
-      success: () => console.log('CODEBUDDY_DEBUG index goToDecks success'),
-      fail: (err) => console.log('CODEBUDDY_DEBUG index goToDecks fail err=', err)
     })
   },
 
   // 跳转生命值计数器页面
   goToCounter() {
-    console.log('CODEBUDDY_DEBUG index goToCounter called url=/pages/counter/counter')
     wx.navigateTo({
       url: '/pages/counter/counter',
-      success: () => console.log('CODEBUDDY_DEBUG index goToCounter success'),
-      fail: (err) => console.log('CODEBUDDY_DEBUG index goToCounter fail err=', err)
     })
   },
 
   // 跳转反馈页面
   goToFeedback() {
-    console.log('CODEBUDDY_DEBUG index goToFeedback called url=/pages/feedback/feedback')
     wx.navigateTo({
       url: '/pages/feedback/feedback',
-      success: () => console.log('CODEBUDDY_DEBUG index goToFeedback success'),
-      fail: (err) => console.log('CODEBUDDY_DEBUG index goToFeedback fail err=', err)
     })
   },
 
   // 跳转开发日志
   goToDevLog() {
-    console.log('CODEBUDDY_DEBUG index goToDevLog called url=/pages/devlog/devlog')
     wx.navigateTo({
       url: '/pages/devlog/devlog',
-      success: () => console.log('CODEBUDDY_DEBUG index goToDevLog success'),
-      fail: (err) => console.log('CODEBUDDY_DEBUG index goToDevLog fail err=', err)
     })
   },
 
   // 跳转 Promo 卡快讯页面
   goToPromos() {
-    console.log('CODEBUDDY_DEBUG index goToPromos called url=/pages/promos/promos')
     wx.navigateTo({
       url: '/pages/promos/promos',
-      success: () => console.log('CODEBUDDY_DEBUG index goToPromos success'),
-      fail: (err) => console.log('CODEBUDDY_DEBUG index goToPromos fail err=', err)
     })
   },
 
   // 跳转 Secret Lair 专区页面
   goToSldCards() {
-    console.log('CODEBUDDY_DEBUG index goToSldCards called url=/pages/sldcards/sldcards')
     wx.navigateTo({
       url: '/pages/sldcards/sldcards',
-      success: () => console.log('CODEBUDDY_DEBUG index goToSldCards success'),
-      fail: (err) => console.log('CODEBUDDY_DEBUG index goToSldCards fail err=', err)
     })
   },
 
   // 跳转 API 测试页面
   goToAPITest() {
-    console.log('CODEBUDDY_DEBUG index goToAPITest called url=/pages/apitest/apitest')
     wx.navigateTo({
       url: '/pages/apitest/apitest',
-      success: () => console.log('CODEBUDDY_DEBUG index goToAPITest success'),
-      fail: (err) => console.log('CODEBUDDY_DEBUG index goToAPITest fail err=', err)
     })
   }
 })

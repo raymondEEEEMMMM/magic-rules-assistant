@@ -6,6 +6,17 @@
  */
 
 page {
+  /* Legacy 兼容变量（P1 阶段保留旧视觉） */
+  --legacy-bg: #16213e;
+  --legacy-accent-start: #667eea;
+  --legacy-accent-end: #764ba2;
+  --legacy-text: #ffffff;
+  --legacy-text-secondary: rgba(255, 255, 255, 0.6);
+  --legacy-text-muted: rgba(255, 255, 255, 0.4);
+  --legacy-border: rgba(255, 255, 255, 0.1);
+  --legacy-card-bg: rgba(255, 255, 255, 0.08);
+  --legacy-input-bg: rgba(255, 255, 255, 0.1);
+
   /* 背景层级 */
   --bg-page: #faf8f3;
   --bg-card: #ffffff;

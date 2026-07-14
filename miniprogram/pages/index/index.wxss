@@ -1,6 +1,6 @@
 /* pages/index/index.wxss */
 page {
-  background-color: #16213e;
+  background-color: var(--legacy-bg);
   color: #ffffff;
 }
 
@@ -14,7 +14,7 @@ page {
 /* Banner */
 .banner {
   position: relative;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--legacy-accent-start) 0%, var(--legacy-accent-end) 100%);
   padding: 100rpx 40rpx 60rpx;
   padding-top: calc(100rpx + env(safe-area-inset-top));
   border-radius: 0 0 40rpx 40rpx;
@@ -90,7 +90,7 @@ page {
 }
 
 .search-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--legacy-accent-start) 0%, var(--legacy-accent-end) 100%);
   border-radius: 40rpx;
   padding: 20rpx 40rpx;
   font-size: 28rpx;
@@ -118,7 +118,7 @@ page {
 
 .history-clear {
   font-size: 24rpx;
-  color: #667eea;
+  color: var(--legacy-accent-start);
 }
 
 .history-list {
@@ -174,7 +174,7 @@ page {
 }
 
 .card-bar {
-  border-left-color: #667eea;
+  border-left-color: var(--legacy-accent-start);
 }
 
 .rule-bar {
@@ -197,7 +197,7 @@ page {
 
 .section-more {
   font-size: 24rpx;
-  color: #667eea;
+  color: var(--legacy-accent-start);
   padding: 6rpx 0;
   margin-left: 16rpx;
 }
@@ -212,7 +212,7 @@ page {
   background: rgba(255, 255, 255, 0.08);
   border-radius: 20rpx;
   padding: 24rpx;
-  border-left: 6rpx solid #667eea;
+  border-left: 6rpx solid var(--legacy-accent-start);
 }
 
 .result-card.keyword-card {
@@ -228,7 +228,7 @@ page {
 
 .result-number {
   font-size: 24rpx;
-  color: #667eea;
+  color: var(--legacy-accent-start);
   font-weight: bold;
 }
 
@@ -285,7 +285,7 @@ page {
 
 .view-more-link {
   font-size: 24rpx;
-  color: #667eea;
+  color: var(--legacy-accent-start);
 }
 /* 无结果 */
 .no-results {
@@ -320,7 +320,7 @@ page {
   width: 60rpx;
   height: 60rpx;
   border: 4rpx solid rgba(255, 255, 255, 0.2);
-  border-top-color: #667eea;
+  border-top-color: var(--legacy-accent-start);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 20rpx;
@@ -809,7 +809,7 @@ page {
 }
 
 .container.page-light .banner {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--legacy-accent-start) 0%, var(--legacy-accent-end) 100%);
 }
 
 .container.page-light .search-input-wrapper {
@@ -826,7 +826,7 @@ page {
 }
 
 .container.page-light .search-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--legacy-accent-start) 0%, var(--legacy-accent-end) 100%);
   color: #ffffff;
 }
 
@@ -840,7 +840,7 @@ page {
 
 .container.page-light .result-card {
   background: rgba(255, 255, 255, 0.95);
-  border-left-color: #667eea;
+  border-left-color: var(--legacy-accent-start);
 }
 
 .container.page-light .result-title {
@@ -873,7 +873,7 @@ page {
 
 .container.page-light .loading-spinner {
   border-color: rgba(102, 126, 234, 0.2);
-  border-top-color: #667eea;
+  border-top-color: var(--legacy-accent-start);
 }
 
 .container.page-light .keyword-bar {
@@ -881,7 +881,7 @@ page {
 }
 
 .container.page-light .card-bar {
-  border-left-color: #667eea;
+  border-left-color: var(--legacy-accent-start);
 }
 
 .container.page-light .rule-bar {
@@ -898,7 +898,7 @@ page {
 }
 
 .container.page-light .section-more {
-  color: #667eea;
+  color: var(--legacy-accent-start);
 }
 
 .container.page-light .ai-judge-section {
@@ -916,7 +916,7 @@ page {
 }
 
 .container.page-light .ai-judge-arrow {
-  color: #667eea;
+  color: var(--legacy-accent-start);
 }
 
 .container.page-light .counter-entry {
@@ -952,7 +952,7 @@ page {
 }
 
 .container.page-light .dice-arrow {
-  color: #667eea;
+  color: var(--legacy-accent-start);
 }
 
 .container.page-light .token-entry {
@@ -989,7 +989,7 @@ page {
 }
 
 .container.page-light .deck-arrow {
-  color: #667eea;
+  color: var(--legacy-accent-start);
 }
 
 .container.page-light .latest-sets {
@@ -1040,7 +1040,7 @@ page {
 }
 
 .container.page-light .feedback-link {
-  color: #667eea;
+  color: var(--legacy-accent-start);
 }
 
 /* ==================== */
@@ -1049,16 +1049,22 @@ page {
 .promo-entry {
   display: flex;
   align-items: center;
-  margin: 0 30rpx 30rpx;
-  padding: 24rpx;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 16rpx;
-  border: 1rpx solid rgba(255, 215, 0, 0.1);
+  background: linear-gradient(135deg, #2a1f3d 0%, #1a1a2e 100%);
+  border-radius: 24rpx;
+  padding: 28rpx 32rpx;
+  margin: 20rpx 30rpx 30rpx;
+  border: 2rpx solid rgba(147, 112, 219, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(147, 112, 219, 0.15);
+}
+
+.promo-entry:active {
+  transform: scale(0.98);
+  opacity: 0.9;
 }
 
 .promo-icon {
-  font-size: 48rpx;
-  margin-right: 20rpx;
+  font-size: 52rpx;
+  margin-right: 24rpx;
 }
 
 .promo-info {
@@ -1067,31 +1073,33 @@ page {
 
 .promo-title {
   display: block;
-  font-size: 30rpx;
+  font-size: 34rpx;
   font-weight: bold;
-  color: #ffd700;
+  color: #fff;
   margin-bottom: 6rpx;
 }
 
 .promo-desc {
   display: block;
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .promo-arrow {
-  font-size: 40rpx;
-  color: rgba(255, 215, 0, 0.5);
+  font-size: 48rpx;
+  color: rgba(147, 112, 219, 0.6);
+  font-weight: 300;
 }
 
 /* 日间主题 - Promo 入口 */
 .container.page-light .promo-entry {
-  background: #ffffff;
-  border-color: rgba(102, 126, 234, 0.2);
+  background: linear-gradient(135deg, #f5f0ff 0%, #ffffff 100%);
+  border-color: rgba(147, 112, 219, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(147, 112, 219, 0.1);
 }
 
 .container.page-light .promo-title {
-  color: #667eea;
+  color: #9370db;
 }
 
 .container.page-light .promo-desc {
@@ -1099,5 +1107,5 @@ page {
 }
 
 .container.page-light .promo-arrow {
-  color: rgba(102, 126, 234, 0.5);
+  color: rgba(147, 112, 219, 0.5);
 }
