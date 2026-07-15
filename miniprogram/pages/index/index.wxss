@@ -42,10 +42,24 @@ page { background-color: var(--bg-page); color: var(--text-primary); }
 .tool-color-red { background-color: var(--color-red); }
 .tool-color-green { background-color: var(--color-green); }
 .tool-icon { width: 36rpx; height: 36rpx; }
+.tool-icon-bg {
+  background-size: 36rpx 36rpx;
+  background-position: center;
+  background-repeat: no-repeat;
+}
 .tool-info { flex: 1; display: flex; flex-direction: column; gap: 4rpx; min-width: 0; }
 .tool-name { font-size: 30rpx; font-weight: 600; color: var(--text-primary); }
 .tool-desc { font-size: 22rpx; color: var(--text-secondary); }
-.tool-chevron { width: 32rpx; height: 32rpx; opacity: 0.3; flex-shrink: 0; }
+.tool-chevron {
+  width: 32rpx;
+  height: 32rpx;
+  opacity: 0.3;
+  flex-shrink: 0;
+  background-size: 32rpx 32rpx;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: transparent;
+}
 
 /* Search History */
 .search-history { padding: 0 30rpx 20rpx; }

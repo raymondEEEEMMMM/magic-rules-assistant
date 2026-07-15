@@ -47,53 +47,49 @@
     </view>
     <view class="tools-card">
       <view class="tool-item" bindtap="goToToken">
-        <view class="tool-icon-block tool-color-blue">
-          <image class="tool-icon" src="{{toolIcons.token}}" mode="aspectFit"></image>
+        <view class="tool-icon-block tool-color-blue tool-icon-bg" style="background-image: url({{toolIcons.token}});">
         </view>
         <view class="tool-info">
           <text class="tool-name">Token 生成器</text>
           <text class="tool-desc">衍生物卡片速查</text>
         </view>
-        <image class="tool-chevron" src="{{toolIcons.chevron}}" mode="aspectFit"></image>
+        <view class="tool-chevron" style="background-image: url({{toolIcons.chevron}});"></view>
       </view>
 
       <view class="tool-divider"></view>
 
       <view class="tool-item" bindtap="goToDecks">
-        <view class="tool-icon-block tool-color-black">
-          <image class="tool-icon" src="{{toolIcons.deck}}" mode="aspectFit"></image>
+        <view class="tool-icon-block tool-color-black tool-icon-bg" style="background-image: url({{toolIcons.deck}});">
         </view>
         <view class="tool-info">
           <text class="tool-name">我的套牌</text>
           <text class="tool-desc">导入导出 · 增删改查</text>
         </view>
-        <image class="tool-chevron" src="{{toolIcons.chevron}}" mode="aspectFit"></image>
+        <view class="tool-chevron" style="background-image: url({{toolIcons.chevron}});"></view>
       </view>
 
       <view class="tool-divider"></view>
 
       <view class="tool-item" bindtap="goToCounter">
-        <view class="tool-icon-block tool-color-red">
-          <image class="tool-icon" src="{{toolIcons.heart}}" mode="aspectFit"></image>
+        <view class="tool-icon-block tool-color-red tool-icon-bg" style="background-image: url({{toolIcons.heart}});">
         </view>
         <view class="tool-info">
           <text class="tool-name">生命值计数器</text>
           <text class="tool-desc">指挥官 · 2-4 人游戏</text>
         </view>
-        <image class="tool-chevron" src="{{toolIcons.chevron}}" mode="aspectFit"></image>
+        <view class="tool-chevron" style="background-image: url({{toolIcons.chevron}});"></view>
       </view>
 
       <view class="tool-divider"></view>
 
       <view class="tool-item" bindtap="goToDice">
-        <view class="tool-icon-block tool-color-green">
-          <image class="tool-icon" src="{{toolIcons.dice}}" mode="aspectFit"></image>
+        <view class="tool-icon-block tool-color-green tool-icon-bg" style="background-image: url({{toolIcons.dice}});">
         </view>
         <view class="tool-info">
           <text class="tool-name">骰子 & 随机</text>
           <text class="tool-desc">掷骰子 · 随机抽卡</text>
         </view>
-        <image class="tool-chevron" src="{{toolIcons.chevron}}" mode="aspectFit"></image>
+        <view class="tool-chevron" style="background-image: url({{toolIcons.chevron}});"></view>
       </view>
     </view>
   </view>
