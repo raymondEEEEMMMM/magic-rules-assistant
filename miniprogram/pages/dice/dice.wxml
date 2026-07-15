@@ -43,7 +43,7 @@
   <view class="coin-section">
     <text class="section-title">丢硬币</text>
     <view class="coin-display">
-      <text wx:if="{{coinResult}}" class="coin-result {{coinAnimating ? 'coin-flip-anim' : ''}}">{{coinResult === '正面' ? '🌝' : '🌚'}}</text>
+      <view wx:if="{{coinResult}}" class="coin-icon {{coinResult === '正面' ? 'icon-bg-coin-head' : 'icon-bg-coin-tail'}} {{coinAnimating ? 'coin-flip-anim' : ''}}"></view>
       <text wx:else class="coin-placeholder">点击丢币</text>
       <text wx:if="{{coinResult}}" class="coin-label">{{coinResult}}</text>
     </view>
