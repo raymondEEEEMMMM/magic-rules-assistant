@@ -11,11 +11,6 @@ Page({
     searchDone: false,
     keywordResults: [],
     ruleResults: [],
-    commonKeywords: [
-      'Flying', 'Trample', 'Deathtouch', 'First Strike', 'Lifelink',
-      'Haste', 'Vigilance', 'Reach', 'Hexproof', 'Indestructible',
-      'Menace', 'Double Strike', 'Flash', 'Ward', 'Protection'
-    ],
     showDetail: false,
     currentKeyword: '',
     keywordDetail: null,
@@ -112,13 +107,6 @@ Page({
         icon: 'none'
       })
     })
-  },
-
-  // 点击热门关键词
-  searchKeyword(e) {
-    const keyword = e.currentTarget.dataset.keyword
-    this.setData({ keyword })
-    this.onSearch()
   },
 
   // 查看关键词详情
