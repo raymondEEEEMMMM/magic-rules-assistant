@@ -10,17 +10,9 @@ Page({
     setName: '',
     setInfo: null,
     cards: [],
-    filteredCards: [],
     loading: false,
     loaded: false,
-    viewMode: 'image', // 'image' or 'text'
-    isLightTheme: true,
-    showFilter: false,  // 筛选器默认收起
-    // 筛选条件
-    filterColor: '',     // W/U/B/R/G
-    filterCmc: '',       // 0-6+
-    filterType: '',      // 生物、神器、法术、地、结界
-    filterRarity: '',    // c/u/r/m
+    isLightTheme: true
   },
 
   onLoad(options) {
@@ -78,7 +70,6 @@ Page({
 
       this.setData({
         cards,
-        filteredCards: cards,
         setInfo: {
           name: setName,
           code: setCode,
@@ -97,91 +88,6 @@ Page({
         icon: 'none'
       })
     })
-  },
-
-  // 切换视图模式
-  toggleView() {
-    this.setData({
-      viewMode: this.data.viewMode === 'image' ? 'text' : 'image'
-    })
-  },
-
-  // 颜色筛选
-  onColorFilter(e) {
-    const color = e.currentTarget.dataset.color
-    const current = this.data.filterColor
-    this.setData({ filterColor: current === color ? '' : color })
-    this.applyFilters()
-  },
-
-  // 切换筛选器显示
-  toggleFilter() {
-    this.setData({ showFilter: !this.data.showFilter })
-  },
-
-  // 重置筛选
-  resetFilters() {
-    this.setData({
-      filterColor: '',
-      filterCmc: '',
-      filterType: '',
-      filterRarity: ''
-    })
-    this.applyFilters()
-  },
-
-  // 法力值筛选
-  onCmcFilter(e) {
-    const cmc = e.currentTarget.dataset.cmc
-    this.setData({ filterCmc: this.data.filterCmc === cmc ? '' : cmc })
-    this.applyFilters()
-  },
-
-  // 稀有度筛选
-  onRarityFilter(e) {
-    const rarity = e.currentTarget.dataset.rarity
-    this.setData({ filterRarity: this.data.filterRarity === rarity ? '' : rarity })
-    this.applyFilters()
-  },
-
-  // 类别筛选
-  onTypeFilter(e) {
-    const type = e.currentTarget.dataset.type
-    this.setData({ filterType: this.data.filterType === type ? '' : type })
-    this.applyFilters()
-  },
-
-  // 应用所有筛选
-  applyFilters() {
-    const { cards, filterColor, filterCmc, filterType, filterRarity } = this.data
-    let filtered = cards
-
-    // 按颜色筛选
-    if (filterColor) {
-      filtered = filtered.filter(card => card.colors && card.colors.includes(filterColor))
-    }
-
-    // 按法力值筛选
-    if (filterCmc !== '') {
-      if (filterCmc === '6+') {
-        filtered = filtered.filter(card => card.cmc >= 6)
-      } else {
-        const targetCmc = parseFloat(filterCmc)
-        filtered = filtered.filter(card => card.cmc == targetCmc)
-      }
-    }
-
-    // 按类别筛选
-    if (filterType) {
-      filtered = filtered.filter(card => card.type_line && card.type_line.includes(filterType))
-    }
-
-    // 按稀有度筛选
-    if (filterRarity) {
-      filtered = filtered.filter(card => card.rarity === filterRarity)
-    }
-
-    this.setData({ filteredCards: filtered })
   },
 
   // 查看卡牌详情
