@@ -52,7 +52,9 @@ function applyAttrs(svg, size, color) {
     result = result.replace(/width="\d+"/, 'width="' + size + '"').replace(/height="\d+"/, 'height="' + size + '"')
   }
   if (color) {
+    // 替换 stroke 和 fill 的 currentColor（必须在 SVG 上下文中可工作）
     result = result.replace(/stroke="currentColor"/g, 'stroke="' + color + '"')
+    result = result.replace(/fill="currentColor"/g, 'fill="' + color + '"')
   }
   return result
 }
