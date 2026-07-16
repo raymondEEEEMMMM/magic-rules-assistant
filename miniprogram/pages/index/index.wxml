@@ -156,7 +156,9 @@
 
   <!-- Promo 卡快讯入口 -->
   <view class="promo-entry" wx:if="{{!keyword && !hiddenCards.promos}}" bindtap="goToPromos">
-    <view class="promo-icon">🎁</view>
+    <view class="promo-icon-block">
+      <view class="promo-icon-bg"></view>
+    </view>
     <view class="promo-info">
       <text class="promo-title">Promo 卡快讯</text>
       <text class="promo-desc">最新促销卡牌 · 获取方式</text>
