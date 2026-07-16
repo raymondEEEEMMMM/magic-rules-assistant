@@ -108,7 +108,7 @@
         bindtap="useHistory"
         data-keyword="{{item}}"
       >
-        <text class="history-icon">🕐</text>
+        <view class="history-icon icon-bg-clock"></view>
         <text class="history-text">{{item}}</text>
       </view>
     </view>
