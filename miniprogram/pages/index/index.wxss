@@ -100,7 +100,7 @@ page { background-color: var(--bg-page); color: var(--text-primary); }
 .promo-entry { display: flex; align-items: center; gap: 20rpx; margin: 24rpx 32rpx; background: var(--bg-card); border-radius: 20rpx; padding: 24rpx; box-shadow: var(--shadow-card); }
 .promo-entry:active { opacity: 0.9; }
 .promo-icon-block { width: 72rpx; height: 72rpx; background: #9370db; border-radius: 16rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.promo-icon-bg { width: 40rpx; height: 40rpx; background-size: contain; background-position: center; background-repeat: no-repeat; }
+.promo-icon-bg { width: 40rpx; height: 40rpx; min-width: 40rpx; min-height: 40rpx; background-size: contain; background-position: center; background-repeat: no-repeat; }
 .promo-info { flex: 1; min-width: 0; }
 .promo-title { display: block; font-size: 32rpx; font-weight: 600; color: var(--text-primary); }
 .promo-desc { display: block; font-size: 22rpx; color: var(--text-secondary); margin-top: 4rpx; }
