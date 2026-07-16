@@ -8,7 +8,7 @@ page { background: var(--bg-page); }
 
 .search-card { background: var(--bg-card); border-radius: 24rpx; box-shadow: var(--shadow-card); padding: 16rpx 20rpx; display: flex; align-items: center; gap: 16rpx; margin-bottom: 32rpx; }
 .search-row { flex: 1; display: flex; align-items: center; background: var(--bg-input); border-radius: 20rpx; padding: 16rpx 20rpx; }
-.search-icon { font-size: 28rpx; margin-right: 12rpx; opacity: 0.5; }
+.search-icon { width: 28rpx; height: 28rpx; min-width: 28rpx; min-height: 28rpx; margin-right: 12rpx; opacity: 0.5; background-size: contain; background-position: center; background-repeat: no-repeat; flex-shrink: 0; }
 .search-input { flex: 1; font-size: 28rpx; color: var(--text-primary); }
 .search-placeholder { color: var(--text-muted); }
 .search-btn { background: var(--accent-dark); color: var(--text-inverse); border-radius: 20rpx; padding: 16rpx 32rpx; font-size: 28rpx; font-weight: 600; }
@@ -113,3 +113,6 @@ page { background: var(--bg-page); }
 .copy-result-info { flex: 1; min-width: 0; }
 .copy-result-name { font-size: 28rpx; font-weight: 600; color: var(--text-primary); display: block; }
 .copy-result-set { font-size: 22rpx; color: var(--text-secondary); }
+
+/* P5: replace emoji with SVG */
+.icon-bg-search { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTk5OTkiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIxMSIgY3k9IjExIiByPSI4Ii8+PHBhdGggZD0ibTIxIDIxLTQuMzUtNC4zNSIvPjwvc3ZnPg"); }

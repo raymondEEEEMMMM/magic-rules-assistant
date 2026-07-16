@@ -23,7 +23,7 @@
   <!-- 搜索框（卡片包裹） -->
   <view class="search-card">
     <view class="search-row">
-      <text class="search-icon">🔍</text>
+      <view class="search-icon icon-bg-search"></view>
       <input
         class="search-input"
         placeholder="异能关键词、卡牌、规则编号..."
