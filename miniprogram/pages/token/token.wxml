@@ -53,7 +53,7 @@
     <view wx:if="{{filteredGroup.tokens.length === 0}}" class="empty-hint">
       <text>该颜色暂无 Token</text>
     </view>
-    <view wx:else class="group" wx:if="{{selectedColorFilter === 'all'}}">
+    <view wx:elif="{{selectedColorFilter === 'all'}}" class="group">
       <view wx:for="{{filteredGroup.tokens}}" wx:key="name" wx:for-item="token" class="token-card" bindtap="selectToken" data-token="{{token}}">
         <view class="token-color-stripe color-{{token.color}}"></view>
         <view class="token-icon">{{token.icon}}</view>
