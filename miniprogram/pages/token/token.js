@@ -66,6 +66,10 @@ Page({
     showSearchResults: false,
     tokens: [],
     tokenGroups: {},
+    selectedColorFilter: 'all',
+    groupCounts: {},
+    totalCount: 0,
+    filteredGroup: { tokens: [] },
     selectedToken: null,
     showModal: false,
     showCopyModal: false,
@@ -74,7 +78,7 @@ Page({
     isCopySearching: false,
     allCards: [],
     tokenCards: [],
-    availableSets: [],  // [{code, name}, ...]  '全部'用code='all'表示
+    availableSets: [],
     selectedSetCode: 'all',
     showSetPicker: false,
     selectedCardIndex: 0,
@@ -95,7 +99,6 @@ Page({
     api.request('/api/token/list', {}).then(res => {
       if (!this._pageActive) return
       if (res && res.tokens) {
-        // 按颜色分组
         const colorOrder = ['C', 'W', 'U', 'B', 'R', 'G']
         const colorInfo = {
           'C': { name: '无色', symbol: 'C' },
@@ -115,10 +118,51 @@ Page({
             groups[color].tokens.push(token)
           }
         })
-        this.setData({ tokens: res.tokens, tokenGroups: groups })
+        // 计算每色数量和总数
+        const groupCounts = {}
+        let totalCount = 0
+        colorOrder.forEach(color => {
+          groupCounts[color] = groups[color].tokens.length
+          totalCount += groups[color].tokens.length
+        })
+        this.setData({
+          tokens: res.tokens,
+          tokenGroups: groups,
+          groupCounts: groupCounts,
+          totalCount: totalCount
+        })
+        this.recomputeFilteredGroup()
       }
     }).catch(err => {
       console.error('fetchTokenList error', err)
+    })
+  },
+
+  recomputeFilteredGroup() {
+    const { tokenGroups, selectedColorFilter } = this.data
+    if (selectedColorFilter === 'all') {
+      // 全部：合并所有 token
+      const all = []
+      Object.values(tokenGroups).forEach(g => {
+        all.push(...g.tokens)
+      })
+      this.setData({ filteredGroup: { tokens: all } })
+    } else {
+      this.setData({ filteredGroup: tokenGroups[selectedColorFilter] || { tokens: [] } })
+    }
+  },
+
+  onFilterColor(e) {
+    const color = e.currentTarget.dataset.color
+    this.setData({ selectedColorFilter: color })
+    this.recomputeFilteredGroup()
+  },
+
+  onClearSearch() {
+    this.setData({
+      searchQuery: '',
+      showSearchResults: false,
+      searchResults: []
     })
   },
 
