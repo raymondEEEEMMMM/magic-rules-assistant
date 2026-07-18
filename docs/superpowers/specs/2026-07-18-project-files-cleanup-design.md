@@ -11,7 +11,7 @@
 
 ### 1.1 现状
 
-`git status` 持续显示 13 个未跟踪的根目录调试截图和 `.playwright-mcp/` 目录：
+`git status` 持续显示 14 个未跟踪的根目录调试截图和 `.playwright-mcp/` 目录：
 
 ```
 ?? .playwright-mcp/
@@ -31,7 +31,7 @@
 ?? tools-zoom.png         36 KB    7月 17
 ```
 
-合计约 **1.2 MB**,全部为 Playwright/小程序调试期间在项目根目录临时拍摄的页面截图(共 6 个页面:首页、Dice、Token、Promo、Search、Tools)。
+合计约 **1.24 MB**,全部为 Playwright/小程序调试期间在项目根目录临时拍摄的页面截图(共 6 个页面:首页、Dice、Token、Promo、Search、Tools)。
 
 此外还有:
 
@@ -51,7 +51,7 @@
 
 | 序号 | 目标 | 验收标准 |
 |------|------|----------|
-| G1 | 根目录的 13 个截图迁移到 `docs/screenshots/<feature>/` | `git status` 不再列出根目录 *.png |
+| G1 | 根目录的 14 个截图迁移到 `docs/screenshots/<feature>/` | `git status` 不再列出根目录 *.png |
 | G2 | `.playwright-mcp/` 在 .gitignore 中消失 | 后续 `git status` 也不列 |
 | G3 | 根目录新增调试 PNG 不会再被误跟踪 | `.gitignore` `/docs/screenshots/` 之外的 `/*.png` 永远 tracked-only 通过归档路径 |
 | G4 | 仓库视觉净化 | `docs/.DS_Store`、`logs/*.DS_Store` 删除;老 AI Judge 日志清理 |
@@ -196,29 +196,27 @@ commit 1: chore: 归档主页测试截图到 docs/screenshots/homepage/
 
 ### 3.2 详细步骤(每个 commit)
 
-**Commit 1: 归档主页**
+**Commit 1: 归档主页(4 个文件)**
 ```bash
 mkdir -p docs/screenshots/homepage
-git mv ai-zoom.png docs/screenshots/homepage/test.png 2>/dev/null || mv ai-zoom.png docs/screenshots/homepage/test.png
-git mv homepage-test.png docs/screenshots/homepage/test-old.png  # 实际命名以 2.1 节为准
-# ... 5 个文件按 2.1 节映射执行 git mv
+git mv ai-zoom.png        docs/screenshots/homepage/ai-zoom.png
+git mv homepage-test.png  docs/screenshots/homepage/test.png
+git mv homepage-v3.png    docs/screenshots/homepage/v3.png
+git mv index-full.png     docs/screenshots/homepage/full.png
 ```
-实际命名以 §2.1 节映射为准,原文 `homepage-test.png` → `homepage/test.png`、`ai-zoom.png` 不归档(`ai` 是聊天 AI,非主页),让我重新核查原映射:**特别需要再次核对**:原始 13 个截图与 §2.1 的一一对应关系,以及确认 `ai-zoom.png` 是否应纳入主页归档。
-
-> ⚠️ **待澄清**:`ai-zoom.png` 拍摄时间 7月 17,与主页 P5 升级同时;推测是主页 AI 入口(local AI agent)放大对照。**已决定归档到 `homepage/ai-zoom.png`**。
-
-修订映射:
 
 | 原文件 | 归档位置 |
 |--------|----------|
-| ai-zoom.png | docs/screenshots/homepage/ai-zoom.png |
+| ai-zoom.png       | docs/screenshots/homepage/ai-zoom.png |
 | homepage-test.png | docs/screenshots/homepage/test.png |
-| homepage-v3.png | docs/screenshots/homepage/v3.png |
-| index-full.png | docs/screenshots/homepage/full.png |
+| homepage-v3.png   | docs/screenshots/homepage/v3.png |
+| index-full.png    | docs/screenshots/homepage/full.png |
+
+> **归类决策**:`ai-zoom.png` 拍摄时间 7月 17 与主页 P5 视觉升级(commit `7993762`)同期,推测为主页 AI 入口放大对照,归档到 `homepage/ai-zoom.png`。`index-full.png` 同理归档到 `homepage/full.png`,作为 P5 主页全屏长截图。
 
 **Commit 2: 归档 dice/token/promo/search/tools**
 
-按 §2.1 表格,9 个文件逐个 `git mv`。
+按 §2.1 表格,10 个文件逐个 `git mv`(dice 2 + token 1 + promo 2 + search 2 + tools 3)。
 
 **Commit 3: README**
 
@@ -254,7 +252,7 @@ rm logs/ai_judge_20260317.log logs/ai_judge_20260330.log
 | 测试 ID | 描述 | 命令 / 操作 | 通过标准 |
 |---------|------|-------------|----------|
 | T1 | 根目录无 PNG 残留 | `ls *.png` | 无输出 |
-| T2 | 截图全归档完毕 | `find docs/screenshots -name "*.png" \| wc -l` | 输出 13 |
+| T2 | 截图全归档完毕 | `find docs/screenshots -name "*.png" \| wc -l` | 输出 14 |
 | T3 | `.playwright-mcp/` 不在 git status | `git status --ignored` 中包含该目录,但 `git status` 不显示 | 通过 |
 | T4 | 新增根目录调试 PNG 不被误跟踪 | `touch test.png && git status` | 无 `?? test.png` |
 | T5 | DS_Store 清理完毕 | `find docs/ logs/ -name ".DS_Store"` | 无输出 |
