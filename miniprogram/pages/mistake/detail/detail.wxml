@@ -1,0 +1,29 @@
+<view class="container" wx:if="{{record}}">
+  <view class="header">
+    <text class="record-type type-{{record.type}}">{{record.type === 'operation' ? '操作失误' : record.type === 'rule' ? '规则 Q&A' : 'Miss Trigger'}}</text>
+    <text class="record-time">{{formatTime(record.created_at)}}</text>
+  </view>
+
+  <view class="title">{{record.title || '无标题'}}</view>
+
+  <view class="cards-section" wx:if="{{record.cards.length > 0}}">
+    <text class="cards-label">涉及牌名</text>
+    <view class="cards">
+      <text wx:for="{{record.cards}}" wx:key="{{item}}" class="card-tag">{{item}}</text>
+    </view>
+  </view>
+
+  <view class="content-section">
+    <text class="content">{{record.content || '无详细内容'}}</text>
+  </view>
+
+  <view class="stats">
+    <text>复习 {{record.review_count || 0}} 次</text>
+    <text wx:if="{{record.reviewed_at}}">最近复习: {{formatTime(record.reviewed_at)}}</text>
+  </view>
+
+  <view class="actions">
+    <view class="action-btn review-btn" bindtap="onReview">标记已复习</view>
+    <view class="action-btn delete-btn" bindtap="onDelete">删除</view>
+  </view>
+</view>
