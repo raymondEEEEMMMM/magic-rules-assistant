@@ -23,7 +23,7 @@
   <!-- 搜索框（卡片包裹） -->
   <view class="search-card">
     <view class="search-row">
-      <text class="search-icon">🔍</text>
+      <view class="search-icon icon-bg-search"></view>
       <input
         class="search-input"
         placeholder="异能关键词、卡牌、规则编号..."
@@ -47,53 +47,49 @@
     </view>
     <view class="tools-card">
       <view class="tool-item" bindtap="goToToken">
-        <view class="tool-icon-block tool-color-blue">
-          <image class="tool-icon" src="{{toolIcons.token}}" mode="aspectFit"></image>
+        <view class="tool-icon-block tool-color-blue icon-bg-token tool-icon-bg">
         </view>
         <view class="tool-info">
           <text class="tool-name">Token 生成器</text>
           <text class="tool-desc">衍生物卡片速查</text>
         </view>
-        <image class="tool-chevron" src="{{toolIcons.chevron}}" mode="aspectFit"></image>
+        <view class="tool-chevron icon-bg-chevron"></view>
       </view>
 
       <view class="tool-divider"></view>
 
       <view class="tool-item" bindtap="goToDecks">
-        <view class="tool-icon-block tool-color-black">
-          <image class="tool-icon" src="{{toolIcons.deck}}" mode="aspectFit"></image>
+        <view class="tool-icon-block tool-color-black icon-bg-deck tool-icon-bg">
         </view>
         <view class="tool-info">
           <text class="tool-name">我的套牌</text>
           <text class="tool-desc">导入导出 · 增删改查</text>
         </view>
-        <image class="tool-chevron" src="{{toolIcons.chevron}}" mode="aspectFit"></image>
+        <view class="tool-chevron icon-bg-chevron"></view>
       </view>
 
       <view class="tool-divider"></view>
 
       <view class="tool-item" bindtap="goToCounter">
-        <view class="tool-icon-block tool-color-red">
-          <image class="tool-icon" src="{{toolIcons.heart}}" mode="aspectFit"></image>
+        <view class="tool-icon-block tool-color-red icon-bg-heart tool-icon-bg">
         </view>
         <view class="tool-info">
           <text class="tool-name">生命值计数器</text>
           <text class="tool-desc">指挥官 · 2-4 人游戏</text>
         </view>
-        <image class="tool-chevron" src="{{toolIcons.chevron}}" mode="aspectFit"></image>
+        <view class="tool-chevron icon-bg-chevron"></view>
       </view>
 
       <view class="tool-divider"></view>
 
       <view class="tool-item" bindtap="goToDice">
-        <view class="tool-icon-block tool-color-green">
-          <image class="tool-icon" src="{{toolIcons.dice}}" mode="aspectFit"></image>
+        <view class="tool-icon-block tool-color-green icon-bg-dice tool-icon-bg">
         </view>
         <view class="tool-info">
           <text class="tool-name">骰子 & 随机</text>
           <text class="tool-desc">掷骰子 · 随机抽卡</text>
         </view>
-        <image class="tool-chevron" src="{{toolIcons.chevron}}" mode="aspectFit"></image>
+        <view class="tool-chevron icon-bg-chevron"></view>
       </view>
     </view>
   </view>
@@ -112,7 +108,7 @@
         bindtap="useHistory"
         data-keyword="{{item}}"
       >
-        <text class="history-icon">🕐</text>
+        <view class="history-icon icon-bg-clock"></view>
         <text class="history-text">{{item}}</text>
       </view>
     </view>
@@ -160,7 +156,9 @@
 
   <!-- Promo 卡快讯入口 -->
   <view class="promo-entry" wx:if="{{!keyword && !hiddenCards.promos}}" bindtap="goToPromos">
-    <view class="promo-icon">🎁</view>
+    <view class="promo-icon-block">
+      <view class="promo-icon-bg icon-bg-promo"></view>
+    </view>
     <view class="promo-info">
       <text class="promo-title">Promo 卡快讯</text>
       <text class="promo-desc">最新促销卡牌 · 获取方式</text>

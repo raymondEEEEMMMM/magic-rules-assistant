@@ -69,3 +69,9 @@ Dockerfile
 
 # 头脑风暴会话产物
 .superpowers/
+
+# 浏览器 MCP 测试产物
+.playwright-mcp/
+
+# 根目录调试截图(只允许出现在 docs/screenshots/ 下)
+/*.png

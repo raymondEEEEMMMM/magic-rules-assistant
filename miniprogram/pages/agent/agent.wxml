@@ -14,7 +14,7 @@
 
   <view wx:else class="chat-container">
     <view wx:if="{{messages.length === 0}}" class="empty-chat">
-      <view class="empty-icon">✦</view>
+      <view class="empty-icon icon-bg-sparkle"></view>
       <text class="empty-title">AI 裁判助手</text>
       <text class="empty-desc">智能规则问答 · 随时随地</text>
       <view class="example-list">

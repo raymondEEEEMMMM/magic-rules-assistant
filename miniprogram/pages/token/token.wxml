@@ -4,26 +4,56 @@
     <text class="nav-title">Token 列表</text>
   </view>
 
-  <!-- 搜索 -->
-  <view class="search-card">
-    <view class="search-row">
-      <text class="search-icon">🔍</text>
-      <input
-        class="search-input"
-        placeholder="输入英文 Token 名"
-        placeholder-class="search-placeholder"
-        bindinput="onTokenSearch"
-        bindconfirm="onTokenSearch"
-        value="{{searchQuery}}"
-      />
+  <!-- 紧凑搜索栏 -->
+  <view class="search-bar">
+    <view class="search-icon icon-bg-search"></view>
+    <input
+      class="search-input"
+      placeholder="输入 Token 名称"
+      placeholder-class="search-placeholder"
+      bindinput="onTokenSearch"
+      bindfocus="onSearchFocus"
+      bindblur="onSearchBlur"
+      bindconfirm="onSearchConfirm"
+      value="{{searchQuery}}"
+    />
+    <view wx:if="{{searchQuery}}" class="search-clear" bindtap="onClearSearch">✕</view>
+  </view>
+
+  <text wx:if="{{showHint}}" class="search-hint">支持：中文 / 英文 / 拼音首字母 / 英文首字母</text>
+
+  <!-- 颜色筛选 chips -->
+  <scroll-view wx:if="{{!showSearchResults}}" class="color-chips" scroll-x enable-flex>
+    <view class="chip {{selectedColorFilter === 'all' ? 'chip-active' : ''}}" data-color="all" bindtap="onFilterColor">全部 {{totalCount}}</view>
+    <view class="chip {{selectedColorFilter === 'W' ? 'chip-active chip-W' : ''}}" data-color="W" bindtap="onFilterColor">⚪ 白 {{groupCounts.W || 0}}</view>
+    <view class="chip {{selectedColorFilter === 'U' ? 'chip-active chip-U' : ''}}" data-color="U" bindtap="onFilterColor">🔵 蓝 {{groupCounts.U || 0}}</view>
+    <view class="chip {{selectedColorFilter === 'B' ? 'chip-active chip-B' : ''}}" data-color="B" bindtap="onFilterColor">⚫ 黑 {{groupCounts.B || 0}}</view>
+    <view class="chip {{selectedColorFilter === 'R' ? 'chip-active chip-R' : ''}}" data-color="R" bindtap="onFilterColor">🔴 红 {{groupCounts.R || 0}}</view>
+    <view class="chip {{selectedColorFilter === 'G' ? 'chip-active chip-G' : ''}}" data-color="G" bindtap="onFilterColor">🟢 绿 {{groupCounts.G || 0}}</view>
+    <view class="chip {{selectedColorFilter === 'C' ? 'chip-active chip-C' : ''}}" data-color="C" bindtap="onFilterColor">⚪ 无 {{groupCounts.C || 0}}</view>
+  </scroll-view>
+
+  <!-- 建议下拉 -->
+  <view wx:if="{{showSuggestions && filteredSuggestions.length > 0}}" class="suggestions">
+    <view class="suggestion-item"
+      wx:for="{{filteredSuggestions}}"
+      wx:key="enName"
+      bindtap="onSelectSuggestion"
+      data-token="{{item}}"
+    >
+      <view class="suggestion-color color-{{item.color}}"></view>
+      <view class="suggestion-icon">{{item.icon}}</view>
+      <view class="suggestion-info">
+        <text class="suggestion-name">{{item.name}}</text>
+        <text class="suggestion-en">{{item.enName}}</text>
+      </view>
     </view>
-    <view class="search-btn" bindtap="onTokenSearch">搜索</view>
   </view>
 
   <!-- 加载中 -->
   <view class="loading" wx:if="{{isSearching}}">
     <view class="loading-spinner"></view>
-    <text class="loading-text">加载中...</text>
+    <text class="loading-text">搜索中...</text>
   </view>
 
   <!-- 搜索结果 -->
@@ -39,19 +69,54 @@
     </view>
   </view>
 
+  <!-- 历史 + 热门 -->
+  <view wx:if="{{!searchQuery && !showSearchResults && !showSuggestions}}" class="history-section">
+    <view wx:if="{{searchHistory.length > 0}}" class="history-block">
+      <text class="block-title">最近搜索</text>
+      <view class="history-chips">
+        <view class="history-chip" wx:for="{{searchHistory}}" wx:key="*this"
+          data-q="{{item}}" bindtap="onHistoryTap">{{item}} ✕</view>
+        <view class="history-clear" bindtap="onClearHistory">清空</view>
+      </view>
+    </view>
+
+    <view class="hot-block">
+      <text class="block-title">热门 Token</text>
+      <view class="hot-list">
+        <view class="hot-chip" wx:for="{{hotTokens}}" wx:key="name"
+          data-token="{{item}}" bindtap="onSelectSuggestion">
+          <view class="hot-color color-{{item.color}}"></view>
+          <text>{{item.icon}} {{item.name}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
   <!-- 默认按颜色分组列表 -->
   <view class="token-groups" wx:else>
-    <view class="group" wx:for="{{tokenGroups}}" wx:for-item="group" wx:key="symbol">
-      <view class="group-header">
-        <view class="color-dot color-{{group.symbol}}"></view>
-        <text class="group-name">{{group.name}}</text>
-        <text class="group-count">{{group.tokens.length}}</text>
-      </view>
-      <view class="token-list">
-        <view class="token-item" wx:for="{{group.tokens}}" wx:key="index" bindtap="selectToken" data-token="{{item}}" data-token-index="{{index}}">
-          <text class="token-name">{{item.name}}</text>
-          <text class="token-type">{{item.power}}/{{item.toughness}}</text>
+    <view wx:if="{{filteredGroup.tokens.length === 0}}" class="empty-hint">
+      <text>该颜色暂无 Token</text>
+    </view>
+    <view wx:elif="{{selectedColorFilter === 'all'}}" class="group">
+      <view wx:for="{{filteredGroup.tokens}}" wx:key="name" wx:for-item="token" class="token-card" bindtap="selectToken" data-token="{{token}}">
+        <view class="token-color-stripe color-{{token.color}}"></view>
+        <view class="token-icon">{{token.icon}}</view>
+        <view class="token-info">
+          <view class="token-name">{{token.name}}</view>
+          <view class="token-en">{{token.enName}}</view>
         </view>
+        <view class="token-stats">{{token.power}}/{{token.toughness}}</view>
+      </view>
+    </view>
+    <view wx:else class="group">
+      <view wx:for="{{filteredGroup.tokens}}" wx:key="name" wx:for-item="token" class="token-card" bindtap="selectToken" data-token="{{token}}">
+        <view class="token-color-stripe color-{{token.color}}"></view>
+        <view class="token-icon">{{token.icon}}</view>
+        <view class="token-info">
+          <view class="token-name">{{token.name}}</view>
+          <view class="token-en">{{token.enName}}</view>
+        </view>
+        <view class="token-stats">{{token.power}}/{{token.toughness}}</view>
       </view>
     </view>
   </view>

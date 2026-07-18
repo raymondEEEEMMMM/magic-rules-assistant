@@ -6,7 +6,7 @@
 
   <view class="search-bar">
     <view class="search-row">
-      <text class="search-icon">🔍</text>
+      <view class="search-icon icon-bg-search"></view>
       <input
         class="search-input"
         placeholder="搜索..."

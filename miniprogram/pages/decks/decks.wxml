@@ -31,7 +31,7 @@
 
   <!-- 空状态 -->
   <view wx:elif="{{decks.length === 0}}" class="empty">
-    <view class="empty-icon">📚</view>
+    <view class="empty-icon icon-bg-book"></view>
     <text class="empty-title">还没有套牌</text>
     <text class="empty-desc">从 MTGGoldfish / Moxfield 导入或新建</text>
     <view class="empty-btn" bindtap="showImport">新建套牌</view>
@@ -83,7 +83,7 @@
             bindinput="onCommanderInput"
             bindconfirm="searchCommander"
           />
-          <view class="commander-search-btn" catchtap="searchCommander">🔍</view>
+          <view class="commander-search-btn icon-bg-search" catchtap="searchCommander"></view>
         </view>
         <!-- 搜索结果下拉 -->
         <view class="commander-dropdown" wx:if="{{commanderResults.length > 0}}">
