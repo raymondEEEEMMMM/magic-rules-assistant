@@ -52,6 +52,69 @@ const cnToEnMap = {
   '玛莉雷基': 'Marit Lage'
 }
 
+// 拼音映射：每条 token 包含 initial (首字母) + full (全拼前 3 字符)
+const pinyinMap = {
+  // 万能 / 无色
+  '珍宝':     { initial: 'zb',  full: 'zhen'   },
+  '复制品':   { initial: 'fzp', full: 'fuzhi'  },
+  '组构体':   { initial: 'zgzt',full: 'zugo'   },
+  '衍生':     { initial: 'ys',  full: 'yans'   },
+  // 白 (W)
+  '士兵':     { initial: 'sb',  full: 'shib'   },
+  '天使':     { initial: 'ts',  full: 'tian'   },
+  '猫':       { initial: 'm',   full: 'mao'    },
+  '狗':       { initial: 'g',   full: 'gou'    },
+  '人类':     { initial: 'rl',  full: 'renl'   },
+  '僧侣':     { initial: 'sl',  full: 'seng'   },
+  '骑士':     { initial: 'qs',  full: 'qish'   },
+  '狮鹫':     { initial: 'sy',  full: 'shij'   },
+  '精怪':     { initial: 'jg',  full: 'jing'   },
+  // 蓝 (U)
+  '精灵':     { initial: 'jl',  full: 'jing'   },
+  '龙兽':     { initial: 'll',  full: 'long'   },
+  '虚影':     { initial: 'xy',  full: 'xuyi'   },
+  '维多肯':   { initial: 'wdk', full: 'weid'   },
+  '法师':     { initial: 'fs',  full: 'fash'   },
+  '螃蟹':     { initial: 'px',  full: 'pang'   },
+  '蛇':       { initial: 's',   full: 'she'    },
+  '海怪':     { initial: 'hg',  full: 'haig'   },
+  // 黑 (B)
+  '灵俑':     { initial: 'ly',  full: 'ling'   },
+  '鬼怪':     { initial: 'gg',  full: 'guig'   },
+  '吸血鬼':   { initial: 'xxg', full: 'xixu'   },
+  '蝙蝠':     { initial: 'bf',  full: 'bian'   },
+  '骷髅':     { initial: 'kl',  full: 'kul'    },
+  '恶魔':     { initial: 'em',  full: 'emo'    },
+  '恐惧':     { initial: 'kj',  full: 'kong'   },
+  '老鼠':     { initial: 'ls',  full: 'laos'   },
+  '阴影':     { initial: 'yy',  full: 'yiny'   },
+  '幽灵':     { initial: 'yl',  full: 'youl'   },
+  // 红 (R)
+  '野狼':     { initial: 'yl',  full: 'yela'   },
+  '蜥蜴':     { initial: 'xy',  full: 'xiyi'   },
+  '地精':     { initial: 'dj',  full: 'diji'   },
+  '元素':     { initial: 'ys',  full: 'yuas'   },
+  '龙':       { initial: 'l',   full: 'long'   },
+  '巨魔':     { initial: 'jm',  full: 'jumo'   },
+  '食人魔':   { initial: 'srm', full: 'shir'   },
+  '火焰':     { initial: 'hy',  full: 'huoy'   },
+  '半兽人':   { initial: 'brl', full: 'banr'   },
+  // 绿 (G)
+  '树妖':     { initial: 'sy',  full: 'shuy'   },
+  '狼':       { initial: 'l',   full: 'lang'   },
+  '昆虫':     { initial: 'kc',  full: 'kunc'   },
+  '熊':       { initial: 'x',   full: 'xion'   },
+  '象':       { initial: 'x',   full: 'xian'   },
+  '蛇颈龙':   { initial: 'sjl', full: 'shej'   },
+  '植物':     { initial: 'zw',  full: 'zhiw'   },
+  '鹿':       { initial: 'l',   full: 'lu'     },
+  '犀牛':     { initial: 'xn',  full: 'xini'   },
+  '变形兽':   { initial: 'bx',  full: 'bian'   },
+  '藤蔓':     { initial: 'tm',  full: 'tenm'   },
+  '甲虫':     { initial: 'jc',  full: 'jiac'   },
+  '德鲁伊':   { initial: 'dly', full: 'delu'   }
+}
+
 // 翻译为英文（优先从映射表查，查不到返回原值）
 function translateToEn(cn) {
   return cnToEnMap[cn] || cn
