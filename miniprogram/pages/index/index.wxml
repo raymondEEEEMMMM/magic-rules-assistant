@@ -247,16 +247,6 @@
     </view>
   </view>
 
-  <!-- 生命值计数器入口 -->
-  <view class="counter-entry" wx:if="{{!keyword}}" bindtap="goToCounter">
-    <view class="counter-icon-bg icon-bg-heart"></view>
-    <view class="counter-info">
-      <text class="counter-title">生命值计数器</text>
-      <text class="counter-desc">指挥官 · 2-4人游戏</text>
-    </view>
-    <view class="counter-arrow">›</view>
-  </view>
-
   <!-- 版本信息 -->
   <view class="version-info">
     <text class="version-text">v{{version}}</text>
