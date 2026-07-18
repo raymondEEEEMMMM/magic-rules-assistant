@@ -1,0 +1,110 @@
+/* miniprogram/pages/mistake/add/add.wxss */
+.container {
+  min-height: 100vh;
+  background: #16213e;
+  padding: 24rpx;
+}
+
+.section {
+  margin-bottom: 40rpx;
+}
+
+.section-title {
+  color: #888;
+  font-size: 26rpx;
+  margin-bottom: 16rpx;
+}
+
+.type-buttons {
+  display: flex;
+  gap: 16rpx;
+}
+
+.type-btn {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  border-radius: 12rpx;
+  background: #1a1a2e;
+  color: #888;
+  font-size: 28rpx;
+}
+
+.type-btn.active {
+  background: #4ECDC4;
+  color: #fff;
+}
+
+.card-input-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.card-input {
+  flex: 1;
+  background: #1a1a2e;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  color: #fff;
+  font-size: 28rpx;
+}
+
+.add-card-btn {
+  background: #2a2a4e;
+  color: #4ECDC4;
+  padding: 20rpx 32rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+}
+
+.card-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.card-chip {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  background: #2a2a4e;
+  color: #aaa;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+}
+
+.remove-btn {
+  color: #FF6B6B;
+  font-size: 32rpx;
+}
+
+.title-input {
+  background: #1a1a2e;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  color: #fff;
+  font-size: 28rpx;
+}
+
+.content-input {
+  background: #1a1a2e;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  color: #fff;
+  font-size: 28rpx;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 300rpx;
+}
+
+.save-btn {
+  background: #4ECDC4;
+  color: #fff;
+  text-align: center;
+  padding: 28rpx 0;
+  border-radius: 16rpx;
+  font-size: 32rpx;
+  margin-top: 40rpx;
+}
