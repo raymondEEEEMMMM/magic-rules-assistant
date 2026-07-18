@@ -34,7 +34,7 @@
         value="{{keyword}}"
       />
       <view class="search-clear" wx:if="{{keyword}}" bindtap="clearSearch">
-        <text>✕</text>
+        <view class="close-mini icon-bg-close"></view>
       </view>
     </view>
     <view class="search-btn" bindtap="onSearch">搜索</view>
@@ -230,14 +230,14 @@
 
     <!-- 无结果 -->
     <view class="no-results" wx:if="{{combinedResults.keywords.length === 0 && combinedResults.cards.length === 0 && combinedResults.rules.length === 0}}">
-      <text class="no-results-icon">🔎</text>
+      <view class="no-results-icon icon-bg-search"></view>
       <text class="no-results-text">未找到与「{{keyword}}」相关的内容</text>
     </view>
   </view>
 
   <!-- 生命值计数器入口 -->
   <view class="counter-entry" wx:if="{{!keyword}}" bindtap="goToCounter">
-    <view class="counter-icon">❤️</view>
+    <view class="counter-icon-bg icon-bg-heart"></view>
     <view class="counter-info">
       <text class="counter-title">生命值计数器</text>
       <text class="counter-desc">指挥官 · 2-4人游戏</text>

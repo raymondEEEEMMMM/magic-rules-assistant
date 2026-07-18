@@ -424,6 +424,10 @@ page { background-color: var(--bg-page); color: var(--text-primary); }
   margin-right: 24rpx;
 }
 
+.counter-icon-bg { width: 40rpx; height: 40rpx; min-width: 40rpx; min-height: 40rpx; margin-right: 24rpx; background-size: contain; background-position: center; background-repeat: no-repeat; flex-shrink: 0; }
+
+.close-mini { width: 20rpx; height: 20rpx; min-width: 20rpx; min-height: 20rpx; background-size: contain; background-position: center; background-repeat: no-repeat; opacity: 0.6; }
+
 .counter-info {
   flex: 1;
 }
@@ -1310,7 +1314,7 @@ page { background-color: var(--bg-page); color: var(--text-primary); }
 
 /* No Results */
 .no-results { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 100rpx 0; }
-.no-results-icon { font-size: 80rpx; margin-bottom: 20rpx; opacity: 0.5; }
+.no-results-icon { width: 80rpx; height: 80rpx; min-width: 80rpx; min-height: 80rpx; margin-bottom: 20rpx; opacity: 0.5; background-size: contain; background-position: center; background-repeat: no-repeat; }
 .no-results-text { font-size: 28rpx; color: var(--text-secondary); }
 
 /* Version Info */
@@ -1339,3 +1343,6 @@ page { background-color: var(--bg-page); color: var(--text-primary); }
 .icon-bg-search { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTk5OTkiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIxMSIgY3k9IjExIiByPSI4Ii8+PHBhdGggZD0ibTIxIDIxLTQuMzUtNC4zNSIvPjwvc3ZnPg"); }
 .icon-bg-book { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTk5OTkiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNNCAxOS41QTIuNSAyLjUgMCAwIDEgNi41IDE3SDIwIi8+PHBhdGggZD0iTTYuNSAySDIwdjIwSDYuNUEyLjUgMi41IDAgMCAxIDQgMTkuNXYtMTVBMi41IDIuNSAwIDAgMSA2LjUgMnoiLz48L3N2Zz4"); }
 .icon-bg-sparkle { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTk5OTkiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTIgMkwyIDdsMTAgNSAxMC01LTEwLTV6Ii8+PHBhdGggZD0iTTIgMTdsMTAgNSAxMC01Ii8+PHBhdGggZD0iTTIgMTJsMTAgNSAxMC01Ii8+PC9zdmc+"); }
+
+/* P5 emoji cleanup: 替换 ✕ emoji 为 SVG */
+.icon-bg-close { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTk5OTkiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48bGluZSB4MT0iMTgiIHkxPSI2IiB4Mj0iNiIgeTI9IjE4Ii8+PGxpbmUgeDE9IjYiIHkxPSI2IiB4Mj0iMTgiIHkyPSIxOCIvPjwvc3ZnPg=="); }
