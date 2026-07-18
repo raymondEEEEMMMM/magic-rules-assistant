@@ -9,14 +9,18 @@
     <view class="search-icon icon-bg-search"></view>
     <input
       class="search-input"
-      placeholder="输入英文 Token 名搜索"
+      placeholder="输入 Token 名称"
       placeholder-class="search-placeholder"
       bindinput="onTokenSearch"
-      bindconfirm="onTokenSearch"
+      bindfocus="onSearchFocus"
+      bindblur="onSearchBlur"
+      bindconfirm="onSearchConfirm"
       value="{{searchQuery}}"
     />
     <view wx:if="{{searchQuery}}" class="search-clear" bindtap="onClearSearch">✕</view>
   </view>
+
+  <text wx:if="{{showHint}}" class="search-hint">支持：中文 / 英文 / 拼音首字母 / 英文首字母</text>
 
   <!-- 颜色筛选 chips -->
   <scroll-view wx:if="{{!showSearchResults}}" class="color-chips" scroll-x enable-flex>
@@ -28,6 +32,23 @@
     <view class="chip {{selectedColorFilter === 'G' ? 'chip-active chip-G' : ''}}" data-color="G" bindtap="onFilterColor">🟢 绿 {{groupCounts.G || 0}}</view>
     <view class="chip {{selectedColorFilter === 'C' ? 'chip-active chip-C' : ''}}" data-color="C" bindtap="onFilterColor">⚪ 无 {{groupCounts.C || 0}}</view>
   </scroll-view>
+
+  <!-- 建议下拉 -->
+  <view wx:if="{{showSuggestions && filteredSuggestions.length > 0}}" class="suggestions">
+    <view class="suggestion-item"
+      wx:for="{{filteredSuggestions}}"
+      wx:key="enName"
+      bindtap="onSelectSuggestion"
+      data-token="{{item}}"
+    >
+      <view class="suggestion-color color-{{item.color}}"></view>
+      <view class="suggestion-icon">{{item.icon}}</view>
+      <view class="suggestion-info">
+        <text class="suggestion-name">{{item.name}}</text>
+        <text class="suggestion-en">{{item.enName}}</text>
+      </view>
+    </view>
+  </view>
 
   <!-- 加载中 -->
   <view class="loading" wx:if="{{isSearching}}">
@@ -44,6 +65,29 @@
       <view class="result-card" wx:for="{{searchResults}}" wx:key="name" bindtap="selectSearchResult" data-item="{{item}}">
         <view class="result-name">{{item.name}}</view>
         <view class="result-meta">{{item.setName || ''}} · {{item.power || '?'}}/{{item.toughness || '?'}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 历史 + 热门 -->
+  <view wx:if="{{!searchQuery && !showSearchResults && !showSuggestions}}" class="history-section">
+    <view wx:if="{{searchHistory.length > 0}}" class="history-block">
+      <text class="block-title">最近搜索</text>
+      <view class="history-chips">
+        <view class="history-chip" wx:for="{{searchHistory}}" wx:key="*this"
+          data-q="{{item}}" bindtap="onHistoryTap">{{item}} ✕</view>
+        <view class="history-clear" bindtap="onClearHistory">清空</view>
+      </view>
+    </view>
+
+    <view class="hot-block">
+      <text class="block-title">热门 Token</text>
+      <view class="hot-list">
+        <view class="hot-chip" wx:for="{{hotTokens}}" wx:key="name"
+          data-token="{{item}}" bindtap="onSelectSuggestion">
+          <view class="hot-color color-{{item.color}}"></view>
+          <text>{{item.icon}} {{item.name}}</text>
+        </view>
       </view>
     </view>
   </view>
