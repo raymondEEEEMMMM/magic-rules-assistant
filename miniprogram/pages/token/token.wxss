@@ -205,3 +205,19 @@ page { background: var(--bg-page); }
 .hot-color.color-R { background: var(--color-red); }
 .hot-color.color-G { background: var(--color-green); }
 .hot-color.color-C { background: var(--text-muted); }
+
+/* P5 emoji cleanup: 替换 ✕ 🃏 颜色 emoji */
+.chip { display: inline-flex; align-items: center; }
+.chip-dot { width: 16rpx; height: 16rpx; min-width: 16rpx; min-height: 16rpx; border-radius: 50%; display: inline-block; vertical-align: middle; margin-right: 8rpx; }
+.chip-dot.color-W { background: var(--color-white); border: 1rpx solid var(--border-default); }
+.chip-dot.color-U { background: var(--color-blue); }
+.chip-dot.color-B { background: var(--color-black); }
+.chip-dot.color-R { background: var(--color-red); }
+.chip-dot.color-G { background: var(--color-green); }
+.chip-dot.color-C { background: var(--text-muted); }
+.close-mini { width: 16rpx; height: 16rpx; min-width: 16rpx; min-height: 16rpx; background-size: contain; background-position: center; background-repeat: no-repeat; opacity: 0.7; }
+.close-tiny { width: 16rpx; height: 16rpx; min-width: 16rpx; min-height: 16rpx; display: inline-block; vertical-align: middle; margin-left: 6rpx; background-size: contain; background-position: center; background-repeat: no-repeat; opacity: 0.5; }
+.history-chip { display: inline-flex; align-items: center; gap: 4rpx; }
+.copy-result-placeholder { background-size: 40rpx 40rpx; background-position: center; background-repeat: no-repeat; }
+.icon-bg-close { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTk5OTkiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48bGluZSB4MT0iMTgiIHkxPSI2IiB4Mj0iNiIgeTI9IjE4Ii8+PGxpbmUgeDE9IjYiIHkxPSI2IiB4Mj0iMTgiIHkyPSIxOCIvPjwvc3ZnPg=="); }
+.icon-bg-card { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTk5OTkiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIi8+PHBhdGggZD0iTTkgOWg2djZIOXoiLz48L3N2Zz4="); }

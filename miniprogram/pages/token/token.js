@@ -467,7 +467,6 @@ Page({
       color: 'C',
       power: parseInt(item.power) || 0,
       toughness: parseInt(item.toughness) || 0,
-      icon: '🃏',
       colorName: '无色'
     }
 

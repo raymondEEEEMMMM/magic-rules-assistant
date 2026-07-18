@@ -17,7 +17,9 @@
       bindconfirm="onSearchConfirm"
       value="{{searchQuery}}"
     />
-    <view wx:if="{{searchQuery}}" class="search-clear" bindtap="onClearSearch">✕</view>
+    <view wx:if="{{searchQuery}}" class="search-clear" bindtap="onClearSearch">
+      <view class="close-mini icon-bg-close"></view>
+    </view>
   </view>
 
   <text wx:if="{{showHint}}" class="search-hint">支持：中文 / 英文 / 拼音首字母 / 英文首字母</text>
@@ -25,12 +27,30 @@
   <!-- 颜色筛选 chips -->
   <scroll-view wx:if="{{!showSearchResults}}" class="color-chips" scroll-x enable-flex>
     <view class="chip {{selectedColorFilter === 'all' ? 'chip-active' : ''}}" data-color="all" bindtap="onFilterColor">全部 {{totalCount}}</view>
-    <view class="chip {{selectedColorFilter === 'W' ? 'chip-active chip-W' : ''}}" data-color="W" bindtap="onFilterColor">⚪ 白 {{groupCounts.W || 0}}</view>
-    <view class="chip {{selectedColorFilter === 'U' ? 'chip-active chip-U' : ''}}" data-color="U" bindtap="onFilterColor">🔵 蓝 {{groupCounts.U || 0}}</view>
-    <view class="chip {{selectedColorFilter === 'B' ? 'chip-active chip-B' : ''}}" data-color="B" bindtap="onFilterColor">⚫ 黑 {{groupCounts.B || 0}}</view>
-    <view class="chip {{selectedColorFilter === 'R' ? 'chip-active chip-R' : ''}}" data-color="R" bindtap="onFilterColor">🔴 红 {{groupCounts.R || 0}}</view>
-    <view class="chip {{selectedColorFilter === 'G' ? 'chip-active chip-G' : ''}}" data-color="G" bindtap="onFilterColor">🟢 绿 {{groupCounts.G || 0}}</view>
-    <view class="chip {{selectedColorFilter === 'C' ? 'chip-active chip-C' : ''}}" data-color="C" bindtap="onFilterColor">⚪ 无 {{groupCounts.C || 0}}</view>
+    <view class="chip {{selectedColorFilter === 'W' ? 'chip-active chip-W' : ''}}" data-color="W" bindtap="onFilterColor">
+      <view class="chip-dot color-W"></view>
+      白 {{groupCounts.W || 0}}
+    </view>
+    <view class="chip {{selectedColorFilter === 'U' ? 'chip-active chip-U' : ''}}" data-color="U" bindtap="onFilterColor">
+      <view class="chip-dot color-U"></view>
+      蓝 {{groupCounts.U || 0}}
+    </view>
+    <view class="chip {{selectedColorFilter === 'B' ? 'chip-active chip-B' : ''}}" data-color="B" bindtap="onFilterColor">
+      <view class="chip-dot color-B"></view>
+      黑 {{groupCounts.B || 0}}
+    </view>
+    <view class="chip {{selectedColorFilter === 'R' ? 'chip-active chip-R' : ''}}" data-color="R" bindtap="onFilterColor">
+      <view class="chip-dot color-R"></view>
+      红 {{groupCounts.R || 0}}
+    </view>
+    <view class="chip {{selectedColorFilter === 'G' ? 'chip-active chip-G' : ''}}" data-color="G" bindtap="onFilterColor">
+      <view class="chip-dot color-G"></view>
+      绿 {{groupCounts.G || 0}}
+    </view>
+    <view class="chip {{selectedColorFilter === 'C' ? 'chip-active chip-C' : ''}}" data-color="C" bindtap="onFilterColor">
+      <view class="chip-dot color-C"></view>
+      无 {{groupCounts.C || 0}}
+    </view>
   </scroll-view>
 
   <!-- 建议下拉 -->
@@ -75,7 +95,10 @@
       <text class="block-title">最近搜索</text>
       <view class="history-chips">
         <view class="history-chip" wx:for="{{searchHistory}}" wx:key="*this"
-          data-q="{{item}}" bindtap="onHistoryTap">{{item}} ✕</view>
+          data-q="{{item}}" bindtap="onHistoryTap">
+          <text>{{item}}</text>
+          <view class="close-tiny icon-bg-close"></view>
+        </view>
         <view class="history-clear" bindtap="onClearHistory">清空</view>
       </view>
     </view>
@@ -217,7 +240,9 @@
         </view>
       </view>
 
-      <view class="modal-close modal-close-floating" bindtap="closeModal">✕</view>
+      <view class="modal-close modal-close-floating" bindtap="closeModal">
+        <view class="close-mini icon-bg-close"></view>
+      </view>
     </view>
   </view>
 
@@ -250,14 +275,16 @@
           data-card="{{item}}"
         >
           <image class="copy-result-img" src="{{item.zhs_image_uris.small || item.image_uris.small}}" mode="aspectFit" wx:if="{{item.zhs_image_uris || item.image_uris}}" />
-          <view class="copy-result-placeholder" wx:else>🃏</view>
+          <view class="copy-result-placeholder icon-bg-card" wx:else></view>
           <view class="copy-result-info">
             <text class="copy-result-name">{{item.name}}</text>
             <text class="copy-result-set">{{item.set_name}}</text>
           </view>
         </view>
       </scroll-view>
-      <view class="modal-close modal-close-floating" bindtap="closeCopyModal">✕</view>
+      <view class="modal-close modal-close-floating" bindtap="closeCopyModal">
+        <view class="close-mini icon-bg-close"></view>
+      </view>
     </view>
   </view>
 </view>
