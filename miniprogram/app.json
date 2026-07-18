@@ -1,6 +1,9 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/mistake/index/index",
+    "pages/mistake/add/add",
+    "pages/mistake/detail/detail",
     "pages/dice/dice",
     "pages/token/token",
     "pages/token-generate/token-generate",
