@@ -323,6 +323,13 @@ Page({
     })
   },
 
+  // 跳转错题本页面
+  goToMistake() {
+    wx.navigateTo({
+      url: '/pages/mistake/index/index',
+    })
+  },
+
   // 跳转反馈页面
   goToFeedback() {
     wx.navigateTo({

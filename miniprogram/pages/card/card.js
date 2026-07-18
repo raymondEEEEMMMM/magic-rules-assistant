@@ -56,7 +56,6 @@ Page({
 
     // 如果有 id 参数，直接加载卡牌详情
     if (options.id) {
-<<<<<<< HEAD
       const id = decodeURIComponent(options.id)
       this.setData({ keyword: id })
       // 判断是关键词还是卡牌ID（UUID格式）
@@ -69,10 +68,6 @@ Page({
         console.log('CODEBUDDY_DEBUG card onLoad id is keyword, performing search')
         this.performApiSearch(id)
       }
-=======
-      this.setData({ keyword: decodeURIComponent(options.id) })
-      this.fetchCardDetail(options.id)
->>>>>>> dev
     } else {
     }
   },
@@ -373,16 +368,9 @@ Page({
             text: oracleText,
             textSegments: textSegments,
             enText: enText,
-<<<<<<< HEAD
             enTextSegments: enTextSegments,
             power: card.power || '',
             toughness: card.toughness || '',
-=======
-            oracle_text: oracleText,
-            flavor_text: card.flavor_text || '',
-            power: card.power !== undefined && card.power !== null ? card.power : '',
-            toughness: card.toughness !== undefined && card.toughness !== null ? card.toughness : '',
->>>>>>> dev
             setName: card.zhs_set_name || card.set_name || '',
             collectorNumber: card.collector_number || '',
             rarity: card.rarity || '',

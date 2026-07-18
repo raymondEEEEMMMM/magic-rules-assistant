@@ -8,7 +8,6 @@ page { background-color: var(--bg-page); color: var(--text-primary); }
 .brand-title { display: block; font-size: 56rpx; font-weight: 700; color: var(--text-primary); letter-spacing: -1rpx; }
 .brand-subtitle { display: block; font-size: 24rpx; color: var(--text-secondary); margin-top: 8rpx; }
 
-<<<<<<< HEAD
 /* Banner */
 .banner {
   position: relative;
@@ -1179,21 +1178,8 @@ page { background-color: var(--bg-page); color: var(--text-primary); }
 /* ==================== */
 /* P2: AI 裁判横幅 */
 /* ==================== */
-.ai-banner {
-  margin: 24rpx 32rpx;
-  background: var(--accent-dark);
-  color: var(--text-inverse);
-  border-radius: 20rpx;
-  padding: 24rpx;
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  box-shadow: var(--shadow-card);
-}
-=======
 /* AI Banner */
 .ai-banner { margin: 24rpx 32rpx; background: var(--accent-dark); color: var(--text-inverse); border-radius: 20rpx; padding: 24rpx; display: flex; align-items: center; gap: 20rpx; box-shadow: var(--shadow-card); }
->>>>>>> dev
 .ai-banner:active { opacity: 0.9; }
 .ai-icon-block { width: 72rpx; height: 72rpx; background: var(--accent-gold); border-radius: 16rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .ai-icon { width: 40rpx; height: 40rpx; }
@@ -1225,6 +1211,7 @@ page { background-color: var(--bg-page); color: var(--text-primary); }
 .tool-color-black { background-color: var(--color-black); }
 .tool-color-red { background-color: var(--color-red); }
 .tool-color-green { background-color: var(--color-green); }
+.tool-color-yellow { background-color: #FFE66D; }
 .tool-icon { width: 36rpx; height: 36rpx; }
 .tool-icon-bg {
   background-size: 36rpx 36rpx;
@@ -1326,6 +1313,7 @@ page { background-color: var(--bg-page); color: var(--text-primary); }
 .icon-bg-deck { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNNCAxOS41QTIuNSAyLjUgMCAwIDEgNi41IDE3SDIwIi8+PHBhdGggZD0iTTYuNSAySDIwdjIwSDYuNUEyLjUgMi41IDAgMCAxIDQgMTkuNXYtMTVBMi41IDIuNSAwIDAgMSA2LjUgMnoiLz48L3N2Zz4"); }
 .icon-bg-heart { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMjAuODQgNC42MWE1LjUgNS41IDAgMCAwLTcuNzggMEwxMiA1LjY3bC0xLjA2LTEuMDZhNS41IDUuNSAwIDAgMC03Ljc4IDcuNzhsMS4wNiAxLjA2TDEyIDIxLjIzbDcuNzgtNy43OCAxLjA2LTEuMDZhNS41IDUuNSAwIDAgMCAwLTcuNzh6Ii8+PC9zdmc+"); }
 .icon-bg-dice { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIi8+PGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjEuMiIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iOCIgcj0iMS4yIiBmaWxsPSIjZmZmZmZmIi8+PGNpcmNsZSBjeD0iOCIgY3k9IjE2IiByPSIxLjIiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxLjIiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxLjIiIGZpbGw9IiNmZmZmZmYiLz48L3N2Zz4"); }
+.icon-bg-mistake { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMyA2aDE4dj13aGl0ZS10cmFuc3BhcmVudCIvPjxwYXRoIGQ9Ik0xOCA2SDN2MTJIMTN2LTRoMnoiLz48cGF0aCBkPSJNOSA2SDF2MTJIOVY2aTR6Ii8+PHBhdGggZD0iTTExIDZoM3YxMmgtM3YtMTJ6Ii8+PHBhdGggZD0iTTE1IDZoM3YxMmgtM3YtMTJ6Ii8+PC9zdmc+"); }
 .icon-bg-chevron { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cG9seWxpbmUgcG9pbnRzPSI5IDE4IDE1IDEyIDkgNiIvPjwvc3ZnPg"); }
 
 /* Auto-generated promo icon (P5 fix) */

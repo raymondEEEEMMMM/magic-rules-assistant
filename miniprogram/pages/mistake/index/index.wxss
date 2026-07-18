@@ -1,0 +1,126 @@
+/* miniprogram/pages/mistake/index/index.wxss */
+.container {
+  min-height: 100vh;
+  background: #16213e;
+  padding: 20rpx;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+  overflow-x: auto;
+}
+
+.tab {
+  padding: 12rpx 24rpx;
+  border-radius: 32rpx;
+  background: #1a1a2e;
+  color: #888;
+  font-size: 26rpx;
+  white-space: nowrap;
+}
+
+.tab.active {
+  background: #4ECDC4;
+  color: #fff;
+}
+
+.record-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.record-item {
+  background: #1a1a2e;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  position: relative;
+}
+
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.record-title {
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 500;
+  flex: 1;
+}
+
+.record-type {
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  margin-left: 16rpx;
+}
+
+.type-operation { background: #FF6B6B; color: #fff; }
+.type-rule { background: #4ECDC4; color: #1a1a2e; }
+.type-miss_trigger { background: #FFE66D; color: #1a1a2e; }
+
+.record-meta {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 12rpx;
+}
+
+.record-time, .record-review {
+  color: #666;
+  font-size: 24rpx;
+}
+
+.record-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.card-tag {
+  background: #2a2a4e;
+  color: #aaa;
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.delete-btn {
+  position: absolute;
+  right: 24rpx;
+  bottom: 24rpx;
+  color: #FF6B6B;
+  font-size: 24rpx;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 120rpx 0;
+  color: #666;
+}
+
+.empty-hint {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 26rpx;
+}
+
+.fab {
+  position: fixed;
+  right: 40rpx;
+  bottom: 60rpx;
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: #4ECDC4;
+  color: #fff;
+  font-size: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 20rpx rgba(78,205,196,0.4);
+}

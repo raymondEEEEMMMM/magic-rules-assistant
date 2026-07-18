@@ -1,0 +1,37 @@
+<view class="container">
+  <!-- 筛选 Tab -->
+  <view class="filter-tabs">
+    <view class="tab {{filterType === 'all' ? 'active' : ''}}" data-type="all" bindtap="onFilterTap">全部</view>
+    <view class="tab {{filterType === 'operation' ? 'active' : ''}}" data-type="operation" bindtap="onFilterTap">操作失误</view>
+    <view class="tab {{filterType === 'rule' ? 'active' : ''}}" data-type="rule" bindtap="onFilterTap">规则</view>
+    <view class="tab {{filterType === 'miss_trigger' ? 'active' : ''}}" data-type="miss_trigger" bindtap="onFilterTap">Miss Trigger</view>
+  </view>
+
+  <!-- 列表 -->
+  <view class="record-list">
+    <block wx:for="{{filteredRecords}}" wx:key="id">
+      <view class="record-item" bindtap="onRecordTap" data-id="{{item.id}}">
+        <view class="record-header">
+          <text class="record-title">{{item.title || '无标题'}}</text>
+          <text class="record-type type-{{item.type}}">{{item.type === 'operation' ? '操作失误' : item.type === 'rule' ? '规则' : 'Miss Trigger'}}</text>
+        </view>
+        <view class="record-meta">
+          <text class="record-time">{{formatTime(item.created_at)}}</text>
+          <text class="record-review" wx:if="{{item.review_count > 0}}">复习 {{item.review_count}} 次</text>
+        </view>
+        <view class="record-cards" wx:if="{{item.cards.length > 0}}">
+          <text wx:for="{{item.cards}}" wx:for-item="card" wx:key="{{card}}" class="card-tag">{{card}}</text>
+        </view>
+        <view class="delete-btn" catchtap="onDeleteTap" data-id="{{item.id}}">删除</view>
+      </view>
+    </block>
+
+    <view class="empty-state" wx:if="{{filteredRecords.length === 0}}">
+      <text>暂无记录</text>
+      <text class="empty-hint">点击右下角按钮添加</text>
+    </view>
+  </view>
+
+  <!-- 悬浮添加按钮 -->
+  <view class="fab" bindtap="onAddTap">+</view>
+</view>

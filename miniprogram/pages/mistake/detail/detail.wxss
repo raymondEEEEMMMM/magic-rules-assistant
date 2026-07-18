@@ -1,0 +1,109 @@
+/* miniprogram/pages/mistake/detail/detail.wxss */
+.container {
+  min-height: 100vh;
+  background: #16213e;
+  padding: 24rpx;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.record-type {
+  font-size: 24rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 24rpx;
+}
+
+.type-operation { background: #FF6B6B; color: #fff; }
+.type-rule { background: #4ECDC4; color: #1a1a2e; }
+.type-miss_trigger { background: #FFE66D; color: #1a1a2e; }
+
+.record-time {
+  color: #666;
+  font-size: 24rpx;
+}
+
+.title {
+  color: #fff;
+  font-size: 36rpx;
+  font-weight: 600;
+  margin-bottom: 32rpx;
+}
+
+.cards-section {
+  margin-bottom: 32rpx;
+}
+
+.cards-label {
+  color: #666;
+  font-size: 24rpx;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.card-tag {
+  background: #2a2a4e;
+  color: #aaa;
+  font-size: 26rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+}
+
+.content-section {
+  background: #1a1a2e;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 32rpx;
+}
+
+.content {
+  color: #ccc;
+  font-size: 28rpx;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.stats {
+  display: flex;
+  gap: 32rpx;
+  margin-bottom: 40rpx;
+}
+
+.stats text {
+  color: #666;
+  font-size: 24rpx;
+}
+
+.actions {
+  display: flex;
+  gap: 24rpx;
+}
+
+.action-btn {
+  flex: 1;
+  text-align: center;
+  padding: 28rpx 0;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+}
+
+.review-btn {
+  background: #4ECDC4;
+  color: #fff;
+}
+
+.delete-btn {
+  background: #1a1a2e;
+  color: #FF6B6B;
+  border: 1rpx solid #FF6B6B;
+}

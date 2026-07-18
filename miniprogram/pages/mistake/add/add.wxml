@@ -1,0 +1,36 @@
+<view class="container">
+  <view class="section">
+    <view class="section-title">问题类型</view>
+    <view class="type-buttons">
+      <view class="type-btn {{selectedType === 'operation' ? 'active' : ''}}" data-type="operation" bindtap="onTypeSelect">操作失误</view>
+      <view class="type-btn {{selectedType === 'rule' ? 'active' : ''}}" data-type="rule" bindtap="onTypeSelect">规则 Q&A</view>
+      <view class="type-btn {{selectedType === 'miss_trigger' ? 'active' : ''}}" data-type="miss_trigger" bindtap="onTypeSelect">Miss Trigger</view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">涉及牌名（可选）</view>
+    <view class="card-input-row">
+      <input class="card-input" value="{{cardInput}}" placeholder="输入牌名后点添加" bindinput="onCardInput" />
+      <view class="add-card-btn" bindtap="onAddCard">添加</view>
+    </view>
+    <view class="card-list" wx:if="{{cards.length > 0}}">
+      <view wx:for="{{cards}}" wx:key="{{item}}" class="card-chip">
+        <text>{{item}}</text>
+        <text class="remove-btn" data-index="{{index}}" bindtap="onRemoveCard">×</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">一句话描述</view>
+    <input class="title-input" value="{{title}}" placeholder="简要描述问题" bindinput="onTitleInput" maxlength="50" />
+  </view>
+
+  <view class="section">
+    <view class="section-title">详细记录</view>
+    <textarea class="content-input" value="{{content}}" placeholder="描述对局情况、你的理解和反思..." bindinput="onContentInput" maxlength="1000" />
+  </view>
+
+  <view class="save-btn" bindtap="onSave">保存记录</view>
+</view>
