@@ -6,7 +6,7 @@
 
   <!-- 无卡图提示 -->
   <view wx:if="{{!card}}" class="empty-card">
-    <view class="empty-icon">🃏</view>
+    <view class="empty-icon icon-bg-card"></view>
     <text class="empty-text">未选择卡牌</text>
     <text class="empty-desc">请先从 Token 列表选择一张 Token</text>
   </view>
