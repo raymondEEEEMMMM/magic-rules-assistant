@@ -242,6 +242,7 @@ module.exports = {
           <text class="ruling-text">{{item.comment}}</text>
         </view>
       </view>
+    </view>
 
     <view class="card-actions">
       <view class="action-btn" bindtap="onShare">分享</view>
