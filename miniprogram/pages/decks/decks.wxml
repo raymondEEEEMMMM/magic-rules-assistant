@@ -18,7 +18,10 @@
         <text class="deck-name">{{item.name}}</text>
         <view class="deck-tags">
           <text class="deck-tag format">{{item.format || '其他'}}</text>
-          <text wx:if="{{item.commander}}" class="deck-tag commander">⌘ {{item.commander}}</text>
+          <view wx:if="{{item.commander}}" class="deck-tag commander">
+            <view class="commander-icon icon-bg-command"></view>
+            <text>{{item.commander}}</text>
+          </view>
         </view>
         <view class="deck-meta">
           <text class="deck-count">{{item.totalCards || 0}} 张</text>
@@ -42,7 +45,9 @@
     <view class="modal-content" catchtap="catchInner">
       <view class="modal-header">
         <text class="modal-title">导入套牌</text>
-        <view class="modal-close" bindtap="closeImport">✕</view>
+        <view class="modal-close" bindtap="closeImport">
+          <view class="close-mini icon-bg-close"></view>
+        </view>
       </view>
 
       <!-- 名称输入 -->
@@ -170,7 +175,9 @@
     <view class="modal-content modal-large" catchtap="catchInner" wx:if="{{selectedDeck}}">
       <view class="modal-header">
         <text class="modal-title">{{selectedDeck.name}}</text>
-        <view class="modal-close" bindtap="closeDeckPreview">✕</view>
+        <view class="modal-close" bindtap="closeDeckPreview">
+          <view class="close-mini icon-bg-close"></view>
+        </view>
       </view>
 
       <view class="deck-detail-meta">
