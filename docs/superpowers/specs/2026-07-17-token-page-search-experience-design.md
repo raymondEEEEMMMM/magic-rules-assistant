@@ -96,7 +96,7 @@ Treasure (英文首字母)
 ```js
 const pinyinMap = {
   '珍宝':   'zb',
-  '复制品': 'zfp',
+  '复制品': 'fzp',
   '士兵':   'sb',
   '天使':   'ts',
   '鬼怪':   'gg',
