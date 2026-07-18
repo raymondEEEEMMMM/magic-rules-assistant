@@ -94,76 +94,107 @@ Treasure (英文首字母)
 ### 3.1 拼音映射表（pre-generated）
 
 ```js
+// 拼音映射（首字母 + 全拼前 3 字符）
+// 匹配策略：input 同时匹配 initial.startsWith() 和 full.startsWith()
 const pinyinMap = {
   // 万能 / 无色
-  '珍宝':     'zb',    // 珍宝
-  '复制品':   'fzp',   // 复制品
-  '组构体':   'zgzt',  // 组构体
-  '衍生':     'ys',    // 衍生
+  '珍宝':     { initial: 'zb',  full: 'zhen'   },
+  '复制品':   { initial: 'fzp', full: 'fuzhi'  },
+  '组构体':   { initial: 'zgzt',full: 'zugo'   },
+  '衍生':     { initial: 'ys',  full: 'yans'   },
   // 白 (W)
-  '士兵':     'sb',    // 士兵
-  '天使':     'ts',    // 天使
-  '猫':       'm',     // 猫
-  '狗':       'g',     // 狗
-  '人类':     'rl',    // 人类
-  '僧侣':     'sl',    // 僧侣
-  '骑士':     'qs',    // 骑士
-  '狮鹫':     'sy',    // 狮鹫
-  '精怪':     'jg',    // 精怪
+  '士兵':     { initial: 'sb',  full: 'shib'   },
+  '天使':     { initial: 'ts',  full: 'tian'   },
+  '猫':       { initial: 'm',   full: 'mao'    },
+  '狗':       { initial: 'g',   full: 'gou'    },
+  '人类':     { initial: 'rl',  full: 'renl'   },
+  '僧侣':     { initial: 'sl',  full: 'seng'   },
+  '骑士':     { initial: 'qs',  full: 'qish'   },
+  '狮鹫':     { initial: 'sy',  full: 'shij'   },
+  '精怪':     { initial: 'jg',  full: 'jing'   },
   // 蓝 (U)
-  '精灵':     'jl',    // 精灵
-  '龙兽':     'll',    // 龙兽
-  '虚影':     'xy',    // 虚影
-  '维多肯':   'wdk',   // 维多肯
-  '法师':     'fs',    // 法师
-  '螃蟹':     'px',    // 螃蟹
-  '蛇':       's',     // 蛇
-  '海怪':     'hg',    // 海怪
+  '精灵':     { initial: 'jl',  full: 'jing'   },
+  '龙兽':     { initial: 'll',  full: 'long'   },
+  '虚影':     { initial: 'xy',  full: 'xuyi'   },
+  '维多肯':   { initial: 'wdk', full: 'weid'   },
+  '法师':     { initial: 'fs',  full: 'fash'   },
+  '螃蟹':     { initial: 'px',  full: 'pang'   },
+  '蛇':       { initial: 's',   full: 'she'    },
+  '海怪':     { initial: 'hg',  full: 'haig'   },
   // 黑 (B)
-  '灵俑':     'ly',    // 灵俑
-  '鬼怪':     'gg',    // 鬼怪
-  '吸血鬼':   'xxg',   // 吸血鬼
-  '蝙蝠':     'bf',    // 蝙蝠
-  '骷髅':     'kl',    // 骷髅
-  '恶魔':     'em',    // 恶魔
-  '恐惧':     'kj',    // 恐惧
-  '老鼠':     'ls',    // 老鼠
-  '阴影':     'yy',    // 阴影
-  '幽灵':     'yl',    // 幽灵
+  '灵俑':     { initial: 'ly',  full: 'ling'   },
+  '鬼怪':     { initial: 'gg',  full: 'guig'   },
+  '吸血鬼':   { initial: 'xxg', full: 'xixu'   },
+  '蝙蝠':     { initial: 'bf',  full: 'bian'   },
+  '骷髅':     { initial: 'kl',  full: 'kul'    },
+  '恶魔':     { initial: 'em',  full: 'emo'    },
+  '恐惧':     { initial: 'kj',  full: 'kong'   },
+  '老鼠':     { initial: 'ls',  full: 'laos'   },
+  '阴影':     { initial: 'yy',  full: 'yiny'   },
+  '幽灵':     { initial: 'yl',  full: 'youl'   },
   // 红 (R)
-  '野狼':     'yl',    // 野狼
-  '蜥蜴':     'xy',    // 蜥蜴
-  '地精':     'dj',    // 地精
-  '鬼怪':     'gg',    // 鬼怪
-  '元素':     'ys',    // 元素
-  '龙':       'l',     // 龙
-  '巨魔':     'jm',    // 巨魔
-  '食人魔':   'srm',   // 食人魔
-  '火焰':     'hy',    // 火焰
-  '半兽人':   'brl',   // 半兽人
-  '食人魔':   'srm',   // 食人魔
+  '野狼':     { initial: 'yl',  full: 'yela'   },
+  '蜥蜴':     { initial: 'xy',  full: 'xiyi'   },
+  '地精':     { initial: 'dj',  full: 'diji'   },
+  '元素':     { initial: 'ys',  full: 'yuas'   },
+  '龙':       { initial: 'l',   full: 'long'   },
+  '巨魔':     { initial: 'jm',  full: 'jumo'   },
+  '食人魔':   { initial: 'srm', full: 'shir'   },
+  '火焰':     { initial: 'hy',  full: 'huoy'   },
+  '半兽人':   { initial: 'brl', full: 'banr'   },
   // 绿 (G)
-  '树妖':     'sy',    // 树妖
-  '狼':       'l',     // 狼
-  '昆虫':     'kc',    // 昆虫
-  '熊':       'x',     // 熊
-  '象':       'x',     // 象
-  '蛇颈龙':   'sjl',   // 蛇颈龙
-  '植物':     'zw',    // 植物
-  '蛇':       's',     // 蛇
-  '狼':       'l',     // 狼
-  '鹿':       'l',     // 鹿
-  '犀牛':     'xn',    // 犀牛
-  '变形兽':   'bx',    // 变形兽
-  '藤蔓':     'tm',    // 藤蔓
-  '甲虫':     'jc',    // 甲虫
-  '德鲁伊':   'dly'    // 德鲁伊
+  '树妖':     { initial: 'sy',  full: 'shuy'   },
+  '狼':       { initial: 'l',   full: 'lang'   },
+  '昆虫':     { initial: 'kc',  full: 'kunc'   },
+  '熊':       { initial: 'x',   full: 'xion'   },
+  '象':       { initial: 'x',   full: 'xian'   },
+  '蛇颈龙':   { initial: 'sjl', full: 'shej'   },
+  '植物':     { initial: 'zw',  full: 'zhiw'   },
+  '鹿':       { initial: 'l',   full: 'lu'     },
+  '犀牛':     { initial: 'xn',  full: 'xini'   },
+  '变形兽':   { initial: 'bx',  full: 'bian'   },
+  '藤蔓':     { initial: 'tm',  full: 'tenm'   },
+  '甲虫':     { initial: 'jc',  full: 'jiac'   },
+  '德鲁伊':   { initial: 'dly', full: 'delu'   }
 }
 ```
 
-覆盖 Standard/Modern/Legacy/EDH 赛制常用 token。注意：
-- 同音字（鬼怪 gg、阴影 yy、蛇 s、狼 l、龙 l）会有冲突，按 spec 算法 `startsWith` 仍正确匹配
-- 短首字母（m/g/s/l）会误匹配其他单字 token（少数情况可接受）
+### 匹配算法（C 方案）
+
+```js
+function matchPinyin(t, query) {
+  const py = pinyinMap[t.name]
+  if (!py) return false
+  return py.initial.startsWith(query) || py.full.startsWith(query)
+}
+
+onTokenSearch(query) {
+  query = (query || '').toLowerCase().trim()
+  if (!query) {
+    this.setData({ showSuggestions: false, filteredSuggestions: [] })
+    return
+  }
+  const all = Object.values(this.data.tokenGroups).flatMap(g => g.tokens)
+  const matches = all.filter(t => {
+    if (t.name.toLowerCase().includes(query)) return true        // 中文包含
+    if (t.enName.toLowerCase().includes(query)) return true      // 英文包含
+    if (t.enName.toLowerCase().startsWith(query)) return true    // 英文首字母
+    return matchPinyin(t, query)                                // 拼音（首字母 + 全拼）
+  })
+  this.setData({ filteredSuggestions: matches.slice(0, 5), showSuggestions: matches.length > 0 })
+}
+```
+
+**举例**：
+- 输入 `gui` → 鬼怪（gg 不匹配，但 `guig` 匹配 full）
+- 输入 `gg` → 鬼怪（initial 匹配）
+- 输入 `g` → 狗（initial g）+ 鬼怪（gg 匹配 initial）+ 维多肯（wdk 不匹配）+ 鸽/狗等多匹配
+- 输入 `she` → 蛇（full she 匹配）+ 蛇颈龙（full shej 匹配）
+
+**已知同音字**（按 OR 过滤会全部返回，可接受）：
+- `gg` → 鬼怪、桂冠（如果有）
+- `l` → 龙、狼、鹿（按全拼 long/lang/lu 进一步区分）
+- `s` → 蛇、狮、鼠（按全拼 she/shi/shu 区分）
 
 ### 3.2 新增 data 字段
 
