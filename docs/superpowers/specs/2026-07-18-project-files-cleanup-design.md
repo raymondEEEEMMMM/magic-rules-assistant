@@ -169,6 +169,7 @@ docs/screenshots/
   - promo/final.png
   - search/final.png、search/real.png
 - 2026-07-17:
+  - homepage/ai-zoom.png (原 ai-zoom.png)
   - homepage/full.png (原 index-full.png)
   - promo/zoom.png
   - token/v2.png
