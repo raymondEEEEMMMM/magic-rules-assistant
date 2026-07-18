@@ -91,6 +91,18 @@
         </view>
         <view class="tool-chevron icon-bg-chevron"></view>
       </view>
+
+      <view class="tool-divider"></view>
+
+      <view class="tool-item" bindtap="goToMistake">
+        <view class="tool-icon-block tool-color-yellow icon-bg-mistake tool-icon-bg">
+        </view>
+        <view class="tool-info">
+          <text class="tool-name">错题本</text>
+          <text class="tool-desc">记录实战问题 · 复习强化</text>
+        </view>
+        <view class="tool-chevron icon-bg-chevron"></view>
+      </view>
     </view>
   </view>
 
