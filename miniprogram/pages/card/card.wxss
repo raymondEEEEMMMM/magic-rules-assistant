@@ -890,3 +890,9 @@ page { background: var(--bg-page); }
 .action-btn { flex: 1; background: var(--bg-card); color: var(--text-primary); border-radius: 16rpx; padding: 24rpx; text-align: center; font-size: 28rpx; box-shadow: var(--shadow-card); }
 .action-btn:active { opacity: 0.7; }
 >>>>>>> dev
+
+/* P5 emoji cleanup: 替换 🏠 🃏 emoji 为 SVG */
+.back-icon { width: 40rpx; height: 40rpx; min-width: 40rpx; min-height: 40rpx; background-size: contain; background-position: center; background-repeat: no-repeat; }
+.no-results-icon { width: 80rpx; height: 80rpx; min-width: 80rpx; min-height: 80rpx; opacity: 0.5; margin-bottom: 30rpx; background-size: contain; background-position: center; background-repeat: no-repeat; }
+.icon-bg-home { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmQ3MDAiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMyA5bDktNyA5IDd2MTFhMiAyIDAgMCAxLTIgMkg1YTIgMiAwIDAgMS0yLTJ6Ii8+PHBvbHlsaW5lIHBvaW50cz0iOSAyMiA5IDEyIDE1IDEyIDE1IDIyIi8+PC9zdmc+"); }
+.icon-bg-card { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTk5OTkiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIi8+PHBhdGggZD0iTTkgOWg2djZIOXoiLz48L3N2Zz4="); }

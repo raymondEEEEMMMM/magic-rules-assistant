@@ -11,7 +11,9 @@ module.exports = {
   <!-- 导航栏 -->
   <view class="nav-bar {{isLightTheme ? 'nav-bar-light' : ''}}">
     <view class="nav-left">
-      <view class="back-btn" bindtap="goToIndex">🏠</view>
+      <view class="back-btn" bindtap="goToIndex">
+        <view class="back-icon icon-bg-home"></view>
+      </view>
     </view>
     <view class="nav-title">
       <text>{{keyword || '卡牌查询'}}</text>
@@ -151,7 +153,7 @@ module.exports = {
 
   <!-- 无结果 -->
   <view class="no-results" wx:if="{{searchDone && filteredCards.length === 0 && cards.length === 0 && keyword}}">
-    <text class="no-results-icon">🃏</text>
+    <view class="no-results-icon icon-bg-card"></view>
     <text class="no-results-text">未找到卡牌「{{keyword}}」</text>
   </view>
 
