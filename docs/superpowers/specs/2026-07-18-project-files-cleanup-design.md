@@ -284,6 +284,10 @@ rm logs/ai_judge_20260317.log logs/ai_judge_20260330.log
 - **`docs/` 顶层结构重组**:不做。当前顶层已规范(`ARCHITECTURE*.md`、`INTERACTION_DESIGN.md` 等)。
 - **`.playwright-mcp/` 定期清理**:可通过系统 crontab(用户系统级配置)实现,本次 spec 不覆盖。
 - **空目录 `scripts/`、`data/` 的清理**:不属于本 spec。
+- **`miniprogram/images/user_avatar.png` + `user_avatar.avif` 孤儿资源清理**:发现这两个文件存在但代码零引用(`grep -rln "user_avatar" miniprogram/` 无输出)。本 spec 不处理,留作独立后续 PR(用户决定)。涉及文件:
+  - `miniprogram/images/user_avatar.png`
+  - `miniprogram/images/user_avatar.avif`
+  注意:`mtgask_logo.png` **必须保留**(`pages/agent/agent.js` + `pages/index/index.wxml` 正使用)。
 
 ---
 
