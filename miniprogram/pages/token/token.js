@@ -145,12 +145,18 @@ Page({
     selectedSetCode: 'all',
     showSetPicker: false,
     selectedCardIndex: 0,
-    isLoadingToken: false
+    isLoadingToken: false,
+    searchHistory: [],
+    showSuggestions: false,
+    filteredSuggestions: [],
+    showHint: false,
+    hotTokens: []
   },
 
   onLoad() {
     this.setData({ isLightTheme: app.globalData.isLightTheme })
     this.fetchTokenList()
+    this.loadSearchHistory()
   },
 
   onUnload() {
@@ -195,6 +201,7 @@ Page({
           totalCount: totalCount
         })
         this.recomputeFilteredGroup()
+        this.computeHotTokens()
       }
     }).catch(err => {
       console.error('fetchTokenList error', err)
@@ -410,46 +417,37 @@ Page({
     })
   },
 
-  // 搜索 Token
+  // P5.6: 搜索 Token（5 种匹配算法）
   onTokenSearch(e) {
-    const query = e.detail.value.trim()
-    this.setData({ searchQuery: query })
+    const query = (e.detail.value || '').toLowerCase().trim()
+    this.setData({ searchQuery: e.detail.value || '' })
 
     if (!query) {
-      this.setData({ showSearchResults: false, searchResults: [] })
+      this.setData({ showSuggestions: false, filteredSuggestions: [] })
       return
     }
 
-    this.setData({ isSearching: true, showSearchResults: true })
-
-    const searchName = encodeURIComponent(translateToEn(query))
-    wx.request({
-      url: `https://api.scryfall.com/cards/search?q=t:${searchName}%20is:token%20-s:fnm&unique=art&order=released`,
-      method: 'GET',
-      header: {
-        'User-Agent': 'mtgAsk-miniprogram/1.0 (https://github.com/raymondEEEEMMMM)',
-        'Accept': 'application/json'
-      },
-      success: res => {
-        if (res.data && res.data.data) {
-          const results = res.data.data.slice(0, 9).map(card => ({
-            name: card.name,
-            image: card.image_uris ? (card.image_uris.normal || card.image_uris.small) : null,
-            setName: card.set_name,
-            set: card.set,
-            power: card.power,
-            toughness: card.toughness
-          }))
-          this.setData({ searchResults: results, isSearching: false })
-        } else {
-          this.setData({ searchResults: [], isSearching: false })
-        }
-      },
-      fail: () => {
-        this.setData({ isSearching: false })
-        wx.showToast({ title: '网络错误', icon: 'none' })
-      }
+    const all = Object.values(this.data.tokenGroups).flatMap(g => g.tokens)
+    const matches = all.filter(t => {
+      // 1. 中文名包含
+      if (t.name && t.name.toLowerCase().includes(query)) return true
+      // 2. 英文名包含
+      if (t.enName && t.enName.toLowerCase().includes(query)) return true
+      // 3. 英文首字母
+      if (t.enName && t.enName.toLowerCase().startsWith(query)) return true
+      // 4. 拼音匹配（首字母 + 全拼前 3 字符）
+      const py = pinyinMap[t.name]
+      if (py && (py.initial.startsWith(query) || py.full.startsWith(query))) return true
+      return false
     })
+
+    this.setData({
+      filteredSuggestions: matches.slice(0, 5),
+      showSuggestions: matches.length > 0
+    })
+
+    // 有匹配时保存搜索历史
+    if (matches.length > 0) this.saveSearchHistory(query)
   },
 
   // 点击搜索结果直接选中
@@ -529,6 +527,92 @@ Page({
 
   closeCopyModal() {
     this.setData({ showCopyModal: false, copySearchQuery: '', copySearchResults: [] })
+  },
+
+  // P5.6: 加载搜索历史（localStorage）
+  loadSearchHistory() {
+    try {
+      const history = wx.getStorageSync('tokenSearchHistory') || []
+      this.setData({ searchHistory: history })
+    } catch (e) {
+      console.warn('loadSearchHistory failed', e)
+    }
+  },
+
+  // P5.6: 保存搜索历史（去重 + 最多 5 项 + 移到最前）
+  saveSearchHistory(query) {
+    if (!query) return
+    let history = this.data.searchHistory || []
+    history = [query, ...history.filter(q => q !== query)].slice(0, 5)
+    this.setData({ searchHistory: history })
+    try {
+      wx.setStorageSync('tokenSearchHistory', history)
+    } catch (e) {
+      console.warn('saveSearchHistory failed', e)
+    }
+  },
+
+  // P5.6: 清空历史
+  onClearHistory() {
+    this.setData({ searchHistory: [] })
+    try {
+      wx.removeStorageSync('tokenSearchHistory')
+    } catch (e) {
+      console.warn('onClearHistory failed', e)
+    }
+  },
+
+  // P5.6: 点击历史项 → 填入搜索框
+  onHistoryTap(e) {
+    const q = e.currentTarget.dataset.q
+    if (q) {
+      this.setData({ searchQuery: q })
+      this.onTokenSearch({ detail: { value: q } })
+    }
+  },
+
+  // P5.6: 搜索框聚焦 → 显示 hint
+  onSearchFocus() {
+    this.setData({ showHint: true })
+  },
+
+  // P5.6: 搜索框失焦 → 隐藏 hint（但保留建议下拉）
+  onSearchBlur() {
+    this.setData({ showHint: false })
+  },
+
+  // P5.6: 搜索确认（按回车）
+  onSearchConfirm(e) {
+    const q = (e.detail.value || '').trim()
+    if (q) this.saveSearchHistory(q)
+    this.setData({ showSuggestions: false, filteredSuggestions: [] })
+  },
+
+  // P5.6: 选择建议项 → 选中并关闭建议
+  onSelectSuggestion(e) {
+    const token = e.currentTarget.dataset.token
+    if (!token) return
+    if (this.data.searchQuery) this.saveSearchHistory(this.data.searchQuery)
+    this.setData({
+      showSuggestions: false,
+      filteredSuggestions: [],
+      searchQuery: '',
+      showHint: false
+    })
+    // 复用现有 selectToken 逻辑
+    this.selectToken({ currentTarget: { dataset: { token } } })
+  },
+
+  // P5.6: 计算热门 token（取每色一个，最多 6 个）
+  computeHotTokens() {
+    const all = Object.values(this.data.tokenGroups).flatMap(g => g.tokens)
+    const colorOrder = ['C', 'W', 'U', 'B', 'R', 'G']
+    const hot = []
+    colorOrder.forEach(color => {
+      const t = all.find(t => t.color === color)
+      if (t) hot.push(t)
+    })
+    this.setData({ hotTokens: hot.slice(0, 6) })
   },
 
   noop() {}
