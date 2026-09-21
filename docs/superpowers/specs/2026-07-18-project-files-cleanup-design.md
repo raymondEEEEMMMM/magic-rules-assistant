@@ -1,9 +1,28 @@
 # mtgAsk 项目文件整理 Design
 
-**Date**: 2026-07-18
-**Status**: Draft (pending user approval)
+**Date**: 2026-07-18（初版）/ 2026-09-21（更新）
+**Status**: Active — 部分已执行,本次重新激活补充清理
 **Owner**: 梁皓铭
-**Scope**: 仓库根目录、`.gitignore`、`docs/screenshots/`、`logs/`、`.playwright-mcp/`
+**Scope**: 仓库根目录、`.gitignore`、`docs/screenshots/`、`logs/`、`.playwright-mcp/`、`miniprogram/pages/_demo/`、Python 缓存
+
+---
+
+## Update Log
+
+### 2026-09-21 — 二次清理
+
+**触发原因**:`git status` 显示根目录仍有 `card-final.png` (372KB)、`token-p56.png` (324KB),且 `miniprogram/pages/_demo/`、本地 `__pycache__/` / `.pytest_cache/` / `docs/.DS_Store` 等残留未清理。
+
+**已确认旧 spec 已完成部分**(git 历史验证):
+- ✅ `9bb5233` — 归档主页测试截图到 docs/screenshots/homepage/ (4 个)
+- ✅ `c81badb` — 归档 dice/token/promo/search/tools 测试截图 (10 个)
+- ✅ `79468e6` — 添加 docs/screenshots/README.md 归档约定
+- ✅ `011a3b9` — .gitignore 添加 .playwright-mcp/ 和根目录 *.png 规则
+
+**本次新增清理项**:见 §8。
+
+**保留事项**:`miniprogram/images/user_avatar.png` + `.avif` 仍是孤儿资源,留作独立后续 PR(旧 spec §6 已记录)。
+
 
 ---
 
@@ -299,3 +318,94 @@ rm logs/ai_judge_20260317.log logs/ai_judge_20260330.log
 | `.DS_Store` 是否曾经 tracked? | `git ls-files docs/.DS_Store logs/.DS_Store` | 不阻塞(若是 tracked,commit 5 改用 `git rm --cached`) |
 | 确认 `index-full.png` 是主页全屏 | 用户已通过上面方案 §2.1 决定归入 `homepage/full.png` | 已解决 |
 | `ai-zoom.png` 是主页 AI 入口 | 用户已通过上面方案 §3.2 决定归入 `homepage/ai-zoom.png` | 已解决 |
+
+---
+
+## 8. 2026-09-21 二次清理(本次执行)
+
+### 8.1 新增清理清单
+
+| 路径 | 性质 | 体积 | 操作 |
+|------|------|------|------|
+| `card-final.png` | 根目录调试截图(2026-07-18 后新增,旧 spec 未列) | 372KB | 本地 `rm` |
+| `token-p56.png` | 根目录调试截图(同上) | 324KB | 本地 `rm` |
+| `miniprogram/pages/_demo/` | demo 占位组件(4 个空文件 + `.gitkeep`),零引用 | <4KB | 本地 `rm -rf` |
+| `docs/.DS_Store` | macOS 本地残留(已 gitignore,物理残留) | ~几KB | 本地 `rm` |
+| `__pycache__/` | Python 字节码缓存(已 gitignore,多处物理残留) | <1MB | 本地 `find ... -delete` |
+| `.pytest_cache/` | pytest 缓存(已 gitignore) | ~几KB | 本地 `rm -rf` |
+
+**保留(不动)**:
+- `.playwright-mcp/` — gitignore 已生效,物理存在但不进 git,清理它需要系统级配置(旧 spec §6 已记)
+- `functions/mtgAsk/vendor/` — 部署需要,git 故意跟踪
+- `venv/` — git 未跟踪,本地还需要用
+- `docs/screenshots/` — 旧 spec 已规范化
+- `logo/` — gitignore 已生效
+- `miniprogram/images/user_avatar.png` / `.avif` — 旧 spec §6 记为独立后续 PR,本次不动
+
+### 8.2 引用安全验证
+
+执行清理前已 grep 验证:
+- `_demo/` 在所有 `.js` / `.json` / `.wxml` / `.py` 中零引用(`miniprogram/app.json` 未注册)
+- `card-final.png` / `token-p56.png` 在所有 `.js` / `.json` / `.wxml` / `.py` / `.md` / `.yml` 中零引用
+- `git ls-files card-final.png token-p56.png` 返回空 —— 两个文件从未被 commit,仅物理存在
+
+### 8.3 实施步骤(1 个原子 commit)
+
+```bash
+# 根目录 PNG
+rm -f card-final.png token-p56.png
+
+# _demo 目录
+rm -rf miniprogram/pages/_demo/
+
+# Python 缓存(仅业务代码区域,venv/vendor 排除)
+find . -type d -name "__pycache__" \
+  -not -path "./venv/*" \
+  -not -path "./functions/mtgAsk/vendor/*" \
+  -exec rm -rf {} + 2>/dev/null || true
+
+# pytest 缓存
+rm -rf .pytest_cache/
+
+# .DS_Store 残留
+rm -f docs/.DS_Store logs/.DS_Store 2>/dev/null || true
+```
+
+提交粒度:本次清理项合并为 1 个 commit。执行步骤:
+
+```bash
+# 清理动作(见上)
+rm -f card-final.png token-p56.png
+rm -rf miniprogram/pages/_demo/
+find . -type d -name "__pycache__" \
+  -not -path "./venv/*" \
+  -not -path "./functions/mtgAsk/vendor/*" \
+  -exec rm -rf {} + 2>/dev/null || true
+rm -rf .pytest_cache/
+rm -f docs/.DS_Store logs/.DS_Store 2>/dev/null || true
+
+# 提交
+git add -A
+git status  # 确认本次 commit 只含清理动作(无新功能/重构混入)
+git commit -m "chore: 二次清理根目录调试产物和 demo 残留"
+```
+
+### 8.4 验收
+
+| ID | 描述 | 命令 | 通过标准 |
+|----|------|------|----------|
+| T1 | 根目录无 PNG | `ls *.png` | 无输出 |
+| T2 | `_demo/` 已删 | `ls miniprogram/pages/_demo/` | "No such file or directory" |
+| T3 | `.DS_Store` 物理删除 | `find docs/ logs/ -name ".DS_Store"` | 无输出 |
+| T4 | `__pycache__` 物理删除 | `find . -type d -name "__pycache__" -not -path "./venv/*" -not -path "./functions/mtgAsk/vendor/*"` | 无输出 |
+| T5 | `.pytest_cache` 已删 | `ls .pytest_cache` | "No such file or directory" |
+| T6 | 后端核心代码仍可编译 | `python -m py_compile functions/mtgAsk/backend/main.py functions/mtgAsk/index.py` | 无 syntax error |
+| T7 | git 工作区未引入误删 | `git status` | `git commit` 前 `git status` 中本次清理项已消失,且 **没有意外新增** 任何被跟踪文件(其他既有修改如 mistake 功能未提交改动不受此验收影响) |
+
+### 8.5 风险与缓解
+
+| 风险 | 概率 | 缓解 |
+|------|------|------|
+| `rm -rf` 误删业务文件 | 极低 | 已 grep 验证零引用;`miniprogram/pages/_demo/` 路径明确 |
+| `find ... -exec` 命中非预期目录 | 低 | 排除 `./venv/*` 和 `./functions/mtgAsk/vendor/*`,且 `__pycache__` 是 Python 自动生成的同名目录,模式唯一 |
+| 物理删除后本地调试需要重新生成缓存 | 极低 | `__pycache__` 由 Python 自动重建,无影响 |
