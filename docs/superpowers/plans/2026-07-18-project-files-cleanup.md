@@ -671,3 +671,212 @@ ls miniprogram/images/*.png
 - 空目录 `scripts/`、`data/` 清理(不属于本 spec)
 - `.playwright-mcp/` 内容清理(纯本地,通过系统 crontab 或手动清理)
 - 定期 cleanup.sh 脚本(YAGNI)
+
+---
+
+## 2026-09-21 二次清理更新(本计划增量任务)
+
+> 以下 Task 8–9 是对 spec §8 的实施。Task 0–7 是历史任务,不再执行。
+
+---
+
+## Task 8: 清理根目录调试产物和本地缓存
+
+**Files:**
+- Delete(本地 untracked): `card-final.png`, `token-p56.png`
+- Delete(目录): `miniprogram/pages/_demo/`
+- Delete(本地残留): `docs/.DS_Store`, `logs/.DS_Store`, `__pycache__/` (多处), `.pytest_cache/`
+
+- [ ] **Step 1: 验证清理对象存在且未被 git 跟踪**
+
+```bash
+cd /Users/lianghaoming/cbworkplace
+
+# 根目录 PNG 应该物理存在但 git 未跟踪
+ls -la card-final.png token-p56.png
+git ls-files card-final.png token-p56.png  # 预期:空输出
+```
+
+预期:`ls -la` 显示两个文件,`git ls-files` 空输出。若 `git ls-files` 有输出,**立即停止**并报告——可能 spec 描述与现实不符。
+
+- [ ] **Step 2: 验证 _demo 目录未被任何代码引用**
+
+```bash
+grep -r "_demo" miniprogram/app.json 2>&1
+ls miniprogram/pages/_demo/components/
+```
+
+预期:`grep` 无输出(未在 app.json 注册),`ls` 显示 `.gitkeep` + 4 个 demo 文件。若 grep 有输出或 app.json 有引用,**立即停止**。
+
+- [ ] **Step 3: 删除根目录 PNG 和 _demo 目录**
+
+```bash
+cd /Users/lianghaoming/cbworkplace
+rm -f card-final.png token-p56.png
+rm -rf miniprogram/pages/_demo/
+```
+
+- [ ] **Step 4: 验证 PNG 和 _demo 已删除**
+
+```bash
+ls *.png 2>&1
+ls miniprogram/pages/_demo/ 2>&1
+```
+
+预期输出(每个文件/目录都报"没有那个文件或目录"):
+```
+ls: *.png: No such file or directory
+ls: miniprogram/pages/_demo/: No such file or directory
+```
+
+- [ ] **Step 5: 删除 .DS_Store 残留**
+
+```bash
+cd /Users/lianghaoming/cbworkplace
+rm -f docs/.DS_Store logs/.DS_Store 2>/dev/null
+find docs logs -name ".DS_Store" 2>/dev/null | wc -l  # 预期:0
+```
+
+- [ ] **Step 6: 删除 Python 缓存(venv 和 vendor 排除)**
+
+```bash
+cd /Users/lianghaoming/cbworkplace
+
+# __pycache__ 物理删除
+find . -type d -name "__pycache__" \
+  -not -path "./venv/*" \
+  -not -path "./functions/mtgAsk/vendor/*" \
+  -exec rm -rf {} + 2>/dev/null
+
+# pytest 缓存
+rm -rf .pytest_cache/
+
+# 验证残留
+find . -type d -name "__pycache__" \
+  -not -path "./venv/*" \
+  -not -path "./functions/mtgAsk/vendor/*" 2>/dev/null | wc -l
+# 预期:0
+
+ls .pytest_cache/ 2>&1
+# 预期:ls: .pytest_cache: No such file or directory
+```
+
+- [ ] **Step 7: 验证后端核心代码仍可编译**
+
+```bash
+cd /Users/lianghaoming/cbworkplace
+python -m py_compile functions/mtgAsk/backend/main.py functions/mtgAsk/index.py
+echo "EXIT_CODE: $?"
+```
+
+预期:无输出,`EXIT_CODE: 0`(语法检查通过)。若有 `SyntaxError`,**立即停止**并报告。
+
+- [ ] **Step 8: git add + git status 预检**
+
+```bash
+cd /Users/lianghaoming/cbworkplace
+git add -A
+git status -s | head -30
+```
+
+预期:本任务没有 tracked 文件变化(因为清理的都是 untracked/本地残留),`git add -A` 不会新增任何内容。`git status -s` 应该只显示**清理前已有的未提交修改**(mistake book 功能的 22 个 M 文件),不会新增任何条目。
+
+**判定**:若 `git status -s` 出现新的 staged 条目(如 `A` 或 `D` 开头),说明清理命令误伤了 tracked 文件,**立即停止**并 `git reset` 回退。
+
+- [ ] **Step 9: 由于没有 tracked 文件变化,无需 commit**
+
+清理的都是 `git ls-files` 不返回的本地文件,所以本次清理**不会产生 commit**。
+
+但 spec §8 提到 `chore: 二次清理根目录调试产物和 demo 残留` 这个 commit 标签——这里需要明确:**若 .DS_Store 或 __pycache__ 中**有曾被 git 跟踪的意外文件**, 才需要 commit。本次清理没有触发该情况,故无 commit。
+
+验证命令:
+
+```bash
+git diff --cached --stat
+# 预期:无输出(无 staged 变更)
+git log -1 --oneline
+# 预期显示上一个 commit(spec 更新 44d17e0 或类似)
+```
+
+---
+
+## Task 9: §8 验收
+
+**Files:** none(只读验证)
+
+- [ ] **Step 1: 验收 - 根目录无 PNG**
+
+```bash
+ls /Users/lianghaoming/cbworkplace/*.png 2>&1
+```
+
+预期:`ls: /Users/lianghaoming/cbworkplace/*.png: No such file or directory`
+
+- [ ] **Step 2: 验收 - _demo 目录已删**
+
+```bash
+ls /Users/lianghaoming/cbworkplace/miniprogram/pages/_demo/ 2>&1
+```
+
+预期:`ls: ...: No such file or directory`
+
+- [ ] **Step 3: 验收 - Python 缓存清空**
+
+```bash
+cd /Users/lianghaoming/cbworkplace
+find . -type d -name "__pycache__" \
+  -not -path "./venv/*" \
+  -not -path "./functions/mtgAsk/vendor/*" 2>/dev/null | wc -l
+# 预期:0
+
+ls .pytest_cache/ 2>&1
+# 预期:No such file or directory
+```
+
+- [ ] **Step 4: 验收 - .DS_Store 清理**
+
+```bash
+find /Users/lianghaoming/cbworkplace/docs /Users/lianghaoming/cbworkplace/logs -name ".DS_Store" 2>/dev/null
+```
+
+预期:无输出。
+
+- [ ] **Step 5: 验收 - 后端核心代码编译通过**
+
+```bash
+cd /Users/lianghaoming/cbworkplace
+python -m py_compile functions/mtgAsk/backend/main.py functions/mtgAsk/index.py
+echo "EXIT: $?"
+```
+
+预期:`EXIT: 0`。
+
+- [ ] **Step 6: 验收 - git 工作区未引入新变更**
+
+```bash
+cd /Users/lianghaoming/cbworkplace
+git diff --cached --stat
+git status -s | wc -l
+```
+
+预期:
+- `git diff --cached --stat` 无输出(无 staged 变更)
+- `git status -s | wc -l` 等于清理**之前**的修改文件数(mistake book 功能的 22 个 M,加上 `?? docs/superpowers/plans/...` 等已有 untracked 数量,具体数字以清理前的基线为准)
+
+**判定**:若行数**比清理前增加**,说明清理误伤了 tracked 文件或产生了 untracked 新文件,需要回滚。
+
+---
+
+## §8 风险与回滚
+
+| 风险 | 概率 | 缓解/回滚 |
+|------|------|-----------|
+| `rm -rf _demo` 误删业务文件 | 极低 | 已 grep 验证零引用;若误删,`git status` 会显示路径(若曾经 tracked 用 `git checkout`;若未 tracked,本地无法恢复,需重写) |
+| `find ... -exec rm` 命中 venv/vendor | 极低 | 排除 `-not -path "./venv/*" -not -path "./functions/mtgAsk/vendor/*"` |
+| 清理前 git 已有 mistake 功能等未提交修改,导致 `git status` 验收数字难定 | 中 | Task 9 Step 6 改为对比清理**前后**的 `git status -s | wc -l`,而非绝对值 |
+
+## §8 范围之外(本计划不执行)
+
+- `miniprogram/images/user_avatar.{png,avif}` 孤儿资源清理(spec §6 记为独立 PR)
+- `.playwright-mcp/` 物理清理(已 gitignore,留作系统级管理)
+- `vendor/` / `venv/` 内容清理(本计划排除在外)
