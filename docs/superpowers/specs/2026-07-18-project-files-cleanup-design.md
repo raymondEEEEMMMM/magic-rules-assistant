@@ -329,7 +329,7 @@ rm logs/ai_judge_20260317.log logs/ai_judge_20260330.log
 |------|------|------|------|
 | `card-final.png` | 根目录调试截图(2026-07-18 后新增,旧 spec 未列) | 372KB | 本地 `rm` |
 | `token-p56.png` | 根目录调试截图(同上) | 324KB | 本地 `rm` |
-| `miniprogram/pages/_demo/` | demo 占位组件(4 个空文件 + `.gitkeep`),零引用 | <4KB | 本地 `rm -rf` |
+| ~~`miniprogram/pages/_demo/`~~ | **~~demo 占位组件~~** | <4KB | **❌ 不删除**——经实施时 `git ls-files` 验证,该目录下 5 个文件(`.gitkeep` + `components.{js,json,wxml,wxss}`)实际**已被 git tracked**,非 untracked 残留。详见 §8.6 修订记录 |
 | `docs/.DS_Store` | macOS 本地残留(已 gitignore,物理残留) | ~几KB | 本地 `rm` |
 | `__pycache__/` | Python 字节码缓存(已 gitignore,多处物理残留) | <1MB | 本地 `find ... -delete` |
 | `.pytest_cache/` | pytest 缓存(已 gitignore) | ~几KB | 本地 `rm -rf` |
@@ -409,3 +409,28 @@ git commit -m "chore: 二次清理根目录调试产物和 demo 残留"
 | `rm -rf` 误删业务文件 | 极低 | 已 grep 验证零引用;`miniprogram/pages/_demo/` 路径明确 |
 | `find ... -exec` 命中非预期目录 | 低 | 排除 `./venv/*` 和 `./functions/mtgAsk/vendor/*`,且 `__pycache__` 是 Python 自动生成的同名目录,模式唯一 |
 | 物理删除后本地调试需要重新生成缓存 | 极低 | `__pycache__` 由 Python 自动重建,无影响 |
+
+### 8.6 实施时修订记录
+
+**2026-09-21 — 移除 `_demo/` 清理项**
+
+原 spec §8.1 将 `miniprogram/pages/_demo/` 列为"demo 占位组件,零引用"应删除。Task 8 implementer 在执行前未对此做 `git ls-files` 验证,直接执行 `rm -rf` 后通过 Step 8 的 `git status` 预检发现:
+
+```
+$ git ls-files miniprogram/pages/_demo/components/
+miniprogram/pages/_demo/components/.gitkeep
+miniprogram/pages/_demo/components/components.js
+miniprogram/pages/_demo/components/components.json
+miniprogram/pages/_demo/components/components.wxml
+miniprogram/pages/_demo/components/components.wxss
+```
+
+**5 个文件全部 tracked**,删除会破坏 git 历史。Implementer 正确处理:
+- `git reset` 回退任何 staging
+- `git checkout HEAD -- miniprogram/pages/_demo/` 恢复 tracked 文件
+
+**修订决策**:`_demo/components/` 显然是历史留下的 demo/示例组件仓库,**不应删除**。原 spec §8.2 写的"零引用"指代码层面(无页面引用),但与"tracked vs untracked"是两个独立维度。本次 spec 修订:
+
+- 从 §8.1 清单移除 `miniprogram/pages/_demo/` 行
+- 保留该目录(留作未来可能的 demo 演示或独立 PR 决定其命运)
+- 教训:类似清理任务,执行前**必须**对每个目录 `git ls-files` 验证,而不是只 grep 代码引用
